@@ -75,4 +75,4 @@ QAG_MemBrain/
     └── legacy-references/
 ```
 
-See `/tmp/workspace/ingeniosity-A2A/QAG-MemBrain-/docs/architecture/specifications/repository-charter.md` for the authoritative charter details.
+See `docs/architecture/specifications/repository-charter.md` for the authoritative charter details.
