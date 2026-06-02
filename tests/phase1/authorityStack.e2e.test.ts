@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
@@ -36,6 +36,12 @@ describe("Phase 1 Authority Stack", () => {
 
     const appended = await appendAtom(ledgerPath, atom);
     expect(appended.hash.length).toBeGreaterThan(0);
+    expect(appended.atomHash.length).toBeGreaterThan(0);
+    expect(appended.proof).toEqual({
+      id: atom.id,
+      hash: appended.hash,
+      timestamp: atom.timestamp,
+    });
 
     const verified = await verifyAtom(ledgerPath, atom.id);
     expect(verified).toBe(true);
@@ -104,5 +110,48 @@ describe("Phase 1 Authority Stack", () => {
 
     await appendAtom(ledgerPath, atom);
     await expect(appendAtom(ledgerPath, atom)).rejects.toThrow(/append-only/);
+  });
+
+  it("rejects atoms that do not satisfy JSON schema", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "qag-membrain-"));
+    cleanupTargets.push(dir);
+    const ledgerPath = join(dir, "atoms.jsonl");
+
+    const invalidAtom = {
+      id: "mem-invalid-timestamp",
+      timestamp: "not-a-date",
+      actor: "agent:test",
+      type: "fact",
+      payload: { value: 1 },
+      metadata: {},
+    };
+
+    await expect(appendAtom(ledgerPath, invalidAtom)).rejects.toThrow(/schema validation failed/i);
+  });
+
+  it("detects tampering through hash verification", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "qag-membrain-"));
+    cleanupTargets.push(dir);
+    const ledgerPath = join(dir, "atoms.jsonl");
+
+    const atom = {
+      id: "mem-tamper-check",
+      timestamp: "2026-06-02T10:00:00.000Z",
+      actor: "agent:test",
+      type: "fact",
+      payload: { objective: "original" },
+      metadata: {},
+    };
+
+    await appendAtom(ledgerPath, atom);
+    const original = await verifyAtom(ledgerPath, atom.id);
+    expect(original).toBe(true);
+
+    const current = await readFile(ledgerPath, "utf8");
+    const tampered = current.replace("\"objective\":\"original\"", "\"objective\":\"tampered\"");
+    await writeFile(ledgerPath, tampered, "utf8");
+
+    const verifiedAfterTamper = await verifyAtom(ledgerPath, atom.id);
+    expect(verifiedAfterTamper).toBe(false);
   });
 });
