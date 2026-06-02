@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "rootDir": ".",
+    "outDir": "dist",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": [
+    "memory/**/*.ts",
+    "graph/**/*.ts",
+    "temporal/**/*.ts",
+    "audit/**/*.ts",
+    "consensus/**/*.ts",
+    "brain/**/*.ts",
+    "accelerators/**/*.ts",
+    "interfaces/**/*.ts",
+    "tests/**/*.ts"
+  ]
+}
