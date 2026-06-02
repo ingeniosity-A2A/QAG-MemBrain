@@ -3,7 +3,7 @@
 Reflex (on‑device), executive (cloud), and cortex (learning) layers.
 
 ## Subdirectories
-- `/reflex` – Gemma 2‑9B / GLM running on S25 Ultra NPU. Real‑time decisions.
+- `/reflex` – Gemma 2‑9B / GLM running on S25 Ultra NPU (Neural Processing Unit). Real‑time decisions.
 - `/executive` – Watsonx / larger Gemma in cloud. Planning, routing, identity.
 - `/cortex` – Learning engine. Reads telemetry, outputs new policies and embeddings.
 

@@ -3,7 +3,7 @@
 Surface packages (UI, runtime, external agents) interact with QAG_MemBrain through a clean REST + WebSocket API. All requests must be authenticated using DID signatures.
 
 ## Base URL
-Production: `https://membrain.ava-007.com/v1`  
+Production: `https://membrain.ava-007.com/v1` (example placeholder until the production domain is provisioned)  
 Local development: `http://localhost:8080/v1`
 
 ## Authentication
@@ -41,7 +41,7 @@ Response:
 
 ### Reconstruct state (recall)
 ```
-GET /recall?t=1717200000000&amp;memory_id=550e8400-...
+GET /recall?t=1717200000000&memory_id=550e8400-...
 ```
 Response:
 ```json
@@ -89,7 +89,7 @@ Messages are JSON objects:
 
 ### Retrieve audit log
 ```
-GET /audit?session_id=abc123&amp;limit=100
+GET /audit?session_id=abc123&limit=100
 ```
 Response:
 ```json

@@ -1,4 +1,4 @@
-# GSAP Temporal Orchestration (Layer 2)
+# GreenSock Animation Platform (GSAP) Temporal Orchestration (Layer 2)
 
 Deterministic timeline engine. Converts JSONL memories into tween atoms.
 

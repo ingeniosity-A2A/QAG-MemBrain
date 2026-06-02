@@ -9,7 +9,7 @@ Rust‑based DAG with gossip protocol, NAT punching, and DID signatures.
 
 ## Integration
 - Each vertex contains a signed JSONL line from `/memory/jsonl`.
-- Tashi runs as a sidecar binary (Rust) on S25 Ultra and cloud supernodes.
+- Tashi runs as a sidecar binary (Rust) on S25 Ultra (Samsung Galaxy S25 Ultra mobile device) and cloud supernodes.
 
 ## Key APIs (exposed to Go/Python via HTTP)
 - `POST /vertex` – Submit a new signed vertex.
