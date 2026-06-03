@@ -13,10 +13,10 @@ export class BasicGraphRag implements GraphRagInterface {
   constructor(private readonly repository: CognitiveGraphRepository) {}
 
   async collectContext(memoryId: string): Promise<GraphRagContext> {
-    const outgoing = await this.repository.getOutgoing(memoryId);
+    const context = await this.repository.getContext(memoryId);
     return {
       memoryId,
-      relatedNodeIds: outgoing.map((rel) => rel.toId),
+      relatedNodeIds: context.relatedNodeIds,
     };
   }
 }
