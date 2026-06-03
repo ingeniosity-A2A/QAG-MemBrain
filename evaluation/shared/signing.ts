@@ -1,5 +1,5 @@
-import { createHash, createPrivateKey, createPublicKey, sign as signBuffer, verify as verifyBuffer } from "node:crypto";
-import { getDefaultReplaySigner } from "../../authority/signing/signer.js";
+import { createHash, createPublicKey, verify as verifyBuffer } from "node:crypto";
+import { getDefaultAuthoritySigner } from "../../authority/signing/signer.js";
 import { loadAuthoritySignerRegistry } from "../../authority/signing/signerRegistry.js";
 
 export interface EvaluationSignature {
@@ -17,18 +17,17 @@ export function hashJson(value: unknown): string {
 }
 
 export function signEvaluationHash(hash: string): EvaluationSignature {
-  const signer = getDefaultReplaySigner();
-  const privateKey = createPrivateKey(signer.privateKey);
-  const signature = signBuffer(null, Buffer.from(hash, "utf8"), privateKey).toString("base64");
+  const signer = getDefaultAuthoritySigner();
+  const signature = signer.sign(Buffer.from(hash, "utf8"));
 
   return {
     algorithm: "ed25519",
-    authorityId: signer.authorityId,
-    signerId: signer.signerId,
+    authorityId: signer.getAuthorityId(),
+    signerId: signer.getSignerId(),
     signedAt: new Date().toISOString(),
     hash,
     signature,
-    publicKey: signer.publicKey,
+    publicKey: signer.getPublicKey(),
   };
 }
 
