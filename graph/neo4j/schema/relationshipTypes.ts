@@ -5,9 +5,14 @@ export const RELATIONSHIP_TYPES = [
   "REFERENCES",
   "SUPPORTS",
   "CONTRADICTS",
+  "REPLAYED",
+  "VERIFIED_BY",
+  "FAILED_BY",
 ] as const;
 
 export type Neo4jRelationshipType = (typeof RELATIONSHIP_TYPES)[number];
+
+export type ReplayRelationshipType = "REPLAYED" | "VERIFIED_BY" | "FAILED_BY";
 
 export interface CognitiveRelationship {
   fromId: string;

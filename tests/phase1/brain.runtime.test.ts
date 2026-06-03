@@ -97,5 +97,6 @@ describe("Brain runtime pipeline", () => {
     expect(records[0].executionPath).toEqual(["reflex", "executive"]);
     expect(records[0].lineageId).toBe(lineage.decisionId);
     expect(records[0].decisionHash).toBe(lineage.decisionHash);
+    expect(lineage.finalPolicyOutcome).toBe("allow");
   });
 });

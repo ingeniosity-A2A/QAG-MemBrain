@@ -12,6 +12,9 @@ describe("Lineage and audit integration", () => {
       memoryAtoms: ["m1", "m2"],
       graphNodes: ["node1", "node2"],
       policiesApplied: ["policy-immutability"],
+      policyRequestContext: {
+        memoryContext: ["m1", "m2"],
+      },
       timelineEvents: ["evt-1"],
       executivePlanId: "plan-77",
       executionPath: ["reflex", "executive"],
@@ -22,5 +25,10 @@ describe("Lineage and audit integration", () => {
     expect(records[0].lineageId).toBe(lineage.decisionId);
     expect(records[0].decisionHash).toBe(lineage.decisionHash);
     expect(records[0].memories).toEqual(["m1", "m2"]);
+    expect(lineage.policyEvaluations).toHaveLength(1);
+    expect(lineage.policyEvaluations[0].result).toBe("allow");
+    expect(lineage.policyResults).toContain("allow");
+    expect(lineage.policyEvidence).toContain("m1");
+    expect(lineage.finalPolicyOutcome).toBe("allow");
   });
 });

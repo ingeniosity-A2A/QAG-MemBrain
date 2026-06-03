@@ -1,8 +1,15 @@
+import { PolicyEvaluation, PolicyDecisionResult } from "../../policy/schemas/policyEvaluation.js";
+import { ResolutionOutcome } from "../../policy/precedence/policyPrecedence.js";
+
 export interface DecisionLineage {
   decisionId: string;
   memoryAtoms: string[];
   graphNodes: string[];
   policiesApplied: string[];
+  policyEvaluations: PolicyEvaluation[];
+  policyResults: PolicyDecisionResult[];
+  policyEvidence: string[];
+  finalPolicyOutcome: ResolutionOutcome;
   timelineEvents: string[];
   executivePlanId: string;
   decisionHash: string;
@@ -14,6 +21,10 @@ export interface DecisionLineageInput {
   memoryAtoms: string[];
   graphNodes: string[];
   policiesApplied: string[];
+  policyEvaluations?: PolicyEvaluation[];
+  policyResults?: PolicyDecisionResult[];
+  policyEvidence?: string[];
+  finalPolicyOutcome?: ResolutionOutcome;
   timelineEvents: string[];
   executivePlanId: string;
   timestamp?: string;

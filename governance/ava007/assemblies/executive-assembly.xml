@@ -5,5 +5,6 @@
   <include>policies/authority-order.xml</include>
   <include>policies/memory-integrity.xml</include>
   <include>policies/decision-lineage.xml</include>
+  <include>policies/authority-replay-policy.xml</include>
   <include>runtime/executive.xml</include>
 </assembly>

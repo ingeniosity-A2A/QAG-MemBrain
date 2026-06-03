@@ -1,6 +1,9 @@
 import { AuditEngine } from "../../audit/decisions/decisionRecord.js";
 import { DecisionLineageEngine } from "../../lineage/engine/decisionLineageEngine.js";
 import { DecisionLineage } from "../../lineage/schemas/decisionLineage.js";
+import { resolvePolicyOutcome } from "../../policy/precedence/policyPrecedence.js";
+import { PolicyResolutionEngine } from "../../policy/engine/policyResolutionEngine.js";
+import { PolicyEvaluation, PolicyRequestContext } from "../../policy/schemas/policyEvaluation.js";
 
 export interface ExecutiveRuntime {
   plan(goal: string, context: Record<string, unknown>): Promise<string[]>;
@@ -11,6 +14,7 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
   constructor(
     private readonly audit?: AuditEngine,
     private readonly lineageEngine: DecisionLineageEngine = new DecisionLineageEngine(),
+    private readonly policyEngine: PolicyResolutionEngine = new PolicyResolutionEngine(),
   ) {}
 
   async plan(goal: string, context: Record<string, unknown>): Promise<string[]> {
@@ -60,15 +64,28 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
     memoryAtoms: string[];
     graphNodes: string[];
     policiesApplied: string[];
+    policyRequestContext?: PolicyRequestContext;
+    policyEvaluations?: PolicyEvaluation[];
     timelineEvents: string[];
     executivePlanId: string;
     executionPath?: string[];
   }): DecisionLineage {
+    const policyEvaluations =
+      input.policyEvaluations ??
+      this.policyEngine.evaluate(input.policiesApplied, input.policyRequestContext ?? {});
+    const policyResults = policyEvaluations.map((evaluation) => evaluation.result);
+    const policyEvidence = [...new Set(policyEvaluations.flatMap((evaluation) => evaluation.evidence))];
+    const finalPolicyOutcome = resolvePolicyOutcome(policyEvaluations);
+
     const lineage = this.lineageEngine.createLineage({
       decisionId: input.decisionId,
       memoryAtoms: input.memoryAtoms,
       graphNodes: input.graphNodes,
       policiesApplied: input.policiesApplied,
+      policyEvaluations,
+      policyResults,
+      policyEvidence,
+      finalPolicyOutcome,
       timelineEvents: input.timelineEvents,
       executivePlanId: input.executivePlanId,
     });

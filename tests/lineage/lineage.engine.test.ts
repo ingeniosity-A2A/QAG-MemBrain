@@ -24,6 +24,7 @@ describe("Decision lineage engine", () => {
 
     expect(lineage.decisionId).toBe("decision-engine-1");
     expect(lineage.memoryAtoms).toEqual(["mem-1"]);
+    expect(lineage.finalPolicyOutcome).toBe("advisory");
     expect(engine.verifyLineage(lineage)).toBe(true);
   });
 

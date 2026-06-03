@@ -1,0 +1,25 @@
+export const AUTHORITY_REPLAY_FAILURES = {
+  HASH_MISMATCH: "HASH_MISMATCH",
+  POLICY_OUTCOME_MISMATCH: "POLICY_OUTCOME_MISMATCH",
+  MISSING_MEMORY_REFERENCE: "MISSING_MEMORY_REFERENCE",
+  MISSING_GRAPH_REFERENCE: "MISSING_GRAPH_REFERENCE",
+  MISSING_TIMELINE_REFERENCE: "MISSING_TIMELINE_REFERENCE",
+  MISSING_POLICY_REFERENCE: "MISSING_POLICY_REFERENCE",
+  INVALID_AUTHORITY_ORDER: "INVALID_AUTHORITY_ORDER",
+  LINEAGE_ID_MISMATCH: "LINEAGE_ID_MISMATCH",
+  DECISION_ID_MISMATCH: "DECISION_ID_MISMATCH",
+} as const;
+
+export type AuthorityReplayFailureReason =
+  (typeof AUTHORITY_REPLAY_FAILURES)[keyof typeof AUTHORITY_REPLAY_FAILURES];
+
+export interface AuthorityReplayResult {
+  decisionId: string;
+  lineageId: string;
+  hashMatch: boolean;
+  policyMatch: boolean;
+  referencesValid: boolean;
+  reconstructionMatch: boolean;
+  status: "VERIFIED" | "FAILED";
+  failures: AuthorityReplayFailureReason[];
+}

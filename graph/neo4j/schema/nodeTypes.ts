@@ -5,6 +5,7 @@ export const NODE_TYPES = [
   "Decision",
   "Session",
   "Document",
+  "Replay",
 ] as const;
 
 export type Neo4jNodeType = (typeof NODE_TYPES)[number];
