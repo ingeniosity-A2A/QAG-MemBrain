@@ -1,0 +1,1 @@
+{"layer":"operational","decisionTime":{"p50":0.004,"p95":0.007,"p99":0.014},"lineageTime":{"p50":0.061,"p95":0.1,"p99":0.146},"replayTime":{"p50":0.188,"p95":0.293,"p99":0.404},"graphTime":{"p50":0,"p95":0,"p99":0},"auditTime":{"p50":0,"p95":0,"p99":0},"sampleSize":310,"timestamp":"2026-06-03T09:06:09.934Z"}

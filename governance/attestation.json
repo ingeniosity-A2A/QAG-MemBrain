@@ -1,0 +1,14 @@
+{
+  "governanceVersion": "1.5",
+  "manifestHash": "6173b2079a7486ec093ea44a4b84719a2ea8ac78b67e196d69c8be2645ecc526",
+  "governanceHash": "774960f6ee7f498c08ca834b581c7f95004fc5672da2d94c30dca8b6480e7bcb",
+  "authorityOrder": [
+    "JSONL",
+    "Tashi",
+    "Neo4j",
+    "GSAP",
+    "Runtime"
+  ],
+  "createdAt": "2026-06-03T00:00:00.000Z",
+  "issuer": "Ingeniosity"
+}

@@ -1,0 +1,13 @@
+{
+  "updatedAt": "2026-06-03T00:00:00.000Z",
+  "authorities": [
+    {
+      "authorityId": "ava007-authority-v1",
+      "algorithm": "ed25519",
+      "publicKey": "",
+      "createdAt": "2026-06-03T00:00:00.000Z",
+      "validFrom": "2026-06-03T00:00:00.000Z",
+      "status": "active"
+    }
+  ]
+}

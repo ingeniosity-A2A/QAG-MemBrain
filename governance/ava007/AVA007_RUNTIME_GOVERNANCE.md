@@ -2,7 +2,7 @@
 
 Ava007 / Ingeniosity implementation for QAG_MemBrain.
 
-- Version: 1.1
+- Version: 1.5
 - Target Control Plane: Ava007
 - Authority Source: Ingeniosity
 
@@ -28,6 +28,154 @@ Execution Truth (Dual Brain Runtime)
 Canonical authority order:
 
 JSONL > Tashi > Neo4j > GSAP > Runtime
+
+## Provenance Authority Chain
+
+Operational provenance authority chain for decision traceability:
+
+Governance
+↓
+Build
+↓
+Deployment
+↓
+Runtime
+↓
+Decision
+↓
+Lineage
+↓
+Replay
+↓
+Audit
+
+Rules:
+
+- Governance defines policy and authority constraints.
+- Build identity binds executable artifacts to source state.
+- Deployment identity binds environment/release activation to build identity.
+- Runtime identity binds active process context to deployment identity.
+- Decision, lineage, replay, and audit records must preserve upstream provenance fields.
+- Lower layers may add evidence but may not override higher-layer truth.
+
+## Editor Agent Entry Point
+
+Repository AI agents (Copilot, Codex, Ava007, Codespaces agents, and future coding assistants) should load:
+
+`.github/copilot-instructions.md`
+
+as the primary editor instruction surface.
+
+The instruction file is not a separate authority source.
+
+It is a routing layer that directs agent behavior toward canonical governance artifacts under:
+
+`governance/ava007/`
+
+If conflicts occur:
+
+`governance/ava007/` supersedes `.github/copilot-instructions.md`.
+
+Canonical authority order remains unchanged:
+
+JSONL > Tashi > Neo4j > GSAP > Runtime
+
+## Deferred Quantum Positioning
+
+Quantum capability is not an authority layer in the current architecture.
+
+Current execution path remains:
+
+Governance Truth
+↓
+Memory Truth (JSONL)
+↓
+Verification Truth (Tashi)
+↓
+Relationship Truth (Neo4j)
+↓
+Temporal Truth (GSAP Replay)
+↓
+Execution Truth (Dual Brain Runtime)
+↓
+Lineage
+↓
+Policy
+↓
+Authority Replay
+↓
+Replay Persistence
+
+Before enabling any quantum subsystem, complete these prerequisites:
+
+1. Governance runtime binding
+2. Full authority end-to-end replay
+3. Neo4j replay materialization
+
+After prerequisites are complete, allowable insertion point is:
+
+Governance
+↓
+Memory
+↓
+Verification
+↓
+Relationship
+↓
+Temporal
+↓
+Quantum Optimization (Reserved)
+↓
+Execution
+
+Reserved layer metadata:
+
+- Status: Reserved
+- Authority: None
+- Purpose: Future optimization and scenario exploration
+
+Constraints:
+
+- Quantum may suggest optimization outcomes.
+- Quantum may not override governance, memory, verification, or authority order.
+- Quantum outputs must be policy-evaluated, lineage-hashed, and replay-verifiable.
+- Quantum does not become identity or truth authority.
+
+Approved evolution options:
+
+- Option A (near term): Quantum-inspired optimization in executive decision selection (QAOA-inspired search, simulated annealing, Ising-style optimization; optional D-Wave integration later).
+- Option B (future): Probabilistic state-space accelerator above graph and below execution, always bounded by authority verification.
+
+Roadmap guidance:
+
+- Sprint 10-12: Governance runtime, authority replay hardening, replay graph materialization.
+- Sprint 13+: Quantum optimization layer, probabilistic scenario engine, RIS/probabilistic shaping integration, hardware acceleration.
+
+## Rendering And Orchestration Boundary
+
+Runtime rendering systems are explicitly distinct from authority systems.
+
+Rendering and orchestration scope includes:
+
+- GSAP timeline orchestration
+- Three.js spatial runtime
+- Web Audio synthesis and modulation
+- GPU shader response and deformation
+- Preloaded local assets and event -> state mutation loops
+
+Classification:
+
+- Role: Runtime and rendering specification
+- Not: Governance specification
+- Not: Authority specification
+- Not: Reasoning specification
+
+Rules:
+
+- Rendering state may visualize decisions, replay state, and policy outcomes.
+- Rendering state may not create or override memory truth, verification truth, lineage, or governance outcomes.
+- "6D", "quantum", and similar terms are presentation/optimization vocabulary unless explicitly promoted by governance policy.
+- Authority remains anchored to JSONL > Tashi > Neo4j > GSAP > Runtime.
 
 ## Repository Layout
 
