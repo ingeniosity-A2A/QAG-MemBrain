@@ -1,4 +1,6 @@
 import { AuditEngine } from "../../audit/decisions/decisionRecord.js";
+import { DecisionLineageEngine } from "../../lineage/engine/decisionLineageEngine.js";
+import { DecisionLineage } from "../../lineage/schemas/decisionLineage.js";
 
 export interface ExecutiveRuntime {
   plan(goal: string, context: Record<string, unknown>): Promise<string[]>;
@@ -6,7 +8,10 @@ export interface ExecutiveRuntime {
 }
 
 export class BasicExecutiveRuntime implements ExecutiveRuntime {
-  constructor(private readonly audit?: AuditEngine) {}
+  constructor(
+    private readonly audit?: AuditEngine,
+    private readonly lineageEngine: DecisionLineageEngine = new DecisionLineageEngine(),
+  ) {}
 
   async plan(goal: string, context: Record<string, unknown>): Promise<string[]> {
     const steps: string[] = [
@@ -48,6 +53,40 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
       timestamp: new Date().toISOString(),
       executionPath,
     });
+  }
+
+  recordDecisionWithLineage(input: {
+    decisionId: string;
+    memoryAtoms: string[];
+    graphNodes: string[];
+    policiesApplied: string[];
+    timelineEvents: string[];
+    executivePlanId: string;
+    executionPath?: string[];
+  }): DecisionLineage {
+    const lineage = this.lineageEngine.createLineage({
+      decisionId: input.decisionId,
+      memoryAtoms: input.memoryAtoms,
+      graphNodes: input.graphNodes,
+      policiesApplied: input.policiesApplied,
+      timelineEvents: input.timelineEvents,
+      executivePlanId: input.executivePlanId,
+    });
+
+    if (this.audit) {
+      this.audit.record({
+        decisionId: lineage.decisionId,
+        memories: [...lineage.memoryAtoms],
+        policies: [...lineage.policiesApplied],
+        relationships: [...lineage.graphNodes],
+        timestamp: lineage.timestamp,
+        executionPath: input.executionPath ?? ["reflex", "executive"],
+        lineageId: lineage.decisionId,
+        decisionHash: lineage.decisionHash,
+      });
+    }
+
+    return lineage;
   }
 
   private extractRelatedNodeIds(context: Record<string, unknown>): string[] {
