@@ -24,6 +24,7 @@
     "consensus/**/*.ts",
     "brain/**/*.ts",
     "evaluation/**/*.ts",
+    "bin/**/*.ts",
     "accelerators/**/*.ts",
     "interfaces/**/*.ts",
     "tests/**/*.ts"

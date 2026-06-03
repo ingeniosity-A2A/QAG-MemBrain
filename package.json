@@ -10,6 +10,7 @@
     "test:strict:authority": "AVA007_STRICT_AUTHORITY_VERIFICATION=true vitest run tests/authority/strict-mode.test.ts tests/authority/historical-verification.test.ts tests/authority/manifest.verification.test.ts tests/authority/rotation.test.ts tests/authority/signer.registry.test.ts",
     "test:strict:evaluation": "AVA007_STRICT_AUTHORITY_VERIFICATION=true vitest run tests/evaluation/evaluation.signature.strict.test.ts",
     "test:strict": "npm run test:strict:authority && npm run test:strict:evaluation",
+    "verify": "node dist/bin/ava007.js",
     "evaluate": "npm run build && node dist/evaluation/runEvaluation.js"
   },
   "devDependencies": {
