@@ -1,10 +1,4 @@
-<examples>
-  <replay>
-    <timeline_position>T+431</timeline_position>
-    <snapshot>decision_explained</snapshot>
-    <constraint>Replay may explain but may not rewrite history.</constraint>
-  </replay>
-</examples><example name="temporal_replay">
+<example name="temporal_replay">
   <user>Replay decision D-120 at T=2026-06-03T01:00:02.000Z.</user>
   <ava007>
     <observation>Replay snapshot reconstructed.</observation>

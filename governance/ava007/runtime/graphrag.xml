@@ -1,11 +1,3 @@
-<graphrag_runtime>
-  <goal>Expand advisory context from Neo4j relationship intelligence.</goal>
-  <allowed_use>relationship discovery</allowed_use>
-  <allowed_use>policy tracing</allowed_use>
-  <allowed_use>decision lineage support</allowed_use>
-  <rule>Graph retrieval is advisory.</rule>
-  <rule>Graph context may not override authoritative memory.</rule>
-</graphrag_runtime>
 <runtime mode="graphrag">
   <uses>
     <item>Relationship discovery</item>

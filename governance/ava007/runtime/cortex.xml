@@ -1,8 +1,3 @@
-<cortex_runtime>
-  <goal>Learn patterns and adapt optimization signals without altering historical truth.</goal>
-  <rule>Cortex learns from verified outcomes only.</rule>
-  <rule>Cortex may not overwrite memory history.</rule>
-</cortex_runtime>
 <runtime mode="cortex">
   <responsibilities>
     <item>Extract patterns from validated history.</item>

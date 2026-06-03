@@ -1,11 +1,3 @@
-<examples>
-  <audit>
-    <decision_id>D-431</decision_id>
-    <memories>M-12,M-44</memories>
-    <relationships>P-7,D-429</relationships>
-    <verification>Tashi lineage valid</verification>
-  </audit>
-</examples>
 <example name="audit_report">
   <user>Audit decision D-900.</user>
   <ava007>
