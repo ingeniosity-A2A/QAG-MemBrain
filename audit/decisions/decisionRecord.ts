@@ -7,6 +7,26 @@ export interface DecisionRecord {
   executionPath: string[];
   lineageId?: string;
   decisionHash?: string;
+  runtimeVersion?: string;
+  gitCommit?: string;
+  buildHash?: string;
+  buildTimestamp?: string;
+  worktreeDirty?: boolean;
+  deploymentVersion?: string;
+  deploymentHash?: string;
+  runtimeHash?: string;
+  runtimeStartedAt?: string;
+  runtimeHost?: string;
+  runtimeProcessId?: number;
+  runtimeNodeVersion?: string;
+  runtimePlatform?: string;
+  signatureId?: string;
+  signature?: string;
+  signatureAlgorithm?: "ed25519";
+  signatureSignedAt?: string;
+  authorityId?: string;
+  signerId?: string;
+  signatureArtifactHash?: string;
 }
 
 export class AuditEngine {

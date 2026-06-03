@@ -4,8 +4,11 @@ import { ReplayRecord, ReplayRecordInput } from "../service/replayRecord.js";
 import { assertReplayRecordShape } from "./replaySchemas.js";
 import { sealReplayRecord, verifyReplayRecord } from "./replayProof.js";
 
-export async function appendReplayRecord(filePath: string, record: ReplayRecordInput): Promise<void> {
-  const sealed = sealReplayRecord(record);
+export async function appendReplayRecord(
+  filePath: string,
+  record: ReplayRecordInput | ReplayRecord,
+): Promise<void> {
+  const sealed = isReplayRecord(record) ? record : sealReplayRecord(record);
   assertReplayRecordShape(sealed);
   await mkdir(dirname(filePath), { recursive: true });
   await appendFile(filePath, `${JSON.stringify(sealed)}\n`, "utf8");
@@ -35,4 +38,12 @@ export async function readReplayRecords(filePath: string): Promise<ReplayRecord[
 
     throw error;
   }
+}
+
+function isReplayRecord(record: ReplayRecordInput | ReplayRecord): record is ReplayRecord {
+  return (
+    typeof (record as ReplayRecord).replayHash === "string" &&
+    typeof (record as ReplayRecord).proof?.algorithm === "string" &&
+    typeof (record as ReplayRecord).signature?.signatureId === "string"
+  );
 }

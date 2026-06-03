@@ -23,6 +23,7 @@
     "audit/**/*.ts",
     "consensus/**/*.ts",
     "brain/**/*.ts",
+    "evaluation/**/*.ts",
     "accelerators/**/*.ts",
     "interfaces/**/*.ts",
     "tests/**/*.ts"

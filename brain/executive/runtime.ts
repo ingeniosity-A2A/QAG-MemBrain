@@ -4,6 +4,12 @@ import { DecisionLineage } from "../../lineage/schemas/decisionLineage.js";
 import { resolvePolicyOutcome } from "../../policy/precedence/policyPrecedence.js";
 import { PolicyResolutionEngine } from "../../policy/engine/policyResolutionEngine.js";
 import { PolicyEvaluation, PolicyRequestContext } from "../../policy/schemas/policyEvaluation.js";
+import { BuildSnapshot } from "../../authority/build/buildSnapshot.js";
+import { loadBuildSnapshot } from "../../authority/build/buildLoader.js";
+import { DeploymentSnapshot } from "../../authority/deployment/deploymentSnapshot.js";
+import { loadDeploymentSnapshot } from "../../authority/deployment/deploymentLoader.js";
+import { RuntimeSnapshot } from "../../authority/runtime/runtimeSnapshot.js";
+import { loadRuntimeSnapshot } from "../../authority/runtime/runtimeLoader.js";
 
 export interface ExecutiveRuntime {
   plan(goal: string, context: Record<string, unknown>): Promise<string[]>;
@@ -15,6 +21,14 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
     private readonly audit?: AuditEngine,
     private readonly lineageEngine: DecisionLineageEngine = new DecisionLineageEngine(),
     private readonly policyEngine: PolicyResolutionEngine = new PolicyResolutionEngine(),
+    private readonly buildSnapshotLoader: () => BuildSnapshot = loadBuildSnapshot,
+    private readonly deploymentSnapshotLoader: (buildHash: string) => DeploymentSnapshot = (buildHash: string) =>
+      loadDeploymentSnapshot(buildHash),
+    private readonly runtimeSnapshotLoader: (input: {
+      runtimeVersion: string;
+      deploymentHash: string;
+      buildHash: string;
+    }) => RuntimeSnapshot = loadRuntimeSnapshot,
   ) {}
 
   async plan(goal: string, context: Record<string, unknown>): Promise<string[]> {
@@ -49,6 +63,14 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
       return;
     }
 
+    const buildSnapshot = this.buildSnapshotLoader();
+    const deploymentSnapshot = this.deploymentSnapshotLoader(buildSnapshot.buildHash);
+    const runtimeSnapshot = this.runtimeSnapshotLoader({
+      runtimeVersion: buildSnapshot.runtimeVersion,
+      deploymentHash: deploymentSnapshot.deploymentHash,
+      buildHash: buildSnapshot.buildHash,
+    });
+
     this.audit.record({
       decisionId,
       memories,
@@ -56,6 +78,19 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
       relationships,
       timestamp: new Date().toISOString(),
       executionPath,
+      runtimeVersion: runtimeSnapshot.runtimeVersion,
+      runtimeHash: runtimeSnapshot.runtimeHash,
+      runtimeStartedAt: runtimeSnapshot.startedAt,
+      runtimeHost: runtimeSnapshot.hostname,
+      runtimeProcessId: runtimeSnapshot.processId,
+      runtimeNodeVersion: runtimeSnapshot.nodeVersion,
+      runtimePlatform: runtimeSnapshot.platform,
+      gitCommit: buildSnapshot.gitCommit,
+      buildHash: buildSnapshot.buildHash,
+      buildTimestamp: buildSnapshot.buildTimestamp,
+      worktreeDirty: buildSnapshot.worktreeDirty,
+      deploymentVersion: deploymentSnapshot.deploymentVersion,
+      deploymentHash: deploymentSnapshot.deploymentHash,
     });
   }
 
@@ -91,6 +126,13 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
     });
 
     if (this.audit) {
+      const buildSnapshot = this.buildSnapshotLoader();
+      const deploymentSnapshot = this.deploymentSnapshotLoader(buildSnapshot.buildHash);
+      const runtimeSnapshot = this.runtimeSnapshotLoader({
+        runtimeVersion: buildSnapshot.runtimeVersion,
+        deploymentHash: deploymentSnapshot.deploymentHash,
+        buildHash: buildSnapshot.buildHash,
+      });
       this.audit.record({
         decisionId: lineage.decisionId,
         memories: [...lineage.memoryAtoms],
@@ -100,6 +142,19 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
         executionPath: input.executionPath ?? ["reflex", "executive"],
         lineageId: lineage.decisionId,
         decisionHash: lineage.decisionHash,
+        runtimeVersion: runtimeSnapshot.runtimeVersion,
+        runtimeHash: runtimeSnapshot.runtimeHash,
+        runtimeStartedAt: runtimeSnapshot.startedAt,
+        runtimeHost: runtimeSnapshot.hostname,
+        runtimeProcessId: runtimeSnapshot.processId,
+        runtimeNodeVersion: runtimeSnapshot.nodeVersion,
+        runtimePlatform: runtimeSnapshot.platform,
+        gitCommit: buildSnapshot.gitCommit,
+        buildHash: buildSnapshot.buildHash,
+        buildTimestamp: buildSnapshot.buildTimestamp,
+        worktreeDirty: buildSnapshot.worktreeDirty,
+        deploymentVersion: deploymentSnapshot.deploymentVersion,
+        deploymentHash: deploymentSnapshot.deploymentHash,
       });
     }
 
