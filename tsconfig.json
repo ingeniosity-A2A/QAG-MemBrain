@@ -29,6 +29,7 @@
     "interfaces/**/*.ts",
     "trust/**/*.ts",
     "cognition/**/*.ts",
+    "interpretation/**/*.ts",
     "tests/**/*.ts"
   ]
 }
