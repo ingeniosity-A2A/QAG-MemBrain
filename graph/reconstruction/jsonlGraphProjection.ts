@@ -5,11 +5,17 @@ import { query } from "../../memory/jsonl/jsonlStore.js";
 import { computeRecordHash } from "../../memory/jsonl/hash.js";
 import { MemoryRecord } from "../../memory/jsonl/memoryRecord.js";
 import { extractEntities } from "./entityExtraction.js";
+import { computeGraphHash, GraphSnapshot } from "./graphHash.js";
 
 export interface GraphProjectionSummary {
   nodeCount: number;
   relationshipCount: number;
   memoryCount: number;
+}
+
+export interface GraphProjectionResult {
+  summary: GraphProjectionSummary;
+  snapshot: GraphSnapshot;
 }
 
 export async function projectJsonlLedgerToGraph(
@@ -21,13 +27,14 @@ export async function projectJsonlLedgerToGraph(
     records.push(record);
   }
 
-  return projectMemoryRecordsToGraph(records, repository);
+  const projected = await projectMemoryRecordsToGraph(records, repository);
+  return projected.summary;
 }
 
 export async function projectMemoryRecordsToGraph(
   records: MemoryRecord[],
   repository: CognitiveGraphRepository,
-): Promise<GraphProjectionSummary> {
+): Promise<GraphProjectionResult> {
   const hashToRecordId = new Map<string, string>();
   for (const record of records) {
     hashToRecordId.set(computeRecordHash(record), record.id);
@@ -122,9 +129,34 @@ export async function projectMemoryRecordsToGraph(
     await repository.createRelationship(relationship);
   }
 
+  const snapshot: GraphSnapshot = {
+    nodes: [...nodes.values()],
+    relationships: [...relationships.values()],
+  };
+
   return {
-    nodeCount: nodes.size,
-    relationshipCount: relationships.size,
-    memoryCount: records.length,
+    summary: {
+      nodeCount: nodes.size,
+      relationshipCount: relationships.size,
+      memoryCount: records.length,
+    },
+    snapshot,
+  };
+}
+
+export async function projectJsonlLedgerToGraphHash(
+  filePath: string,
+  repository: CognitiveGraphRepository,
+): Promise<{ summary: GraphProjectionSummary; graphHash: string; snapshot: GraphSnapshot }> {
+  const records: MemoryRecord[] = [];
+  for await (const record of query(filePath)) {
+    records.push(record);
+  }
+
+  const projected = await projectMemoryRecordsToGraph(records, repository);
+  return {
+    summary: projected.summary,
+    graphHash: computeGraphHash(projected.snapshot),
+    snapshot: projected.snapshot,
   };
 }
