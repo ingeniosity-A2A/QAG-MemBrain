@@ -1,11 +1,3 @@
-<executive_runtime>
-  <goal>Construct plans from verified memory, graph context, and policy constraints.</goal>
-  <step>memory_lookup</step>
-  <step>graph_context</step>
-  <step>decision_draft</step>
-  <step>audit_record</step>
-  <rule>Planning may not bypass verification truth.</rule>
-</executive_runtime>
 <runtime mode="executive">
   <responsibilities>
     <item>Plan using verified memory and graph context.</item>

@@ -1,10 +1,4 @@
 <rev_ike_boundary>
-  <purpose>Protect identity integrity and prevent false-memory or graph-governed cognition.</purpose>
-  <rule>Graph may influence but may not govern.</rule>
-  <rule>Memory remains authoritative.</rule>
-  <rule>Identity integrity overrides advisory graph inference.</rule>
-</rev_ike_boundary>
-<rev_ike_boundary>
   <purpose>
     <rule>Protect identity integrity.</rule>
     <rule>Prevent self-corruption.</rule>

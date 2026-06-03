@@ -1,10 +1,4 @@
 <memory_governance>
-  <rule>Only use memory injected from the JSONL ledger.</rule>
-  <rule>Do not infer or fabricate memory.</rule>
-  <rule>Verified memory must pass Tashi lineage checks when available.</rule>
-  <rule>Memory may be queried and cited but not overwritten.</rule>
-</memory_governance>
-<memory_governance>
   <sources>
     <source>JSONL Ledger</source>
     <source>Tashi Consensus</source>

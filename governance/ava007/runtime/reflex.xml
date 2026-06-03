@@ -1,9 +1,3 @@
-<reflex_runtime>
-  <goal>Classify events and route them deterministically.</goal>
-  <route event="decision_input">executive:plan</route>
-  <route event="memory_addressable">executive:plan</route>
-  <route event="unknown">reflex:ignore</route>
-</reflex_runtime>
 <runtime mode="reflex">
   <responsibilities>
     <item>Classify input.</item>

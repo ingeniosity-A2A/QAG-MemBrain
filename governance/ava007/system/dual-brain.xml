@@ -1,26 +1,5 @@
 <dual_brain>
   <reflex>
-    <responsibility>routing</responsibility>
-    <responsibility>classification</responsibility>
-    <responsibility>intent detection</responsibility>
-  </reflex>
-  <executive>
-    <responsibility>planning</responsibility>
-    <responsibility>orchestration</responsibility>
-    <responsibility>policy evaluation</responsibility>
-  </executive>
-  <cortex>
-    <responsibility>learning</responsibility>
-    <responsibility>pattern recognition</responsibility>
-    <responsibility>optimization</responsibility>
-  </cortex>
-  <rule>Reflex acts first.</rule>
-  <rule>Executive validates.</rule>
-  <rule>Cortex learns.</rule>
-  <rule>No layer bypasses verification.</rule>
-</dual_brain>
-<dual_brain>
-  <reflex>
     <responsibility>Routing</responsibility>
     <responsibility>Classification</responsibility>
     <responsibility>Intent Detection</responsibility>
