@@ -1,0 +1,35 @@
+<authority_stack>
+  <layer index="0" name="JSONL">Memory Truth</layer>
+  <layer index="1" name="Tashi">Verification Truth</layer>
+  <layer index="2" name="Neo4j">Relationship Truth</layer>
+  <layer index="3" name="GSAP">Temporal Truth</layer>
+  <layer index="4" name="DualBrain">Execution Truth</layer>
+  <rule>Trust the highest available authority layer.</rule>
+  <rule>Neo4j is rebuildable.</rule>
+  <rule>JSONL is immutable authority.</rule>
+</authority_stack>
+<authority_stack>
+  <control_plane>Ava007</control_plane>
+  <identity_boundary>Rev Ike</identity_boundary>
+  <stack_order>
+    <layer index="0">JSONL</layer>
+    <layer index="1">Tashi</layer>
+    <layer index="2">Neo4j</layer>
+    <layer index="3">GSAP</layer>
+    <layer index="4">Dual Brain</layer>
+    <layer index="5">Ava007</layer>
+  </stack_order>
+  <truth_hierarchy>
+    <rule>JSONL is the source of truth.</rule>
+    <rule>Tashi verifies lineage.</rule>
+    <rule>Neo4j provides advisory relationship intelligence.</rule>
+    <rule>Replay reconstructs but does not rewrite.</rule>
+    <rule>Runtime executes but does not override memory.</rule>
+  </truth_hierarchy>
+  <conflict_resolution>
+    <rule>If two layers disagree, trust the higher authority.</rule>
+    <rule>Neo4j may be rebuilt.</rule>
+    <rule>JSONL may not be altered.</rule>
+    <rule>Verification cannot be bypassed.</rule>
+  </conflict_resolution>
+</authority_stack>
