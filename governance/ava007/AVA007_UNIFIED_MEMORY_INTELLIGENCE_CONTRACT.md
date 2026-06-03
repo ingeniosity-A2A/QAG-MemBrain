@@ -1,388 +1,330 @@
-# AVA-007 Quantum Membrain
+# AVA-007 Canonical Architecture
 
-Unified Memory Intelligence Contract
+Unified Reference (Post-Tashi Integration)
 
-## Core Principle
+## Purpose
 
-The system does not store intelligence.
+AVA-007 is a distributed memory and cognition system operating across edge devices and cloud infrastructure.
 
-The system stores atomic observations and reconstructs intelligence from deterministic relationships, temporal transitions, and verified provenance.
+AVA-007 is not a model.
 
-## Layer 0: Memory Substrate
+AVA-007 is the persistent intelligence created from:
 
-JSONL Ledger
+- JSONL Memory Ledger
+- Tashi Consensus DAG
+- Replay Engine
+- Neo4j Relationship Graph
+- Governance Layer
+- Historical Decision State
 
-Canonical source of truth. Everything begins and ends here.
+Models may change over time without changing AVA-007.
 
-Observation -> JSONL Atom
+## Hardware
 
-Schema:
+### Edge Node A
 
-```ts
-interface MemoryAtom {
-  id: string;
-  type: string;
-  source: string;
-  timestamp: string;
-  title?: string;
-  content: string;
-  tags: string[];
-  metadata: {
-    confidence: number;
-    importance: string;
-    signature?: string;
-    previousHash?: string;
-    spatial?: SpatialMetadata;
-  };
-}
-```
+Device: Samsung Galaxy S25 Ultra
+
+Model: Gemma
+
+Responsibilities:
+
+- Camera ingestion
+- NFC ingestion
+- RCS handling
+- JSONL creation
+- Local memory writes
+- Tashi edge participation
+- Reflex decisions
+- Offline operation
+
+Role: Reflex Brain
+
+### Edge Node B
+
+Device: Samsung Galaxy S26 Ultra
+
+Model: Nemotron Nano
+
+Responsibilities:
+
+- Multi-modal reasoning
+- Spatial processing
+- Neo4j local graph operations
+- Agent coordination
+- Hotspot gateway
+- Advanced edge orchestration
+
+Role: Advanced Reflex / Edge Executive
+
+### Cloud Layer
+
+Model: Mellum2-Instruct
+
+Responsibilities:
+
+- Capability selection
+- Tool routing
+- Agent routing
+- Context packet assembly
+- DAG path resolution
+- A2A orchestration
+
+Role: Executive Brain
+
+### Cloud Cortex
+
+Model: Mercury2
+
+Responsibilities:
+
+- Novel reasoning
+- Policy arbitration
+- Conflict resolution
+- Long-form planning
+- Critical decision analysis
+
+Role: Cortex Brain
+
+## Memory Intelligence Stack
+
+### Layer 0 - JSONL Memory Ledger
+
+Canonical memory substrate.
 
 Rules:
 
-- Append only.
-- Never mutate history.
-- Every event becomes a MemoryAtom.
-- Entire system must be reconstructable from JSONL alone.
+- One JSON object = one atomic memory
+- Append only
+- Signed
+- Replayable
+- Auditable
 
-If every database is deleted, replaying JSONL must restore the system.
+Memory Types:
 
-## Layer 1: Trust Intelligence
+- note
+- event
+- task
+- conversation
+- document
+- code
+- telemetry
+- policy
+- spatial_scan
 
-Tashi Consensus DAG
-
-Purpose:
-
-- Trust
-- Ordering
-- Replication
-- Verification
-
-Tashi does not store cognition. Tashi stores proof.
-
-Vertex:
-
-```ts
-interface Vertex {
-  hash: string;
-  parents: string[];
-  creator: string;
-  signature: string;
-  timestamp: number;
-  data: MemoryAtom;
-}
-```
+### Layer 1 - Tashi Consensus DAG
 
 Responsibilities:
 
-- Signature verification
-- Parent chain validation
-- DAG ordering
-- Gossip synchronization
-- Offline replay
+- Vertex signing
+- Parent hash verification
+- Gossip propagation
+- Offline queue
+- DAG consensus
 
-Output: Verified MemoryAtom
+Vertex Structure:
 
-## Layer 2: Spatial Intelligence
+- hash
+- parents
+- creator
+- timestamp
+- signature
+- JSONL payload
 
-Spatial Cortex
+Tashi is the source of distributed truth.
 
-Purpose: Meaning through relationships.
+### Layer 2 - Replay Engine
 
-MemoryAtom becomes:
+Responsibilities:
 
-```ts
-interface SpatialMemoryNode {
-  id: string;
-  memoryId: string;
-  type: string;
-  timestamp: number;
-}
-```
+- verifyLedger()
+- replayFromGenesis()
+- replayToTimestamp()
+- reconstructState()
+
+Purpose:
+
+Rebuild system state from JSONL + Tashi alone.
+
+Current Status: EPIC-002 complete.
+
+### Layer 3 - Neo4j Spatial Graph
+
+Responsibilities:
+
+- Memory relationships
+- Spatial adjacency
+- Entity linkage
+- Provenance tracking
+- Temporal correlations
 
 Relationships:
 
-- INFLUENCED
-- CREATED
-- DERIVED_FROM
-- OBSERVED_BY
 - SPATIAL_ADJACENT
-- AUTHORITY_CHAIN
 - ENTANGLED
-
-Spatial Cortex answers:
-
-- What caused this?
-- What influenced this?
-- What created this state?
-- What memories are related?
-- What observations led here?
-
-Spatial Cortex is deterministic.
-
-Destroy graph. Replay JSONL. Rebuild graph.
-
-## Layer 3: Holographic Graph
-
-Neo4j
-
-Purpose: Relationship persistence.
-
-Neo4j is not memory. Neo4j is a projection.
-
-Nodes:
-
-- Memory
-- Observation
-- Decision
-- State
-- Entity
-- Location
-
-Edges:
-
-- INFLUENCED
-- CREATED
-- OBSERVED
-- ENTANGLED
-- ADJACENT
-
-Neo4j can always be regenerated from JSONL plus Spatial Cortex.
-
-## Layer 4: Temporal Intelligence
-
-Temporal Kernel
+- PRECEDES
+- REFERENCES
+- CAUSED_BY
 
 Purpose:
 
-- Reconstruction
-- Rollback
-- Branching
-- Replay
-- Verification
+Provides relationship intelligence beyond chronological replay.
 
-Canonical APIs:
+### Layer 4 - Dual Brain
 
-- seek()
-- branch()
-- rollback()
-- snapshot()
-- reconstruct()
-- verify()
+Reflex: Gemma (S25)
 
-Input:
+Advanced Reflex: Nemotron Nano (S26)
 
-- JSONL
-- Spatial Cortex
-- Replay Segments
+Executive: Mellum2-Instruct
 
-Output: TimelineDefinition
+Cortex: Mercury2
 
-The Temporal Kernel owns time. Nothing else owns time.
+### Layer 5 - Governance
 
-## Layer 5: Temporal Execution
+Components:
 
-GSAP Runtime
+- DID
+- Signature Verification
+- CFGL
+- Cloudflare Zero Trust
+- Audit Logging
 
-Purpose: Execute reconstructed timelines.
+Rules:
 
-GSAP is not memory. GSAP is execution.
+- Every memory signed
+- Every vertex verified
+- Every decision auditable
 
-Responsibilities:
+## Decision Gates
 
-- timeline.seek()
-- timeline.play()
-- timeline.reverse()
-- timeline.pause()
+### Gate 1 - Reflex
 
-Future replacements:
+Handled by: Gemma or Nemotron
 
-- GSAP
-- Motion One
-- Rust Runtime
-- Custom Engine
+Requirements:
 
-All execution engines must consume the same TimelineDefinition.
+- Known pattern
+- Confidence >= 0.85
+- No policy conflict
+- No DAG ambiguity
 
-## Layer 6: Observation Intelligence
+Target: ~70%
 
-Observation Engine
+### Gate 2 - Executive
 
-Purpose: Convert reality into memory.
+Handled by: Mellum2-Instruct
 
-Sources:
+Requirements:
 
-- S25 Camera
-- S25 Audio
-- S26 Spatial Lens
-- Drone Telemetry
-- User Input
-- A2A
-- NFC
-- UWB
-- RCS
+- Existing DAG path
+- Multi-step task
+- Moderate complexity
 
-Output:
+Target: ~25%
 
-Observation -> MemoryAtom -> Tashi Vertex -> Spatial Node -> Replay Delta
+### Cortex Escalation
 
-Observation creates memory. Memory does not exist before observation.
+Handled by: Mercury2
 
-## Layer 7: Cognitive Intelligence
+Triggers:
 
-Dual Brain
+- Critical importance
+- Novel type
+- Policy conflict
+- Executive confidence < 0.60
 
-Reflex Layer:
+Target: ~5%
 
-- On device
-- Gemma
-- Fast decisions
+## Network
 
-Executive Layer:
+### Cloudflare Zero Trust
 
-- Cloud
-- Planning
-- Reasoning
-- Optimization
+Provides:
 
-Cortex Layer:
+- Identity boundary
+- Tunnel ingress
+- Service authentication
+- Private APIs
 
-- Learning
-- Adaptation
-- Policy updates
+### Connectivity
 
-Outputs become MemoryAtoms.
+- WebSocket
+- WebRTC
+- Tashi Gossip
+- Verizon 100GB Hotspot (S26)
+- Offline Queue
 
-No hidden state. All cognition becomes replayable.
+## Current Epic Status
 
-## Layer 8: Validation Intelligence
+### EPIC-001
 
-Memory Judge
+Status: Complete
 
-Purpose: Measure cognition quality.
+Implemented:
 
-Pipeline:
+- Memory Record
+- JSONL Store
+- Hashing
+- Signature Validation
+- Replay Chain Validation
 
-Memory -> Reconstruction -> Challenge -> Weak Solver -> Strong Solver -> Judge -> Score
+### EPIC-002
 
-Metrics:
+Status: Complete
 
-- AuthorityScore
-- RelationshipScore
-- TemporalScore
-- ReconstructionScore
-- ImprovementPercent
-- Accepted
+Implemented:
 
-Acceptance rule:
+- verifyLedger()
+- replayFromGenesis()
+- replayToTimestamp()
+- reconstructState()
 
-Strong must outperform Weak by at least 20%.
+### EPIC-003
 
-## Layer 9: Mesh Intelligence
+Status: Next
 
-Distributed Timeline Consensus
+Build:
 
-Purpose: Synchronize cognition.
+- DID Documents
+- Signer Service
+- Trust Layer
+- Merkle Verification
+- Vertex Validation
 
-Share definitions, not state.
+## Testing Order
 
-Transmit:
+1. JSONL append
+2. Signature verification
+3. Chain validation
+4. Ledger replay
+5. State reconstruction
+6. DID validation
+7. Tashi gossip
+8. Neo4j integration
+9. Mellum2 routing
+10. Mercury2 escalation
+11. Cloudflare Zero Trust
+12. Full end-to-end replay
 
-- Timeline deltas
-- Memory atoms
-- Trust proofs
+## Canonical Mapping Summary
 
-Never transmit:
+- S25 Ultra = Gemma
+- S26 Ultra = Nemotron Nano
+- Mellum2-Instruct = Executive
+- Mercury2 = Cortex
+- Tashi = Consensus
+- JSONL = Memory
+- Neo4j = Relationship Intelligence
+- Cloudflare Zero Trust = Security Boundary
+- AVA-007 = persistent system, not any individual model
 
-- Entire reconstructed state
+## Trust Substrate Testing Sequence
 
-## Layer 10: Identity Intelligence
+Do not jump to Neo4j, Mellum2-Instruct, Mercury2, or Cloudflare Zero Trust before trust substrate completion.
 
-DID Membrane
+Required sequence:
 
-Purpose:
+EPIC-003 -> DID -> Signature Validation -> Merkle Proofs -> Vertex Verification -> Tashi Gossip Tests
 
-- Ownership
-- Provenance
-- Accountability
-
-Every critical event must be signed, hashed, and verified.
-
-Chain:
-
-MemoryAtom -> Vertex -> ReplaySegment -> Merkle Root
-
-Output: Verifiable cognitive history.
-
-## Layer 11: Projection Intelligence
-
-UI Dock
-
-Purpose: Visualize cognition.
-
-Includes:
-
-- Observation Engine
-- Temporal Arbitration
-- Rollback Console
-- Mesh Gateway
-- Memory Palace
-- Holographic Graph
-- Radar
-- Command Center
-- Volumetric Holography
-
-UI owns nothing. UI projects system state.
-
-## Hardware Mapping
-
-S25 Ultra:
-
-- Observation
-- Reflex brain
-- Local replay
-- Local mesh
-
-S26 Ultra:
-
-- Spatial lens
-- Volumetric raycasting
-- Audio spatialization
-- Temporal gateway
-- 5G mesh uplink
-
-Cloudflare:
-
-- Workers
-- D1
-- Vectorize
-- Voice runtime
-
-Neo4j: Relationship projection
-
-Tashi: Trust projection
-
-GSAP: Execution projection
-
-JSONL: Canonical memory
-
-## Final System Equation
-
-JSONL = Memory
-
-Tashi = Trust
-
-Spatial Cortex = Meaning
-
-Neo4j = Relationships
-
-Temporal Kernel = Reconstruction
-
-GSAP = Execution
-
-Memory Judge = Validation
-
-DID = Provenance
-
-UI Dock = Projection
-
-Everything else is an implementation detail.
+After this passes, move into Neo4j and model orchestration.

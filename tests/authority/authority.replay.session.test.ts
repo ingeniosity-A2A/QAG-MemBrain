@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { DecisionRecord } from "../../audit/decisions/decisionRecord.js";
 import { AuthorityReplayEngine } from "../../authority/execution/authorityReplayEngine.js";
 import { AuthorityReplayService } from "../../authority/service/authorityReplayService.js";
+import { JsonlReplayRepository } from "../../authority/persistence/replayRepository.js";
 import { computeDecisionHash } from "../../lineage/hashing/decisionHash.js";
 import { DecisionLineage, DecisionLineageInput } from "../../lineage/schemas/decisionLineage.js";
 
@@ -59,6 +63,8 @@ function buildDecision(lineage: DecisionLineage): DecisionRecord {
 
 describe("Authority replay session", () => {
   it("replays all decisions in a session", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "qag-replay-session-"));
+    try {
     const lineage = buildLineage("decision-session-1");
     const decision = buildDecision(lineage);
     const service = new AuthorityReplayService({
@@ -71,10 +77,14 @@ describe("Authority replay session", () => {
       listDecisionIdsBySession: async (sessionId) => (sessionId === "session-1" ? [decision.decisionId] : []),
       listDecisionIdsByLineage: async () => [decision.decisionId],
       listDecisionIdsByRange: async () => [decision.decisionId],
+      replayRepository: new JsonlReplayRepository(join(dir, "replay.jsonl")),
     });
 
     const responses = await service.replaySession("session-1");
     expect(responses).toHaveLength(1);
     expect(responses[0].status).toBe("VERIFIED");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });

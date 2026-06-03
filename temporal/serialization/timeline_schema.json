@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "qag-membrain/temporal/serialization/timeline_schema.json",
+  "title": "TimelineSerialization",
+  "oneOf": [
+    {
+      "title": "TimelineDocument",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "1.0"
+        },
+        "savedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimelineEvent"
+          }
+        }
+      },
+      "required": [
+        "version",
+        "savedAt",
+        "events"
+      ]
+    },
+    {
+      "title": "ReplayExport",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "1.0"
+        },
+        "exportedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimelineEvent"
+          }
+        },
+        "snapshots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimelineSnapshot"
+          }
+        }
+      },
+      "required": [
+        "version",
+        "exportedAt",
+        "events",
+        "snapshots"
+      ]
+    }
+  ],
+  "definitions": {
+    "TimelineEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "decisionId": {
+          "type": "string"
+        },
+        "patch": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "id",
+        "timestamp",
+        "patch"
+      ]
+    },
+    "TimelineSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "state": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "at",
+        "state"
+      ]
+    }
+  }
+}

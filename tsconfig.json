@@ -30,6 +30,7 @@
     "trust/**/*.ts",
     "cognition/**/*.ts",
     "interpretation/**/*.ts",
+    "review/**/*.ts",
     "tests/**/*.ts"
   ]
 }

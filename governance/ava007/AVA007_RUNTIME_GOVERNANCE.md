@@ -23,23 +23,15 @@ Rules:
 - This runtime governance file defines operating policy and enforcement boundaries only.
 - If architecture wording overlaps between files, the unified contract is authoritative for architecture semantics.
 
-## Canonical Architecture
+## Canonical Authority Order
 
-Governance Truth
-↓
-Memory Truth (JSONL)
-↓
-Verification Truth (Tashi)
-↓
-Relationship Truth (Neo4j)
-↓
-Temporal Truth (GSAP Replay)
-↓
-Execution Truth (Dual Brain Runtime)
-
-Canonical authority order:
+Canonical authority order is fixed:
 
 JSONL > Tashi > Neo4j > GSAP > Runtime
+
+Architecture layer definitions, model-role mapping, decision gates, and testing order are defined only in:
+
+`governance/ava007/AVA007_UNIFIED_MEMORY_INTELLIGENCE_CONTRACT.md`
 
 ## Provenance Authority Chain
 
@@ -91,77 +83,6 @@ If conflicts occur:
 Canonical authority order remains unchanged:
 
 JSONL > Tashi > Neo4j > GSAP > Runtime
-
-## Deferred Quantum Positioning
-
-Quantum capability is not an authority layer in the current architecture.
-
-Current execution path remains:
-
-Governance Truth
-↓
-Memory Truth (JSONL)
-↓
-Verification Truth (Tashi)
-↓
-Relationship Truth (Neo4j)
-↓
-Temporal Truth (GSAP Replay)
-↓
-Execution Truth (Dual Brain Runtime)
-↓
-Lineage
-↓
-Policy
-↓
-Authority Replay
-↓
-Replay Persistence
-
-Before enabling any quantum subsystem, complete these prerequisites:
-
-1. Governance runtime binding
-2. Full authority end-to-end replay
-3. Neo4j replay materialization
-
-After prerequisites are complete, allowable insertion point is:
-
-Governance
-↓
-Memory
-↓
-Verification
-↓
-Relationship
-↓
-Temporal
-↓
-Quantum Optimization (Reserved)
-↓
-Execution
-
-Reserved layer metadata:
-
-- Status: Reserved
-- Authority: None
-- Purpose: Future optimization and scenario exploration
-
-Constraints:
-
-- Quantum may suggest optimization outcomes.
-- Quantum may not override governance, memory, verification, or authority order.
-- Quantum outputs must be policy-evaluated, lineage-hashed, and replay-verifiable.
-- Quantum does not become identity or truth authority.
-
-Approved evolution options:
-
-- Option A (near term): Quantum-inspired optimization in executive decision selection (QAOA-inspired search, simulated annealing, Ising-style optimization; optional D-Wave integration later).
-- Option B (future): Probabilistic state-space accelerator above graph and below execution, always bounded by authority verification.
-
-Roadmap guidance:
-
-- Sprint 10-12: Governance runtime, authority replay hardening, replay graph materialization.
-- Sprint 13+: Quantum optimization layer, probabilistic scenario engine, RIS/probabilistic shaping integration, hardware acceleration.
 
 ## Rendering And Orchestration Boundary
 
@@ -224,27 +145,6 @@ Before extending Ava007 behavior, load:
 - `https://docs.ingeniosity.tech/llms.txt`
 
 Treat this as authoritative for model/runtime/tooling capabilities.
-
-## Model Abstraction
-
-```xml
-<model_abstraction>
-
-Current Runtime:
-Mercury 2
-
-Future Compatible:
-OpenAI
-Gemini
-Claude
-Nemotron
-Local Models
-
-Ava007 governs the model.
-The model does not govern Ava007.
-
-</model_abstraction>
-```
 
 ## Persona
 
