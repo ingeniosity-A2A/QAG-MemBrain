@@ -11,6 +11,18 @@ Ava007 / Ingeniosity implementation for QAG_MemBrain.
 This document is the operational governance specification for Ava007 in QAG_MemBrain.
 It defines canonical authority order, identity boundary constraints, runtime composition rules, and auditability requirements.
 
+## Single-Source Architecture Contract
+
+Canonical architecture ownership is delegated to:
+
+`governance/ava007/AVA007_UNIFIED_MEMORY_INTELLIGENCE_CONTRACT.md`
+
+Rules:
+
+- The unified contract is the single source for layer definitions and subsystem ownership boundaries.
+- This runtime governance file defines operating policy and enforcement boundaries only.
+- If architecture wording overlaps between files, the unified contract is authoritative for architecture semantics.
+
 ## Canonical Architecture
 
 Governance Truth
