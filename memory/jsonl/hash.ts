@@ -16,10 +16,15 @@ export function stableStringify(value: unknown): string {
 
 export function canonicalRecordForSigning(record: MemoryRecord): string {
   return stableStringify({
-    ...record,
+    id: record.id,
+    type: record.type,
+    source: record.source,
+    timestamp: record.timestamp,
+    content: record.content,
     metadata: {
-      ...record.metadata,
-      signature: undefined,
+      confidence: record.metadata.confidence,
+      importance: record.metadata.importance,
+      previous_hash: record.metadata.previous_hash,
     },
   });
 }
