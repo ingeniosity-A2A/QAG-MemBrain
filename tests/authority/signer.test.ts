@@ -30,6 +30,24 @@ describe("Replay artifact signer", () => {
     expect(signatureRecord.signerId).toBe("ava007-authority");
     expect(signatureRecord.signatureId.length).toBeGreaterThan(0);
     expect(signatureRecord.signature.length).toBeGreaterThan(0);
-    expect(verifyReplayArtifactSignature(payload, signatureRecord)).toBe(true);
+    expect(
+      verifyReplayArtifactSignature(payload, signatureRecord, {
+        strictAuthorityVerification: true,
+        resolveAuthority: (authorityId) =>
+          authorityId === "ava007-authority-v1"
+            ? {
+                authorityId: "ava007-authority-v1",
+                algorithm: "ed25519",
+                publicKey: keys.publicKey,
+                createdAt: "2026-06-03T00:00:00.000Z",
+                validFrom: "2026-06-03T00:00:00.000Z",
+                status: "active",
+              }
+            : null,
+        isAuthorityValidAt: (authorityId, signedAt) =>
+          authorityId === "ava007-authority-v1" && Date.parse(signedAt) >= Date.parse("2026-06-03T00:00:00.000Z"),
+        resolvePublicKey: (authorityId) => (authorityId === "ava007-authority-v1" ? keys.publicKey : null),
+      }),
+    ).toBe(true);
   });
 });

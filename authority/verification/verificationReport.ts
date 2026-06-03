@@ -1,6 +1,9 @@
 export interface VerificationReport {
   trusted: boolean;
   artifactPath: string;
+  mode?: "full" | "checkpoint" | "merkle";
+  recordsAnalyzed?: number;
+  segmentsAnalyzed?: number;
   authority: string;
   authorityValid: boolean;
   keyRegistered: boolean;
@@ -18,6 +21,15 @@ export function renderVerificationReport(report: VerificationReport): string {
   const lines: string[] = [];
 
   lines.push(`Artifact: ${report.artifactPath}`);
+  if (report.mode) {
+    lines.push(`Mode: ${report.mode}`);
+  }
+  if (typeof report.recordsAnalyzed === "number") {
+    lines.push(`Records: ${report.recordsAnalyzed}`);
+  }
+  if (typeof report.segmentsAnalyzed === "number") {
+    lines.push(`Segments: ${report.segmentsAnalyzed}`);
+  }
   lines.push("");
   lines.push("Authority");
   lines.push(`  ${mark(report.authorityValid)} authorityId valid (${report.authority})`);

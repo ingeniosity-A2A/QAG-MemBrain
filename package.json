@@ -11,7 +11,9 @@
     "test:strict:evaluation": "AVA007_STRICT_AUTHORITY_VERIFICATION=true vitest run tests/evaluation/evaluation.signature.strict.test.ts",
     "test:strict": "npm run test:strict:authority && npm run test:strict:evaluation",
     "verify": "node dist/bin/ava007.js",
-    "evaluate": "npm run build && node dist/evaluation/runEvaluation.js"
+    "evaluate": "npm run build && node dist/evaluation/runEvaluation.js",
+    "benchmark:reconstruction": "npm run build && node dist/evaluation/benchmark/runReconstructionBenchmark.js",
+    "evaluate:memory-judge": "npm run build && node dist/evaluation/memoryJudge/runMemoryJudge.js"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",

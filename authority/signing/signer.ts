@@ -1,4 +1,6 @@
 import { createPrivateKey, createPublicKey, generateKeyPairSync, randomUUID, sign as signBuffer } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { DEFAULT_SIGNING_ALGORITHM } from "./signingAlgorithm.js";
 import { ReplayArtifactRoot, SignatureRecord } from "./signatureRecord.js";
 import { computeReplayArtifactHash } from "./signatureHash.js";
@@ -89,6 +91,12 @@ export function generateEd25519KeyPair(): { privateKey: string; publicKey: strin
 
 let defaultSigner: ReplaySigner | null = null;
 let defaultAuthoritySigner: AuthoritySigner | null = null;
+export const DEFAULT_LOCAL_SIGNER_PRIVATE_KEY_PATH = join(
+  process.cwd(),
+  "authority",
+  "signing",
+  "authoritySigner.private.pem",
+);
 
 function getSignerBackend(): AuthoritySignerBackend {
   const raw = (process.env.AVA007_SIGNER_BACKEND ?? "local").toLowerCase();
@@ -111,14 +119,46 @@ export function getDefaultAuthoritySigner(): AuthoritySigner {
 
   if (backend === "local") {
     const privateKeyFromEnv = process.env.AVA007_SIGNER_PRIVATE_KEY_PEM;
-    if (privateKeyFromEnv) {
+    const privateKeyPath =
+      process.env.AVA007_SIGNER_PRIVATE_KEY_PATH && process.env.AVA007_SIGNER_PRIVATE_KEY_PATH.length > 0
+        ? process.env.AVA007_SIGNER_PRIVATE_KEY_PATH
+        : DEFAULT_LOCAL_SIGNER_PRIVATE_KEY_PATH;
+    const privateKeyFromFile = existsSync(privateKeyPath) ? readFileSync(privateKeyPath, "utf8") : undefined;
+    const privateKeyPem = privateKeyFromEnv ?? privateKeyFromFile;
+
+    if (privateKeyPem) {
+      const derivedPublicKey = createPublicKey(createPrivateKey(privateKeyPem))
+        .export({ type: "spki", format: "pem" })
+        .toString();
+
+      if (registry.activeAuthority.publicKey.length > 0 && registry.activeAuthority.publicKey !== derivedPublicKey) {
+        throw new Error(
+          [
+            `active authority '${authorityId}' public key does not match local signer private key`,
+            `expected key from authority registry and signer key at '${privateKeyPath}' to match`,
+            "run 'ava007 trust bootstrap' or set AVA007_SIGNER_PRIVATE_KEY_PEM",
+          ].join("; "),
+        );
+      }
+
       defaultAuthoritySigner = new LocalAuthoritySigner({
         authorityId,
         signerId,
-        privateKeyPem: privateKeyFromEnv,
+        privateKeyPem,
+        publicKeyPem: derivedPublicKey,
       });
 
       return defaultAuthoritySigner;
+    }
+
+    if (registry.activeAuthority.publicKey.length > 0) {
+      throw new Error(
+        [
+          `active authority '${authorityId}' has a registered public key but no private signing key was provided`,
+          `set AVA007_SIGNER_PRIVATE_KEY_PEM or place a PEM key at '${privateKeyPath}'`,
+          "run 'ava007 trust bootstrap' to initialize local trust root keys",
+        ].join("; "),
+      );
     }
 
     const generated = generateEd25519KeyPair();

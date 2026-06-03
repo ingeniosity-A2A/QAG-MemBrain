@@ -1,10 +1,20 @@
 {
-  "updatedAt": "2026-06-03T00:00:00.000Z",
+  "updatedAt": "2026-06-03T10:43:27.301Z",
   "authorities": [
     {
       "authorityId": "ava007-authority-v1",
       "algorithm": "ed25519",
-      "publicKey": "",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAQjOYML7FVfjeAaWrKOtaItB+p6I01Q9Ije8nNG9w19U=\n-----END PUBLIC KEY-----\n",
+      "createdAt": "2026-05-01T00:00:00.000Z",
+      "validFrom": "2026-05-01T00:00:00.000Z",
+      "validUntil": "2026-06-03T00:00:00.000Z",
+      "status": "retired",
+      "retiredAt": "2026-06-03T00:00:00.000Z"
+    },
+    {
+      "authorityId": "ava007-authority-v2",
+      "algorithm": "ed25519",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAsiwwxyLTlfTQMpNQih4DDIYh2e2Ek3qNBt+Qs/oQzk0=\n-----END PUBLIC KEY-----\n",
       "createdAt": "2026-06-03T00:00:00.000Z",
       "validFrom": "2026-06-03T00:00:00.000Z",
       "status": "active"

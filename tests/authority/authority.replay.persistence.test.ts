@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { DecisionRecord } from "../../audit/decisions/decisionRecord.js";
 import { JsonlReplayRepository } from "../../authority/persistence/replayRepository.js";
 import { AuthorityReplayService } from "../../authority/service/authorityReplayService.js";
+import { loadAuthoritySignerRegistry } from "../../authority/signing/signerRegistry.js";
 import { computeDecisionHash } from "../../lineage/hashing/decisionHash.js";
 import { DecisionLineage, DecisionLineageInput } from "../../lineage/schemas/decisionLineage.js";
 
@@ -123,6 +124,7 @@ function buildService(
 
 describe("Authority replay persistence", () => {
   it("keeps replay records after service restart", async () => {
+    const activeAuthorityId = loadAuthoritySignerRegistry().activeAuthority.authorityId;
     const tempDir = await mkdtemp(join(tmpdir(), "qag-membrain-replay-"));
     cleanupTargets.push(tempDir);
 
@@ -160,8 +162,8 @@ describe("Authority replay persistence", () => {
     expect(persisted[0].replayHash.length).toBeGreaterThan(0);
     expect(persisted[0].proof).toEqual({ algorithm: "sha256" });
     expect(persisted[0].signature.algorithm).toBe("ed25519");
-    expect(persisted[0].signature.authorityId).toBe("ava007-authority-v1");
-    expect(persisted[0].signature.signerId).toBe("ava007-authority-v1");
+    expect(persisted[0].signature.authorityId).toBe(activeAuthorityId);
+    expect(persisted[0].signature.signerId).toBe(activeAuthorityId);
     expect(persisted[0].signature.signatureId.length).toBeGreaterThan(0);
   });
 });
