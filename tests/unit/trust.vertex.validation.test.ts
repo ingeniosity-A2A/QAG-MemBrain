@@ -114,9 +114,11 @@ describe("Vertex validation", () => {
       privateKeyPem,
     });
 
+    const firstNibble = broken.hash[0] === "f" ? "e" : "f";
+
     const tampered: Vertex = {
       ...broken,
-      hash: broken.hash.replace(/./, "f"),
+      hash: `${firstNibble}${broken.hash.slice(1)}`,
     };
 
     const brokenResult = validateVertex(tampered, {
