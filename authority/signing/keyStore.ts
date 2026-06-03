@@ -30,15 +30,6 @@ export const AUTHORITY_KEY_MANIFEST_PATH = join(AUTHORITY_SIGNING_DIR, "authorit
 export const AUTHORITY_KEY_HASH_PATH = join(AUTHORITY_SIGNING_DIR, "authorityKey.hash");
 export const TRUSTED_AUTHORITIES_PATH = join(AUTHORITY_SIGNING_DIR, "trustedAuthorities.json");
 
-const DEFAULT_MANIFEST: AuthorityKeyManifest = {
-  authorityId: "ava007-authority-v1",
-  algorithm: "ed25519",
-  publicKey: "",
-  createdAt: "2026-06-03T00:00:00.000Z",
-  validFrom: "2026-06-03T00:00:00.000Z",
-  status: "active",
-};
-
 export function computeAuthorityManifestHash(manifestContent: string): string {
   return createHash("sha256").update(manifestContent, "utf8").digest("hex");
 }
@@ -48,7 +39,7 @@ export function loadAuthorityKeyManifest(
   hashPath = AUTHORITY_KEY_HASH_PATH,
 ): AuthorityKeyManifest {
   if (!existsSync(path)) {
-    return { ...DEFAULT_MANIFEST };
+    throw new Error(`authority key manifest not found at '${path}'. Run 'ava007 trust bootstrap'.`);
   }
 
   const manifestContent = readFileSync(path, "utf8");
@@ -134,7 +125,7 @@ function assertAuthorityDescriptor(value: AuthorityKeyDescriptor, label: string)
     throw new Error(`${label} requires ed25519 algorithm`);
   }
 
-  if (typeof value.publicKey !== "string") {
+  if (typeof value.publicKey !== "string" || value.publicKey.length === 0) {
     throw new Error(`${label} requires publicKey`);
   }
 

@@ -56,7 +56,14 @@ describe("Authority signer registry", () => {
       publicKey: v1Keys.publicKey,
     });
 
-    expect(verifyReplayArtifactSignature(payload, historicalSignature, { resolvePublicKey: registry.resolvePublicKey })).toBe(true);
+    expect(
+      verifyReplayArtifactSignature(payload, historicalSignature, {
+        strictAuthorityVerification: true,
+        resolveAuthority: registry.resolveAuthority,
+        isAuthorityValidAt: registry.isAuthorityValidAt,
+        resolvePublicKey: registry.resolvePublicKey,
+      }),
+    ).toBe(true);
   });
 
   it("fails verification when authority is revoked and no embedded public key exists", () => {

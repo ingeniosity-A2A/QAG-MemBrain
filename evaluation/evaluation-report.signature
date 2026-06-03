@@ -1,9 +1,9 @@
 {
   "algorithm": "ed25519",
-  "authorityId": "ava007-authority-v1",
-  "signerId": "ava007-authority-v1",
-  "signedAt": "2026-06-03T09:06:09.936Z",
-  "hash": "0b47b4810b9c4a61231da801895d9bd9f9115ca73738d7104eab24024058cc5d",
-  "signature": "+dNyXjH2fW2ycc2sto1c6riV/xQ8L0WSb0EOmAxEQPAZvGUGqZ0eMAY7Z+W+FicqHeG5iSRbA8OGLAdmVzppCQ==",
-  "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAtjAV0XkyQZD8fTDk7EG1rntcOJk50+yAlKtB6T+QA3k=\n-----END PUBLIC KEY-----\n"
+  "authorityId": "ava007-authority-v2",
+  "signerId": "ava007-authority-v2",
+  "signedAt": "2026-06-03T12:32:10.766Z",
+  "hash": "8351917ef6fe47c01f24994f6d290d19e21b51babb8f85eab16c0bbe7f86ef64",
+  "signature": "u3wEcm1gDjisgxb9cuEUdwYgVjdBWmWHTOaEoyQzwmFlOVs+Rspb+W2VayHu31irviUCu4Mr3douaVFCgrv5DA==",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAsiwwxyLTlfTQMpNQih4DDIYh2e2Ek3qNBt+Qs/oQzk0=\n-----END PUBLIC KEY-----\n"
 }

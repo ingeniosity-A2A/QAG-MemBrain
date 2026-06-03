@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-06-03T13:42:01.475Z",
+  "weak": {
+    "averageScore": 0.228,
+    "averageLatencyMs": 0.001,
+    "dimensions": {
+      "accuracy": 0.38,
+      "authorityCorrectness": 0.14,
+      "provenanceDepth": 0.32,
+      "lineageCompleteness": 0.14,
+      "relationshipAccuracy": 0.16
+    }
+  },
+  "strong": {
+    "averageScore": 0.602,
+    "averageLatencyMs": 0.212,
+    "dimensions": {
+      "accuracy": 0.56,
+      "authorityCorrectness": 0.36,
+      "provenanceDepth": 0.968,
+      "lineageCompleteness": 0.76,
+      "relationshipAccuracy": 0.36
+    }
+  },
+  "replaySpatial": {
+    "averageScore": 0.302,
+    "averageLatencyMs": 0.194,
+    "dimensions": {
+      "accuracy": 0.28,
+      "authorityCorrectness": 0.24,
+      "provenanceDepth": 0.448,
+      "lineageCompleteness": 0.256,
+      "relationshipAccuracy": 0.288
+    }
+  },
+  "improvementPercent": {
+    "accuracy": 47.368,
+    "authorityCorrectness": 157.143,
+    "provenanceDepth": 202.5,
+    "lineageCompleteness": 442.857,
+    "relationshipAccuracy": 125
+  },
+  "overallImprovementPercent": 164.035,
+  "accepted": true
+}

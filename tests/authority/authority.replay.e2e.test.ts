@@ -9,6 +9,7 @@ import { AuthorityReplayRecord, CANONICAL_AUTHORITY_ORDER } from "../../authorit
 import { buildReplayReport } from "../../authority/replay/replayReport.js";
 import { validateAuthorityReplayRecord } from "../../authority/replay/replayValidator.js";
 import { InMemoryCognitiveGraphRepository } from "../../graph/neo4j/repositories/cognitiveGraphRepository.js";
+import { loadAuthoritySignerRegistry } from "../../authority/signing/signerRegistry.js";
 import { DecisionReconstructor } from "../../lineage/reconstruction/decisionReconstructor.js";
 import { DecisionLineage } from "../../lineage/schemas/decisionLineage.js";
 import { BasicExecutiveRuntime } from "../../brain/executive/runtime.js";
@@ -26,6 +27,7 @@ afterEach(async () => {
 
 describe("Authority replay full-chain e2e", () => {
   it("proves authority chain across governance, replay, persistence, graph, restart, reconstruction, and reporting", async () => {
+    const activeAuthorityId = loadAuthoritySignerRegistry().activeAuthority.authorityId;
     const tempDir = await mkdtemp(join(tmpdir(), "qag-authority-e2e-"));
     cleanupTargets.push(tempDir);
 
@@ -196,8 +198,8 @@ describe("Authority replay full-chain e2e", () => {
     );
     expect(persisted.every((record) => record.proof.algorithm === "sha256")).toBe(true);
     expect(persisted.every((record) => record.signature.algorithm === "ed25519")).toBe(true);
-    expect(persisted.every((record) => record.signature.authorityId === "ava007-authority-v1")).toBe(true);
-    expect(persisted.every((record) => record.signature.signerId === "ava007-authority-v1")).toBe(true);
+    expect(persisted.every((record) => record.signature.authorityId === activeAuthorityId)).toBe(true);
+    expect(persisted.every((record) => record.signature.signerId === activeAuthorityId)).toBe(true);
     expect(persisted.every((record) => record.signature.signatureId.length > 0)).toBe(true);
 
     const decisionContext = await graphRepository.getContext(decision.decisionId);
@@ -246,10 +248,10 @@ describe("Authority replay full-chain e2e", () => {
     expect(secondReplayNode?.properties.status).toBe("VERIFIED");
     expect(firstReplayNode?.properties.signatureAlgorithm).toBe("ed25519");
     expect(secondReplayNode?.properties.signatureAlgorithm).toBe("ed25519");
-    expect(firstReplayNode?.properties.signatureAuthorityId).toBe("ava007-authority-v1");
-    expect(secondReplayNode?.properties.signatureAuthorityId).toBe("ava007-authority-v1");
-    expect(firstReplayNode?.properties.signatureSignerId).toBe("ava007-authority-v1");
-    expect(secondReplayNode?.properties.signatureSignerId).toBe("ava007-authority-v1");
+    expect(firstReplayNode?.properties.signatureAuthorityId).toBe(activeAuthorityId);
+    expect(secondReplayNode?.properties.signatureAuthorityId).toBe(activeAuthorityId);
+    expect(firstReplayNode?.properties.signatureSignerId).toBe(activeAuthorityId);
+    expect(secondReplayNode?.properties.signatureSignerId).toBe(activeAuthorityId);
     expect(typeof firstReplayNode?.properties.signatureArtifactHash).toBe("string");
     expect(typeof secondReplayNode?.properties.signatureArtifactHash).toBe("string");
     expect(decision.runtimeHash).toBe(persisted[0].runtimeHash);

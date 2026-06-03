@@ -9,6 +9,8 @@ import { computeDecisionHash } from "../../lineage/hashing/decisionHash.js";
 import { DecisionLineage, DecisionLineageInput } from "../../lineage/schemas/decisionLineage.js";
 import { ReplayRecord, ReplayRecordInput } from "../../authority/service/replayRecord.js";
 import { InMemoryCognitiveGraphRepository } from "../../graph/neo4j/repositories/cognitiveGraphRepository.js";
+import { loadAuthoritySignerRegistry } from "../../authority/signing/signerRegistry.js";
+import { SpatialCortex } from "../../cortex/spatial/spatialCortex.js";
 
 function buildLineage(decisionId = "decision-service-1"): DecisionLineage {
   const input: DecisionLineageInput = {
@@ -104,6 +106,7 @@ function buildDecision(lineage: DecisionLineage): DecisionRecord {
 function buildService(
   decisions: Array<{ decision: DecisionRecord; lineage: DecisionLineage }>,
   graphRepository?: InMemoryCognitiveGraphRepository,
+  spatialCortex?: SpatialCortex,
 ) {
   const inMemoryReplayRecords: ReplayRecord[] = [];
 
@@ -161,11 +164,13 @@ function buildService(
     }),
     replayRepository,
     graphRepository,
+    spatialCortex,
   });
 }
 
 describe("Authority replay service", () => {
   it("replays a single decision and updates records", async () => {
+    const activeAuthorityId = loadAuthoritySignerRegistry().activeAuthority.authorityId;
     const lineage = buildLineage();
     const decision = buildDecision(lineage);
     const service = buildService([{ decision, lineage }]);
@@ -196,14 +201,15 @@ describe("Authority replay service", () => {
     expect(records[0].timestamp.length).toBeGreaterThan(0);
     expect(records[0].proof).toEqual({ algorithm: "sha256" });
     expect(records[0].signature.algorithm).toBe("ed25519");
-    expect(records[0].signature.authorityId).toBe("ava007-authority-v1");
-    expect(records[0].signature.signerId).toBe("ava007-authority-v1");
+    expect(records[0].signature.authorityId).toBe(activeAuthorityId);
+    expect(records[0].signature.signerId).toBe(activeAuthorityId);
     expect(records[0].signature.signatureId.length).toBeGreaterThan(0);
     expect(metrics.snapshot().totalReplays).toBe(1);
     expect(metrics.snapshot().verifiedReplays).toBe(1);
   });
 
   it("materializes replay nodes and relationships when graph repository is configured", async () => {
+    const activeAuthorityId = loadAuthoritySignerRegistry().activeAuthority.authorityId;
     const lineage = buildLineage("decision-service-graph-1");
     const decision = buildDecision(lineage);
     const graphRepository = new InMemoryCognitiveGraphRepository();
@@ -240,8 +246,8 @@ describe("Authority replay service", () => {
     expect(typeof replayNode?.properties.replayHash).toBe("string");
     expect((replayNode?.properties.replayHash as string).length).toBeGreaterThan(0);
     expect(replayNode?.properties.signatureAlgorithm).toBe("ed25519");
-    expect(replayNode?.properties.signatureAuthorityId).toBe("ava007-authority-v1");
-    expect(replayNode?.properties.signatureSignerId).toBe("ava007-authority-v1");
+    expect(replayNode?.properties.signatureAuthorityId).toBe(activeAuthorityId);
+    expect(replayNode?.properties.signatureSignerId).toBe(activeAuthorityId);
     expect(typeof replayNode?.properties.signatureArtifactHash).toBe("string");
     expect(replayRelationshipTypes).toContain("REPLAYED");
     expect(replayRelationshipTypes).toContain("VERIFIED_BY");
@@ -265,6 +271,26 @@ describe("Authority replay service", () => {
     expect(replayTargets).toContain(first.reportId);
     expect(replayTargets).toContain(second.reportId);
     expect(replayEdges).toHaveLength(2);
+  });
+
+  it("emits spatial atoms and relationships when spatial cortex is configured", async () => {
+    const lineage = buildLineage("decision-service-spatial-1");
+    const decision = buildDecision(lineage);
+    const spatialCortex = new SpatialCortex();
+    const service = buildService([{ decision, lineage }], undefined, spatialCortex);
+
+    const response = await service.replay(decision.decisionId);
+    const records = await service.listReplayRecords();
+    const replayRecord = records.find((record) => record.replayId === response.reportId);
+
+    expect(replayRecord).toBeDefined();
+    const replayAtom = spatialCortex.getAtom(response.reportId);
+    expect(replayAtom?.atomId).toBe(response.reportId);
+
+    const outgoing = spatialCortex.getOutgoing(response.reportId);
+    expect(outgoing.some((relationship) => relationship.relation === "influenced_by")).toBe(true);
+    expect(outgoing.some((relationship) => relationship.relation === "approved")).toBe(true);
+    expect(outgoing.some((relationship) => relationship.relation === "verified_by")).toBe(true);
   });
 
   it("materializes failed replay using FAILED_BY and never VERIFIED_BY", async () => {

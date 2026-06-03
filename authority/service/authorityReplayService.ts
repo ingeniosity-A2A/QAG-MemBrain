@@ -4,7 +4,7 @@ import { AuthorityReplayEngine, AuthorityReplayExecutionDependencies } from "../
 import { AuthorityReplayQueue } from "./authorityReplayQueue.js";
 import { AuthorityReplayMetrics, ReplayMetrics } from "./authorityReplayMetrics.js";
 import { ReplayRecord, ReplayRecordInput } from "./replayRecord.js";
-import { JsonlReplayRepository, ReplayRepository } from "../persistence/replayRepository.js";
+import { NativeDedupReplayRepository, ReplayRepository } from "../persistence/replayRepository.js";
 import { CANONICAL_AUTHORITY_ORDER } from "../replay/replayContract.js";
 import { CognitiveGraphRepository } from "../../graph/neo4j/repositories/cognitiveGraphRepository.js";
 import { computeReplayHash } from "../persistence/replayHash.js";
@@ -17,6 +17,12 @@ import { loadDeploymentSnapshot } from "../deployment/deploymentLoader.js";
 import { RuntimeSnapshot } from "../runtime/runtimeSnapshot.js";
 import { loadRuntimeSnapshot } from "../runtime/runtimeLoader.js";
 import { sealReplayRecord } from "../persistence/replayProof.js";
+import {
+  SpatialCortex,
+  atomFromReplayRecord,
+  derivedAtomIdsFromReplayRecord,
+  relationshipsFromReplayRecord,
+} from "../../cortex/spatial/spatialCortex.js";
 
 export interface ReplayRequest {
   decisionId: string;
@@ -42,6 +48,7 @@ export interface AuthorityReplayServiceDependencies extends AuthorityReplayExecu
     deploymentHash: string;
     buildHash: string;
   }) => RuntimeSnapshot;
+  spatialCortex?: SpatialCortex;
 }
 
 export class AuthorityReplayService {
@@ -57,14 +64,22 @@ export class AuthorityReplayService {
     deploymentHash: string;
     buildHash: string;
   }) => RuntimeSnapshot;
+  private readonly spatialCortex?: SpatialCortex;
 
   constructor(private readonly deps: AuthorityReplayServiceDependencies) {
     this.engine = new AuthorityReplayEngine(deps);
-    this.replayRepository = deps.replayRepository ?? new JsonlReplayRepository(DEFAULT_REPLAY_LEDGER_PATH);
+    this.replayRepository =
+      deps.replayRepository ??
+      new NativeDedupReplayRepository(
+        DEFAULT_REPLAY_LEDGER_PATH,
+        DEFAULT_REPLAY_DEDUP_LEDGER_PATH,
+        DEFAULT_REPLAY_CHECKPOINT_INTERVAL,
+      );
     this.governanceSnapshotLoader = deps.loadGovernanceSnapshot ?? loadGovernanceSnapshot;
     this.buildSnapshotLoader = deps.loadBuildSnapshot ?? loadBuildSnapshot;
     this.deploymentSnapshotLoader = deps.loadDeploymentSnapshot ?? ((buildHash: string) => loadDeploymentSnapshot(buildHash));
     this.runtimeSnapshotLoader = deps.loadRuntimeSnapshot ?? loadRuntimeSnapshot;
+    this.spatialCortex = deps.spatialCortex;
   }
 
   async replay(decisionId: string): Promise<ReplayResponse> {
@@ -152,6 +167,7 @@ export class AuthorityReplayService {
     const sealedRecord = sealReplayRecord(record);
 
     await this.replayRepository.append(sealedRecord);
+    await this.materializeSpatialCortex(sealedRecord);
     await this.materializeReplayGraph(sealedRecord);
     this.metrics.record(result, Date.now() - started);
 
@@ -241,6 +257,31 @@ export class AuthorityReplayService {
       },
     });
   }
+
+  private async materializeSpatialCortex(record: ReplayRecord): Promise<void> {
+    if (!this.spatialCortex) {
+      return;
+    }
+
+    this.spatialCortex.upsertAtom(atomFromReplayRecord(record));
+
+    const relatedAtoms = derivedAtomIdsFromReplayRecord(record);
+    for (const atomId of relatedAtoms) {
+      this.spatialCortex.upsertAtom({
+        atomId,
+        type: "MemoryAtom",
+        relationships: [],
+        timestamp: record.timestamp,
+        authorityRoot: record.signature.artifactHash,
+      });
+    }
+
+    for (const relationship of relationshipsFromReplayRecord(record)) {
+      this.spatialCortex.addRelationship(relationship);
+    }
+  }
 }
 
 const DEFAULT_REPLAY_LEDGER_PATH = join(process.cwd(), "authority", "replay", "replay.jsonl");
+const DEFAULT_REPLAY_DEDUP_LEDGER_PATH = join(process.cwd(), "authority", "replay", "replay.dedup.jsonl");
+const DEFAULT_REPLAY_CHECKPOINT_INTERVAL = 5000;
