@@ -10,8 +10,12 @@ export interface DecisionRecord {
 export class AuditEngine {
   private readonly records: DecisionRecord[] = [];
 
-  append(record: DecisionRecord): void {
+  record(record: DecisionRecord): void {
     this.records.push(record);
+  }
+
+  append(record: DecisionRecord): void {
+    this.record(record);
   }
 
   list(): DecisionRecord[] {
