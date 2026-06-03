@@ -6,6 +6,7 @@ import { projectJsonlLedgerToGraphHash } from "../graph/reconstruction/jsonlGrap
 import { detectPatterns } from "./patternDetection.js";
 import { generateInsights } from "./insightGenerator.js";
 import { reflectMemory, MemoryReflection } from "./memoryReflection.js";
+import { InterpretationObservationProposal, proposeObservationMemory } from "./observationProposal.js";
 
 export interface InterpretLedgerOptions {
   repositoryFactory?: () => InMemoryCognitiveGraphRepository;
@@ -49,6 +50,14 @@ export async function interpretLedger(
     patterns,
     insights,
   });
+}
+
+export async function proposeInterpretationMemory(
+  filePath: string,
+  options: InterpretLedgerOptions = {},
+): Promise<InterpretationObservationProposal> {
+  const reflection = await interpretLedger(filePath, options);
+  return proposeObservationMemory(reflection);
 }
 
 async function readRecords(filePath: string): Promise<MemoryRecord[]> {
