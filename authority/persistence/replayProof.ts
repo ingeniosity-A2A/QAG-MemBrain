@@ -3,7 +3,7 @@ import { computeReplayHash } from "./replayHash.js";
 import { assertSignatureRecordShape } from "../signing/signatureSchemas.js";
 import {
   buildCanonicalReplayArtifactRoot,
-  getDefaultReplaySigner,
+  getDefaultAuthoritySigner,
   signReplayArtifact,
 } from "../signing/signer.js";
 import { verifyReplayArtifactSignature } from "../signing/verifier.js";
@@ -29,7 +29,7 @@ export function sealReplayRecord(record: ReplayRecordInput): ReplayRecord {
     proof: {
       algorithm: "sha256",
     },
-    signature: signReplayArtifact(replayArtifactRoot, getDefaultReplaySigner()),
+    signature: signReplayArtifact(replayArtifactRoot, getDefaultAuthoritySigner()),
   };
 }
 
