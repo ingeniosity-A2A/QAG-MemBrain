@@ -25,6 +25,10 @@ export function canonicalizeLineageInput(input: DecisionLineageInput): string {
     memoryAtoms: input.memoryAtoms,
     graphNodes: input.graphNodes,
     policiesApplied: input.policiesApplied,
+    policyEvaluations: input.policyEvaluations ?? [],
+    policyResults: input.policyResults ?? [],
+    policyEvidence: input.policyEvidence ?? [],
+    finalPolicyOutcome: input.finalPolicyOutcome ?? "advisory",
     timelineEvents: input.timelineEvents,
     executivePlanId: input.executivePlanId,
   });

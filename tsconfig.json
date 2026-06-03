@@ -13,10 +13,13 @@
     "types": ["node", "vitest/globals"]
   },
   "include": [
+    "authority/**/*.ts",
     "memory/**/*.ts",
     "graph/**/*.ts",
     "temporal/**/*.ts",
     "lineage/**/*.ts",
+    "policy/**/*.ts",
+    "governance/**/*.ts",
     "audit/**/*.ts",
     "consensus/**/*.ts",
     "brain/**/*.ts",

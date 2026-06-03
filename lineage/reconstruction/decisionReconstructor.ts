@@ -1,4 +1,5 @@
 import { computeDecisionHash } from "../hashing/decisionHash.js";
+import { resolvePolicyOutcome } from "../../policy/precedence/policyPrecedence.js";
 import { DecisionLineage } from "../schemas/decisionLineage.js";
 
 export interface ReconstructionResult {
@@ -10,6 +11,7 @@ export interface ReconstructionResult {
   graphLoaded: number;
   policiesLoaded: number;
   timelineLoaded: number;
+  policyOutcomeConsistent: boolean;
 }
 
 export interface ReconstructionDependencies {
@@ -39,10 +41,17 @@ export class DecisionReconstructor {
       memoryAtoms: lineage.memoryAtoms,
       graphNodes: lineage.graphNodes,
       policiesApplied: lineage.policiesApplied,
+      policyEvaluations: lineage.policyEvaluations,
+      policyResults: lineage.policyResults,
+      policyEvidence: lineage.policyEvidence,
+      finalPolicyOutcome: lineage.finalPolicyOutcome,
       timelineEvents: lineage.timelineEvents,
       executivePlanId: lineage.executivePlanId,
       timestamp: lineage.timestamp,
     });
+
+    const policyOutcomeConsistent =
+      resolvePolicyOutcome(lineage.policyEvaluations) === lineage.finalPolicyOutcome;
 
     return {
       decisionId: lineage.decisionId,
@@ -53,6 +62,7 @@ export class DecisionReconstructor {
       graphLoaded,
       policiesLoaded,
       timelineLoaded,
+      policyOutcomeConsistent,
     };
   }
 
