@@ -86,13 +86,22 @@ describe("memory/jsonl invariant", () => {
     testDirs.push(dir);
     const ledger = join(dir, "memory.jsonl");
 
-    const record: MemoryRecord = {
+    const { privateKey } = generateKeyPairSync("ed25519");
+
+    const unsigned: MemoryRecord = {
       id: "dup-1",
       type: "event",
       source: "test",
       timestamp: "2026-06-03T00:00:00.000Z",
       content: "x",
       metadata: {},
+    };
+
+    const record: MemoryRecord = {
+      ...unsigned,
+      metadata: {
+        signature: sign(null, Buffer.from(canonicalRecordForSigning(unsigned), "utf8"), privateKey).toString("base64"),
+      },
     };
 
     await append(ledger, record);
@@ -104,7 +113,9 @@ describe("memory/jsonl invariant", () => {
     testDirs.push(dir);
     const ledger = join(dir, "memory.jsonl");
 
-    const first: MemoryRecord = {
+    const { privateKey } = generateKeyPairSync("ed25519");
+
+    const firstUnsigned: MemoryRecord = {
       id: "chain-1",
       type: "event",
       source: "test",
@@ -113,7 +124,14 @@ describe("memory/jsonl invariant", () => {
       metadata: {},
     };
 
-    const second: MemoryRecord = {
+    const first: MemoryRecord = {
+      ...firstUnsigned,
+      metadata: {
+        signature: sign(null, Buffer.from(canonicalRecordForSigning(firstUnsigned), "utf8"), privateKey).toString("base64"),
+      },
+    };
+
+    const secondUnsigned: MemoryRecord = {
       id: "chain-2",
       type: "event",
       source: "test",
@@ -124,7 +142,37 @@ describe("memory/jsonl invariant", () => {
       },
     };
 
+    const second: MemoryRecord = {
+      ...secondUnsigned,
+      metadata: {
+        ...secondUnsigned.metadata,
+        signature: sign(null, Buffer.from(canonicalRecordForSigning(secondUnsigned), "utf8"), privateKey).toString("base64"),
+      },
+    };
+
     await append(ledger, first);
     await expect(append(ledger, second)).rejects.toThrow("previous_hash");
+  });
+
+  it("rejects invalid signature before write when public key is provided", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "mem-jsonl-"));
+    testDirs.push(dir);
+    const ledger = join(dir, "memory.jsonl");
+
+    const { publicKey } = generateKeyPairSync("ed25519");
+    const publicKeyPem = publicKey.export({ format: "pem", type: "spki" }).toString();
+
+    const record: MemoryRecord = {
+      id: "invalid-sig-1",
+      type: "event",
+      source: "test",
+      timestamp: "2026-06-03T00:00:00.000Z",
+      content: "invalid",
+      metadata: {
+        signature: Buffer.from("not-a-real-signature", "utf8").toString("base64"),
+      },
+    };
+
+    await expect(append(ledger, record, { publicKeyPem })).rejects.toThrow("signature verification failed");
   });
 });

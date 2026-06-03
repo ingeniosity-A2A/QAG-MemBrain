@@ -2,7 +2,12 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { computeRecordHash } from "./hash.js";
 import { MemoryQueryFilter, MemoryRecord, assertMemoryRecord } from "./memoryRecord.js";
-import { verify } from "./signatureVerification.js";
+import { verify, verifySignature } from "./signatureVerification.js";
+
+export interface AppendOptions {
+  publicKeyPem?: string;
+  signatureVerifier?: (record: MemoryRecord) => boolean;
+}
 
 async function ensureFile(filePath: string): Promise<void> {
   await mkdir(dirname(filePath), { recursive: true });
@@ -49,10 +54,18 @@ function matches(record: MemoryRecord, filter: MemoryQueryFilter): boolean {
   return ts >= from && ts <= to;
 }
 
-export async function append(filePath: string, record: MemoryRecord): Promise<void> {
+export async function append(filePath: string, record: MemoryRecord, options: AppendOptions = {}): Promise<void> {
   assertMemoryRecord(record);
   if (!verify(record)) {
-    throw new Error("MemoryRecord signature metadata is invalid");
+    throw new Error("MemoryRecord signature metadata is invalid or missing");
+  }
+
+  if (options.signatureVerifier && !options.signatureVerifier(record)) {
+    throw new Error("MemoryRecord signature verification failed");
+  }
+
+  if (options.publicKeyPem && !verifySignature(record, options.publicKeyPem)) {
+    throw new Error("MemoryRecord signature verification failed");
   }
 
   const records = await readAll(filePath);
@@ -61,6 +74,14 @@ export async function append(filePath: string, record: MemoryRecord): Promise<vo
   }
 
   const latest = records.at(-1);
+  if (!latest && typeof record.metadata.previous_hash !== "undefined") {
+    throw new Error("Genesis MemoryRecord must not declare previous_hash");
+  }
+
+  if (latest && !record.metadata.previous_hash) {
+    throw new Error("Non-genesis MemoryRecord must declare previous_hash");
+  }
+
   if (latest && record.metadata.previous_hash) {
     const expected = computeRecordHash(latest);
     if (record.metadata.previous_hash !== expected) {
@@ -82,7 +103,7 @@ export async function* query(filePath: string, filter: MemoryQueryFilter = {}): 
 
 export function createMemoryJsonlStore(filePath: string) {
   return {
-    append: (record: MemoryRecord) => append(filePath, record),
+    append: (record: MemoryRecord, options: AppendOptions = {}) => append(filePath, record, options),
     query: (filter: MemoryQueryFilter = {}) => query(filePath, filter),
     verify,
   };

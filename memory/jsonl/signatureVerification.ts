@@ -9,10 +9,12 @@ export function verify(record: MemoryRecord): boolean {
   try {
     assertMemoryRecord(record);
 
-    if (typeof record.metadata.signature !== "undefined") {
-      if (!BASE64_PATTERN.test(record.metadata.signature)) {
-        return false;
-      }
+    if (typeof record.metadata.signature !== "string" || record.metadata.signature.length === 0) {
+      return false;
+    }
+
+    if (!BASE64_PATTERN.test(record.metadata.signature)) {
+      return false;
     }
 
     if (typeof record.metadata.previous_hash !== "undefined") {
