@@ -111,5 +111,8 @@ describe("Authority replay persistence", () => {
     expect(persisted).toHaveLength(1);
     expect(persisted[0].decisionId).toBe(decision.decisionId);
     expect(persisted[0].status).toBe("VERIFIED");
+    expect(persisted[0].failureReasons).toEqual([]);
+    expect(persisted[0].authorityOrder).toEqual(["JSONL", "Tashi", "Neo4j", "GSAP", "Runtime"]);
+    expect(persisted[0].replayHash.length).toBeGreaterThan(0);
   });
 });

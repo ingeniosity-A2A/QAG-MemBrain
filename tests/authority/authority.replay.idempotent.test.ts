@@ -3,6 +3,7 @@ import { DecisionRecord } from "../../audit/decisions/decisionRecord.js";
 import { AuthorityReplayEngine } from "../../authority/execution/authorityReplayEngine.js";
 import { ReplayRepository } from "../../authority/persistence/replayRepository.js";
 import { AuthorityReplayService } from "../../authority/service/authorityReplayService.js";
+import { ReplayRecord, ReplayRecordInput } from "../../authority/service/replayRecord.js";
 import { computeDecisionHash } from "../../lineage/hashing/decisionHash.js";
 import { DecisionLineage, DecisionLineageInput } from "../../lineage/schemas/decisionLineage.js";
 
@@ -62,19 +63,14 @@ describe("Authority replay idempotency", () => {
   it("returns identical outcomes on repeated replay and does not mutate lineage", async () => {
     const lineage = buildLineage();
     const decision = buildDecision(lineage);
-    const replayRecords: Array<{
-      replayId: string;
-      decisionId: string;
-      lineageId: string;
-      status: "VERIFIED" | "FAILED";
-      failures: string[];
-      startedAt: string;
-      completedAt: string;
-    }> = [];
+    const replayRecords: ReplayRecord[] = [];
 
     const replayRepository: ReplayRepository = {
-      append: async (record) => {
-        replayRecords.push(record);
+      append: async (record: ReplayRecordInput) => {
+        replayRecords.push({
+          ...record,
+          replayHash: "test-hash",
+        });
       },
       list: async () => [...replayRecords],
     };
@@ -99,6 +95,7 @@ describe("Authority replay idempotency", () => {
     expect(first.failures).toEqual(second.failures);
     const records = await service.listReplayRecords();
     expect(records).toHaveLength(2);
+    expect(records[0].failureReasons).toEqual(records[1].failureReasons);
     expect(lineage.decisionHash).toBe(decision.decisionHash);
     expect(lineage.finalPolicyOutcome).toBe("allow");
   });

@@ -4,6 +4,8 @@ export function assertReplayRecordShape(record: ReplayRecord): void {
   assertNonEmptyString(record.replayId, "replayId");
   assertNonEmptyString(record.decisionId, "decisionId");
   assertNonEmptyString(record.lineageId, "lineageId");
+  assertNonEmptyString(record.replayHash, "replayHash");
+  assertNonEmptyString(record.timestamp, "timestamp");
   assertNonEmptyString(record.startedAt, "startedAt");
   assertNonEmptyString(record.completedAt, "completedAt");
 
@@ -11,8 +13,18 @@ export function assertReplayRecordShape(record: ReplayRecord): void {
     throw new Error("Replay record requires status to be VERIFIED or FAILED");
   }
 
-  if (!Array.isArray(record.failures) || record.failures.some((failure) => typeof failure !== "string")) {
-    throw new Error("Replay record requires failures to be a string array");
+  if (
+    !Array.isArray(record.failureReasons) ||
+    record.failureReasons.some((failure) => typeof failure !== "string")
+  ) {
+    throw new Error("Replay record requires failureReasons to be a string array");
+  }
+
+  if (
+    !Array.isArray(record.authorityOrder) ||
+    record.authorityOrder.some((layer) => typeof layer !== "string" || layer.length === 0)
+  ) {
+    throw new Error("Replay record requires authorityOrder to be a string array");
   }
 }
 

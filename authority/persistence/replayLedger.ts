@@ -1,12 +1,14 @@
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { dirname } from "node:path";
-import { ReplayRecord } from "../service/replayRecord.js";
+import { ReplayRecord, ReplayRecordInput } from "../service/replayRecord.js";
 import { assertReplayRecordShape } from "./replaySchemas.js";
+import { sealReplayRecord, verifyReplayRecord } from "./replayProof.js";
 
-export async function appendReplayRecord(filePath: string, record: ReplayRecord): Promise<void> {
-  assertReplayRecordShape(record);
+export async function appendReplayRecord(filePath: string, record: ReplayRecordInput): Promise<void> {
+  const sealed = sealReplayRecord(record);
+  assertReplayRecordShape(sealed);
   await mkdir(dirname(filePath), { recursive: true });
-  await appendFile(filePath, `${JSON.stringify(record)}\n`, "utf8");
+  await appendFile(filePath, `${JSON.stringify(sealed)}\n`, "utf8");
 }
 
 export async function readReplayRecords(filePath: string): Promise<ReplayRecord[]> {
@@ -20,6 +22,9 @@ export async function readReplayRecords(filePath: string): Promise<ReplayRecord[
     return lines.map((line) => {
       const parsed = JSON.parse(line) as ReplayRecord;
       assertReplayRecordShape(parsed);
+      if (!verifyReplayRecord(parsed)) {
+        throw new Error(`Replay record integrity verification failed for replayId '${parsed.replayId}'`);
+      }
       return parsed;
     });
   } catch (error) {

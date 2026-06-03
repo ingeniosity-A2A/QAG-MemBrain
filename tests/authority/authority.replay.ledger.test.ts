@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { appendReplayRecord, readReplayRecords } from "../../authority/persistence/replayLedger.js";
+import { CANONICAL_AUTHORITY_ORDER } from "../../authority/replay/replayContract.js";
 
 const cleanupTargets: string[] = [];
 
@@ -26,7 +27,9 @@ describe("Authority replay ledger", () => {
       decisionId: "dec-1",
       lineageId: "lin-1",
       status: "VERIFIED",
-      failures: [],
+      failureReasons: [],
+      authorityOrder: [...CANONICAL_AUTHORITY_ORDER],
+      timestamp: "2026-06-03T20:15:01.000Z",
       startedAt: "2026-06-03T20:15:00.000Z",
       completedAt: "2026-06-03T20:15:01.000Z",
     });
@@ -38,7 +41,9 @@ describe("Authority replay ledger", () => {
       decisionId: "dec-2",
       lineageId: "lin-2",
       status: "FAILED",
-      failures: ["HASH_MISMATCH"],
+      failureReasons: ["HASH_MISMATCH"],
+      authorityOrder: [...CANONICAL_AUTHORITY_ORDER],
+      timestamp: "2026-06-03T20:16:01.000Z",
       startedAt: "2026-06-03T20:16:00.000Z",
       completedAt: "2026-06-03T20:16:01.000Z",
     });
@@ -50,5 +55,6 @@ describe("Authority replay ledger", () => {
     expect(records).toHaveLength(2);
     expect(records[0].replayId).toBe("rep-1");
     expect(records[1].replayId).toBe("rep-2");
+    expect(records[0].replayHash).not.toBe(records[1].replayHash);
   });
 });
