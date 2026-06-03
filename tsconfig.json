@@ -27,6 +27,8 @@
     "bin/**/*.ts",
     "accelerators/**/*.ts",
     "interfaces/**/*.ts",
+    "trust/**/*.ts",
+    "cognition/**/*.ts",
     "tests/**/*.ts"
   ]
 }
