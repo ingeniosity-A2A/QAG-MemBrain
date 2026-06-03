@@ -6,6 +6,7 @@ import { AuthorityReplayService } from "../../authority/service/authorityReplayS
 import { ReplayRepository } from "../../authority/persistence/replayRepository.js";
 import { computeDecisionHash } from "../../lineage/hashing/decisionHash.js";
 import { DecisionLineage, DecisionLineageInput } from "../../lineage/schemas/decisionLineage.js";
+import { ReplayRecord, ReplayRecordInput } from "../../authority/service/replayRecord.js";
 
 function buildLineage(decisionId = "decision-service-1"): DecisionLineage {
   const input: DecisionLineageInput = {
@@ -60,19 +61,14 @@ function buildDecision(lineage: DecisionLineage): DecisionRecord {
 }
 
 function buildService(decisions: Array<{ decision: DecisionRecord; lineage: DecisionLineage }>) {
-  const inMemoryReplayRecords: Array<{
-    replayId: string;
-    decisionId: string;
-    lineageId: string;
-    status: "VERIFIED" | "FAILED";
-    failures: string[];
-    startedAt: string;
-    completedAt: string;
-  }> = [];
+  const inMemoryReplayRecords: ReplayRecord[] = [];
 
   const replayRepository: ReplayRepository = {
-    append: async (record) => {
-      inMemoryReplayRecords.push(record);
+    append: async (record: ReplayRecordInput) => {
+      inMemoryReplayRecords.push({
+        ...record,
+        replayHash: "test-hash",
+      });
     },
     list: async () => [...inMemoryReplayRecords],
   };
@@ -109,6 +105,9 @@ describe("Authority replay service", () => {
     expect(response.failures).toEqual([]);
     const records = await service.listReplayRecords();
     expect(records).toHaveLength(1);
+    expect(records[0].failureReasons).toEqual([]);
+    expect(records[0].authorityOrder).toEqual(["JSONL", "Tashi", "Neo4j", "GSAP", "Runtime"]);
+    expect(records[0].timestamp.length).toBeGreaterThan(0);
     expect(metrics.snapshot().totalReplays).toBe(1);
     expect(metrics.snapshot().verifiedReplays).toBe(1);
   });

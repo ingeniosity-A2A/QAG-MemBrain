@@ -3,8 +3,9 @@ import { join } from "node:path";
 import { AuthorityReplayEngine, AuthorityReplayExecutionDependencies } from "../execution/authorityReplayEngine.js";
 import { AuthorityReplayQueue } from "./authorityReplayQueue.js";
 import { AuthorityReplayMetrics, ReplayMetrics } from "./authorityReplayMetrics.js";
-import { ReplayRecord } from "./replayRecord.js";
+import { ReplayRecord, ReplayRecordInput } from "./replayRecord.js";
 import { JsonlReplayRepository, ReplayRepository } from "../persistence/replayRepository.js";
+import { CANONICAL_AUTHORITY_ORDER } from "../replay/replayContract.js";
 
 export interface ReplayRequest {
   decisionId: string;
@@ -77,12 +78,14 @@ export class AuthorityReplayService {
     const completedAt = new Date().toISOString();
     const replayId = randomUUID();
 
-    const record: ReplayRecord = {
+    const record: ReplayRecordInput = {
       replayId,
       decisionId: result.decisionId,
       lineageId: result.lineageId,
       status: result.status,
-      failures: [...result.failures],
+      failureReasons: [...result.failures],
+      authorityOrder: [...CANONICAL_AUTHORITY_ORDER],
+      timestamp: completedAt,
       startedAt,
       completedAt,
     };
