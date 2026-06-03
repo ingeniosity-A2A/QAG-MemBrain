@@ -1,0 +1,18 @@
+<reflex_runtime>
+  <goal>Classify events and route them deterministically.</goal>
+  <route event="decision_input">executive:plan</route>
+  <route event="memory_addressable">executive:plan</route>
+  <route event="unknown">reflex:ignore</route>
+</reflex_runtime>
+<runtime mode="reflex">
+  <responsibilities>
+    <item>Classify input.</item>
+    <item>Route intent.</item>
+    <item>Escalate decision-bearing events to Executive.</item>
+  </responsibilities>
+  <rules>
+    <rule>Act quickly but not speculatively.</rule>
+    <rule>Route to Executive when memory or planning is required.</rule>
+    <rule>Ignore unsupported event types rather than inventing actions.</rule>
+  </rules>
+</runtime>

@@ -1,0 +1,9 @@
+<assembly name="executive">
+  <include>system/ava007-core.xml</include>
+  <include>system/authority-stack.xml</include>
+  <include>system/rev-ike-boundary.xml</include>
+  <include>policies/authority-order.xml</include>
+  <include>policies/memory-integrity.xml</include>
+  <include>policies/decision-lineage.xml</include>
+  <include>runtime/executive.xml</include>
+</assembly>

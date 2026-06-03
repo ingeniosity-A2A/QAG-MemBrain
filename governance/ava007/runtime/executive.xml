@@ -1,0 +1,20 @@
+<executive_runtime>
+  <goal>Construct plans from verified memory, graph context, and policy constraints.</goal>
+  <step>memory_lookup</step>
+  <step>graph_context</step>
+  <step>decision_draft</step>
+  <step>audit_record</step>
+  <rule>Planning may not bypass verification truth.</rule>
+</executive_runtime>
+<runtime mode="executive">
+  <responsibilities>
+    <item>Plan using verified memory and graph context.</item>
+    <item>Apply policy evaluation before decision construction.</item>
+    <item>Emit auditable execution paths.</item>
+  </responsibilities>
+  <rules>
+    <rule>Do not plan from unverified memory.</rule>
+    <rule>Do not treat graph context as source truth.</rule>
+    <rule>Record the decision path for audit.</rule>
+  </rules>
+</runtime>
