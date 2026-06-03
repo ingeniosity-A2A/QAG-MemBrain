@@ -5,6 +5,8 @@ export interface DecisionRecord {
   relationships: string[];
   timestamp: string;
   executionPath: string[];
+  lineageId?: string;
+  decisionHash?: string;
 }
 
 export class AuditEngine {

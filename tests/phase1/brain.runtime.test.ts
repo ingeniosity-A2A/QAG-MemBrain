@@ -7,6 +7,7 @@ import { BasicExecutiveRuntime } from "../../brain/executive/runtime.js";
 import { BasicReflexRuntime } from "../../brain/reflex/runtime.js";
 import { InMemoryCognitiveGraphRepository } from "../../graph/neo4j/repositories/cognitiveGraphRepository.js";
 import { appendAtom, queryAtoms } from "../../memory/ledger/jsonlLedger.js";
+import { ReplayEngine } from "../../temporal/replay/replayEngine.js";
 
 const cleanupTargets: string[] = [];
 
@@ -69,18 +70,32 @@ describe("Brain runtime pipeline", () => {
     expect(plan).toContain("graph_context");
     expect(plan).toContain("audit_record");
 
+    const replay = new ReplayEngine([
+      {
+        id: "evt-brain-1",
+        timestamp: "2026-06-03T02:00:01.000Z",
+        decisionId: "decision-brain-001",
+        patch: { stage: "planned" },
+      },
+    ]);
+    const replayEvents = replay.replayDecision("decision-brain-001");
+
     await executive.orchestrate(plan);
-    executive.recordDecision(
-      "decision-brain-001",
-      [memories[0].atom.id],
-      graphContext.outgoing.map((relationship) => relationship.type),
-      ["reflex", "executive"],
-      ["policy-immutability"],
-    );
+    const lineage = executive.recordDecisionWithLineage({
+      decisionId: "decision-brain-001",
+      memoryAtoms: [memories[0].atom.id],
+      graphNodes: graphContext.relatedNodeIds,
+      policiesApplied: ["policy-immutability"],
+      timelineEvents: replayEvents.map((event) => event.id),
+      executivePlanId: "plan-brain-runtime-001",
+      executionPath: ["reflex", "executive"],
+    });
 
     const records = audit.list();
     expect(records).toHaveLength(1);
     expect(records[0].memories).toContain(atom.id);
     expect(records[0].executionPath).toEqual(["reflex", "executive"]);
+    expect(records[0].lineageId).toBe(lineage.decisionId);
+    expect(records[0].decisionHash).toBe(lineage.decisionHash);
   });
 });

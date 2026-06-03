@@ -16,6 +16,7 @@
     "memory/**/*.ts",
     "graph/**/*.ts",
     "temporal/**/*.ts",
+    "lineage/**/*.ts",
     "audit/**/*.ts",
     "consensus/**/*.ts",
     "brain/**/*.ts",
