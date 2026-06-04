@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: QAG MemBrain Consumption API
   version: 1.0.0
-  description: REST and WebSocket contract for memory ingestion, recall, branching, audit, and timeline streaming.
+  description: REST and WebSocket contract for memory ingestion, recall, branching, audit, timeline streaming, and REV.IKE interpretation.
 servers:
   - url: http://localhost:8080/v1
 paths:
@@ -109,6 +109,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuditResponse'
+  /internal/revike:
+    post:
+      summary: Execute REV.IKE subconscious runtime
+      operationId: postRevike
+      parameters:
+        - in: header
+          name: Signature
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevikeRequest'
+      responses:
+        "200":
+          description: REV.IKE tactical synthesis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevikeResponse'
   /timeline:
     get:
       summary: WebSocket upgrade endpoint
@@ -245,6 +268,46 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuditEntry'
+    RevikeRequest:
+      type: object
+      additionalProperties: false
+      required: [request_id, operational_context]
+      properties:
+        request_id:
+          type: string
+        operational_context:
+          type: string
+        location:
+          type: string
+        required_output:
+          type: string
+          enum: [json, audio]
+    RevikeResponse:
+      type: object
+      additionalProperties: false
+      required: [philosophical_diagnosis, strategic_advice, tactical_directive, retrieval]
+      properties:
+        philosophical_diagnosis:
+          type: string
+        strategic_advice:
+          type: string
+        tactical_directive:
+          type: string
+        audio_asset_url:
+          type: string
+        retrieval:
+          type: object
+          additionalProperties: false
+          required: [themes, memory_ids]
+          properties:
+            themes:
+              type: array
+              items:
+                type: string
+            memory_ids:
+              type: array
+              items:
+                type: string
     TimelineTweenUpdateMessage:
       type: object
       additionalProperties: false
@@ -259,241 +322,6 @@ components:
           type: object
           additionalProperties: true
     TimelineCollapseMessage:
-      type: object
-      additionalProperties: false
-      required: [event, superposition_id, selected]
-      properties:
-        event:
-          const: collapse
-        superposition_id:
-          type: string
-        selected:
-          type: stringopenapi: 3.1.0
-info:
-  title: QAG MemBrain Consumption API
-  version: 1.0.0
-servers:
-  - url: http://localhost:8080/v1
-paths:
-  /memory:
-    post:
-      summary: Append a signed memory record
-      operationId: postMemory
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/MemoryWriteRequest"
-      responses:
-        "200":
-          description: Memory appended
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MemoryWriteResponse"
-  /recall:
-    get:
-      summary: Reconstruct state at timestamp
-      operationId: getRecall
-      parameters:
-        - in: query
-          name: t
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: memory_id
-          required: false
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Reconstruction result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RecallResponse"
-  /branch:
-    post:
-      summary: Create branch from decision point
-      operationId: postBranch
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/BranchRequest"
-      responses:
-        "200":
-          description: Branch created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BranchResponse"
-  /audit:
-    get:
-      summary: Retrieve audit entries
-      operationId: getAudit
-      parameters:
-        - in: query
-          name: session_id
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: limit
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 1000
-      responses:
-        "200":
-          description: Audit entries
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuditResponse"
-  /timeline:
-    get:
-      summary: WebSocket subscription handshake
-      operationId: wsTimelineHandshake
-      parameters:
-        - in: query
-          name: memory_id
-          required: true
-          schema:
-            type: string
-      responses:
-        "101":
-          description: Switching Protocols for websocket
-      x-websocket:
-        path: /timeline
-        protocol: json
-        messageSchema:
-          oneOf:
-            - $ref: "#/components/schemas/TimelineTweenUpdate"
-            - $ref: "#/components/schemas/TimelineCollapse"
-components:
-  schemas:
-    MemoryWriteRequest:
-      type: object
-      additionalProperties: false
-      required: [type, source, content]
-      properties:
-        type:
-          type: string
-        source:
-          type: string
-        content:
-          type: string
-        metadata:
-          type: object
-          additionalProperties: true
-    MemoryWriteResponse:
-      type: object
-      additionalProperties: false
-      required: [id, timestamp, vertex_hash]
-      properties:
-        id:
-          type: string
-          format: uuid
-        timestamp:
-          type: integer
-          format: int64
-        vertex_hash:
-          type: string
-    RecallResponse:
-      type: object
-      additionalProperties: false
-      required: [state, fidelity, reconstruction_time_ms]
-      properties:
-        state:
-          type: object
-          additionalProperties: true
-        fidelity:
-          type: number
-        reconstruction_time_ms:
-          type: integer
-    BranchRequest:
-      type: object
-      additionalProperties: false
-      required: [memory_id, branch_point, mutations]
-      properties:
-        memory_id:
-          type: string
-        branch_point:
-          type: integer
-          format: int64
-        mutations:
-          type: array
-          items:
-            type: object
-            additionalProperties: false
-            required: [property, from, to, duration, ease]
-            properties:
-              property:
-                type: string
-              from:
-                type: string
-              to:
-                type: string
-              duration:
-                type: integer
-              ease:
-                type: string
-    BranchResponse:
-      type: object
-      additionalProperties: false
-      required: [branch_id, timeline_hash]
-      properties:
-        branch_id:
-          type: string
-        timeline_hash:
-          type: string
-    AuditEntry:
-      type: object
-      additionalProperties: false
-      required: [timestamp, decision, inputs, outputs, reasoning]
-      properties:
-        timestamp:
-          type: integer
-          format: int64
-        decision:
-          type: string
-        inputs:
-          type: object
-          additionalProperties: true
-        outputs:
-          type: object
-          additionalProperties: true
-        reasoning:
-          type: string
-    AuditResponse:
-      type: object
-      additionalProperties: false
-      required: [entries]
-      properties:
-        entries:
-          type: array
-          items:
-            $ref: "#/components/schemas/AuditEntry"
-    TimelineTweenUpdate:
-      type: object
-      additionalProperties: false
-      required: [event, time, state]
-      properties:
-        event:
-          const: tween_update
-        time:
-          type: integer
-          format: int64
-        state:
-          type: object
-          additionalProperties: true
-    TimelineCollapse:
       type: object
       additionalProperties: false
       required: [event, superposition_id, selected]
