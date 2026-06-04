@@ -116,6 +116,86 @@ Response:
 }
 ```
 
+## REV.IKE Subconscious Endpoints (Read-only + Proposal)
+
+These endpoints are consumed by AVA-007 to obtain interpretations.  
+REV.IKE never writes directly to JSONL.
+
+### `POST /internal/revike/interpret`
+
+Request (by AVA-007):
+
+```json
+{
+  "memory_ids": ["mem_123", "mem_456"],
+  "query": "Why did the swarm stall?",
+  "include_alternative_framings": true
+}
+```
+
+Response (REV.IKE):
+
+```json
+{
+  "observations": [
+    "The swarm encountered an incompatible bracket - a known pattern from previous jobs."
+  ],
+  "insights": [
+    "Delays often correlate with missing visual instructions in the portal."
+  ],
+  "questions": [
+    "Would pre-dispatch spatial tagging reduce this failure mode?"
+  ],
+  "alternative_framings": [
+    "Reframe the stall as an opportunity to update the knowledge base."
+  ]
+}
+```
+
+### `POST /internal/revike/propose`
+
+Generates an `ObservationProposal` that AVA-007 may accept or reject.
+
+Request:
+
+```json
+{
+  "context_memory_ids": ["mem_123"],
+  "focus": "suggest new memory to log"
+}
+```
+
+Response:
+
+```json
+{
+  "type": "observation_proposal",
+  "source": "REV.IKE",
+  "timestamp": 1717600000000,
+  "content": {
+    "interpretation": "The bracket incompatibility suggests a missing step in the assembly guide.",
+    "proposed_memory_content": {
+      "type": "insight",
+      "content": "Bracket type X requires pre-drilling - add to pre-dispatch checklist.",
+      "tags": ["process_improvement"]
+    }
+  },
+  "confidence": 0.85
+}
+```
+
+### AVA-007 Memory Endpoints (Write)
+
+Only these endpoints may append to JSONL.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/memory` | Accepts a `MemoryRecord` (signed by AVA-007) and appends to JSONL |
+| POST | `/memory/accept-proposal` | Accepts an `ObservationProposal` and converts it to a `MemoryRecord` |
+| POST | `/memory/reject-proposal` | Logs rejection (to audit) but does not append to JSONL |
+
+All write endpoints require DID signature and pass through Tashi consensus.
+
 ## Error Handling
 - 200: Success
 - 400: Malformed request (for example invalid JSONL)
