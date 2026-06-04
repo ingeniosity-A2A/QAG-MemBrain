@@ -2,8 +2,8 @@
   "algorithm": "ed25519",
   "authorityId": "ava007-authority-v2",
   "signerId": "ava007-authority-v2",
-  "signedAt": "2026-06-03T12:32:10.766Z",
-  "hash": "8351917ef6fe47c01f24994f6d290d19e21b51babb8f85eab16c0bbe7f86ef64",
-  "signature": "u3wEcm1gDjisgxb9cuEUdwYgVjdBWmWHTOaEoyQzwmFlOVs+Rspb+W2VayHu31irviUCu4Mr3douaVFCgrv5DA==",
+  "signedAt": "2026-06-04T04:59:40.797Z",
+  "hash": "e117abeaee9705e15bbb7e83699e4d12a8e3893501fe2445fdd12410a0a086ab",
+  "signature": "bQLawLCQhbs31tq6rHeq7ZbK4EJI70lerWqzV0O7iU01gkn9ynruAFK4lvqbc7fObvcGUVtESNeXer5hmy/hBA==",
   "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAsiwwxyLTlfTQMpNQih4DDIYh2e2Ek3qNBt+Qs/oQzk0=\n-----END PUBLIC KEY-----\n"
 }
