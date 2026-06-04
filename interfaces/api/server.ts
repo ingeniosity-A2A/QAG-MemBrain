@@ -2,6 +2,7 @@ import { handleAuditGet } from "./routes/audit.js";
 import { handleBranchPost } from "./routes/branch.js";
 import { handleMemoryPost } from "./routes/memory.js";
 import { handleRecallGet } from "./routes/recall.js";
+import { handleRevikePost } from "./routes/revike.js";
 
 export interface ApiRequest {
   headers?: Record<string, string | undefined>;
@@ -54,6 +55,13 @@ export async function handleApiRequest(method: string, path: string, request: Ap
     return {
       status: 200,
       body: handleAuditGet(request.query ?? {}),
+    };
+  }
+
+  if (method === "POST" && path === "/internal/revike") {
+    return {
+      status: 200,
+      body: await handleRevikePost(request.body),
     };
   }
 
