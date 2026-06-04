@@ -12,6 +12,41 @@ QAG_MemBrain is the authoritative memory and cognition architecture for the AVA-
 6. Deterministic replay guarantees auditability. Any state can be reconstructed at any time.
 7. Offline-first. Local JSONL and Tashi queue, then sync when connectivity returns.
 
+## Cognitive Topology
+
+QAG_MemBrain implements a **dual-consciousness architecture** as defined in `/docs/DUAL_CONSCIOUSNESS_CONTRACT.md`.
+
+| Layer | Component | Role |
+|-------|-----------|------|
+| **Conscious executor** | AVA-007 | Sole actor: builds, decides, authorizes memory, executes actions |
+| **Subconscious interpreter** | REV.IKE | Non-actor: reads memory, generates observations and proposal candidates |
+| **Memory** | JSONL Ledger | Immutable, append-only source of truth |
+| **Trust** | Tashi DAG + DID | Cryptographic verification of every memory |
+| **Replay** | GSAP Timeline | Deterministic state reconstruction |
+| **Graph** | Neo4j (optional) | Relationship intelligence between memories |
+| **Governance** | CFGL + OPA | Policy enforcement and filing decisions |
+
+### Authority Chain (highest to lowest)
+
+1. `AVA007_UNIFIED_MEMORY_INTELLIGENCE_CONTRACT.md`
+2. `AVA007_RUNTIME_GOVERNANCE.md`
+3. JSONL Ledger
+4. Trust Substrate (Tashi, DID)
+5. Replay Engine (GSAP)
+6. Graph Intelligence (Neo4j)
+7. Interpretation Layer (REV.IKE)
+
+Lower layers may not override higher layers.
+
+### Memory Creation Rule
+
+- Only **AVA-007** may append to JSONL.
+- REV.IKE may emit `ObservationProposal` objects.
+- AVA-007 accepts or rejects each proposal.
+- Rejected proposals are discarded (not written to JSONL).
+
+Any code or agent that violates this separation is considered **architectural drift** and will be rejected.
+
 ## Architectural Invariant
 No subsystem may become a second source of truth.
 
