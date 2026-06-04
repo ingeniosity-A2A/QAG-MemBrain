@@ -8,7 +8,7 @@ QAG_MemBrain is the authoritative memory and cognition architecture for the AVA-
 2. JSONL is the atomic memory substrate. One line is one immutable, typed, signed memory.
 3. Tashi DAG provides leaderless consensus. Vertices are signed JSONL lines, gossiped over WebRTC/WebSocket.
 4. GSAP is the temporal orchestration engine. Timelines encode transition functions; easing encodes probability.
-5. Dual-brain (Gemma + Watsonx) executes reflex, executive, and cortex layers.
+5. Dual-brain (Gemma + Mercury 2) executes reflex, executive, and cortex layers.
 6. Deterministic replay guarantees auditability. Any state can be reconstructed at any time.
 7. Offline-first. Local JSONL and Tashi queue, then sync when connectivity returns.
 
@@ -66,7 +66,7 @@ Everything else is derived.
 - Tashi DAG, gossip, consensus (`/tashi`)
 - GSAP timeline serialization and replay (`/temporal`)
 - Reflex, executive, cortex processing (`/brain`)
-- Vector retrieval and embeddings (`/retrieval`)
+- Neo4j retrieval (graph traversal + vector search) (`/retrieval`, `/graph/neo4j`)
 - Audit logging and learning pipelines (`/memory/audit`, `/memory/learning`)
 - Public API and SDK for external consumers (`/interfaces`)
 - Tests and benchmarks (`/tests`)
@@ -153,3 +153,4 @@ No duplicate ownership allowed.
 - [ ] DID signatures verified on every vertex.
 - [ ] Audit log contains all inputs, outputs, reasoning.
 - [ ] No UI or runtime rendering dependencies in production build.
+- [ ] Neo4j ACID compliance verified for vector index and graph traversal during replay validation.
