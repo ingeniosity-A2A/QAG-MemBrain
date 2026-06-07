@@ -142,3 +142,10 @@ Uploaded documents preserved verbatim:
 Migration note:
 
 Legacy directories such as `brain/`, `retrieval/`, and `tashi/` remain in place for compatibility while new paths under `cortex/`, `graph/neo4j/`, and `consensus/tashi/` are adopted.
+
+Uploaded documents System tools
+
+- using-griptape-with-goose.md
+- mpeg-h-audio-processing.md
+- cavern-room-correction.md
+- using-hf-cli-with-goose.md
