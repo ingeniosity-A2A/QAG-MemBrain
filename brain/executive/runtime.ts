@@ -10,6 +10,7 @@ import { DeploymentSnapshot } from "../../authority/deployment/deploymentSnapsho
 import { loadDeploymentSnapshot } from "../../authority/deployment/deploymentLoader.js";
 import { RuntimeSnapshot } from "../../authority/runtime/runtimeSnapshot.js";
 import { loadRuntimeSnapshot } from "../../authority/runtime/runtimeLoader.js";
+import { DagPathProvenance } from "../../memory/jsonl/provenance.js";
 
 export interface ExecutiveRuntime {
   plan(goal: string, context: Record<string, unknown>): Promise<string[]>;
@@ -58,6 +59,7 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
     relationships: string[],
     executionPath: string[] = ["reflex", "executive"],
     policies: string[] = [],
+    provenance?: DagPathProvenance,
   ): void {
     if (!this.audit) {
       return;
@@ -91,6 +93,7 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
       worktreeDirty: buildSnapshot.worktreeDirty,
       deploymentVersion: deploymentSnapshot.deploymentVersion,
       deploymentHash: deploymentSnapshot.deploymentHash,
+      provenance,
     });
   }
 
@@ -104,6 +107,7 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
     timelineEvents: string[];
     executivePlanId: string;
     executionPath?: string[];
+    provenance?: DagPathProvenance;
   }): DecisionLineage {
     const policyEvaluations =
       input.policyEvaluations ??
@@ -155,6 +159,7 @@ export class BasicExecutiveRuntime implements ExecutiveRuntime {
         worktreeDirty: buildSnapshot.worktreeDirty,
         deploymentVersion: deploymentSnapshot.deploymentVersion,
         deploymentHash: deploymentSnapshot.deploymentHash,
+        provenance: input.provenance,
       });
     }
 

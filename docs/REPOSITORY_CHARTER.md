@@ -11,6 +11,7 @@ QAG_MemBrain is the authoritative memory and cognition architecture for the AVA-
 5. Dual-brain (Gemma + Mercury 2) executes reflex, executive, and cortex layers.
 6. Deterministic replay guarantees auditability. Any state can be reconstructed at any time.
 7. Offline-first. Local JSONL and Tashi queue, then sync when connectivity returns.
+8. Neo4j is the retrieval database for both graph traversal and vector similarity.
 
 ## Cognitive Topology
 
@@ -23,7 +24,7 @@ QAG_MemBrain implements a **dual-consciousness architecture** as defined in `/do
 | **Memory** | JSONL Ledger | Immutable, append-only source of truth |
 | **Trust** | Tashi DAG + DID | Cryptographic verification of every memory |
 | **Replay** | GSAP Timeline | Deterministic state reconstruction |
-| **Graph** | Neo4j (optional) | Relationship intelligence between memories |
+| **Retrieval** | Neo4j | Graph traversal, vector similarity, and GraphRAG context over memory atoms |
 | **Governance** | CFGL + OPA | Policy enforcement and filing decisions |
 
 ### Authority Chain (highest to lowest)
@@ -55,6 +56,7 @@ Canonical ownership:
 - JSONL -> Memory
 - Replay -> Reconstruction
 - Tashi -> Trust
+- Neo4j -> Retrieval
 - Spatial Cortex -> Meaning
 - Temporal Kernel -> Time
 - Memory Judge -> Validation
@@ -66,7 +68,7 @@ Everything else is derived.
 - Tashi DAG, gossip, consensus (`/tashi`)
 - GSAP timeline serialization and replay (`/temporal`)
 - Reflex, executive, cortex processing (`/brain`)
-- Neo4j retrieval (graph traversal + vector search) (`/retrieval`, `/graph/neo4j`)
+- Neo4j retrieval (graph traversal, vector search, GraphRAG, GDS) (`/retrieval`, `/graph/neo4j`)
 - Audit logging and learning pipelines (`/memory/audit`, `/memory/learning`)
 - Public API and SDK for external consumers (`/interfaces`)
 - Tests and benchmarks (`/tests`)
@@ -106,6 +108,24 @@ Capabilities:
 - memory reconstruction
 
 Replay is generated from JSONL and never replaces JSONL.
+
+## Retrieval Contract
+
+Neo4j is the sole active retrieval database.
+
+Responsibilities:
+
+- vector similarity over memory embeddings
+- DAG and memory relationship traversal
+- GraphRAG context assembly
+- GDS jobs for similarity, centrality, and pathfinding
+
+Constraints:
+
+- JSONL remains the source of truth for memory atoms.
+- Tashi remains the source of truth for signed DAG lineage.
+- Neo4j stores derived query projections and must be rebuildable from JSONL plus Tashi.
+- pgvector is retired and must not receive new dual-write flows.
 
 ## Spatial Cortex Contract
 Spatial Cortex converts replay and memory records into:
@@ -154,3 +174,4 @@ No duplicate ownership allowed.
 - [ ] Audit log contains all inputs, outputs, reasoning.
 - [ ] No UI or runtime rendering dependencies in production build.
 - [ ] Neo4j ACID compliance verified for vector index and graph traversal during replay validation.
+- [ ] Neo4j retrieval projection rebuilds deterministically from JSONL plus Tashi without pgvector.

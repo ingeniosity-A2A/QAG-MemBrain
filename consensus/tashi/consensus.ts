@@ -1,11 +1,13 @@
 import { LedgerEntry } from "../../memory/ledger/jsonlLedger.js";
 import { createHash } from "node:crypto";
+import { DagPathProvenance } from "../../memory/jsonl/provenance.js";
 
 export interface TashiVertex {
   hash: string;
   parentHashes: string[];
   signature: string;
   atomId: string;
+  atomHash: string;
 }
 
 export interface TashiConsensus {
@@ -31,6 +33,7 @@ export class HashChainTashiConsensus implements TashiConsensus {
       parentHashes: uniqueParents,
       signature: this.computeSignature(hash),
       atomId: entry.atom.id,
+      atomHash: entry.atomHash,
     };
 
     this.vertices.set(vertex.hash, vertex);
@@ -38,7 +41,7 @@ export class HashChainTashiConsensus implements TashiConsensus {
   }
 
   async verifyLineage(vertex: TashiVertex): Promise<boolean> {
-    if (!vertex.hash || !vertex.signature || !vertex.atomId) {
+    if (!vertex.hash || !vertex.signature || !vertex.atomId || !vertex.atomHash) {
       return false;
     }
 
@@ -89,6 +92,23 @@ export class HashChainTashiConsensus implements TashiConsensus {
   private computeSignature(vertexHash: string): string {
     return sha256(`${vertexHash}:${this.signerId}`);
   }
+}
+
+export function createDagPathProvenance(vertices: TashiVertex[], decisionId?: string): DagPathProvenance {
+  if (vertices.length === 0) {
+    throw new Error("Cannot create DAG path provenance from an empty vertex path");
+  }
+
+  const root = vertices[0];
+  const terminal = vertices[vertices.length - 1];
+  return {
+    rootAtomId: root.atomId,
+    rootVertexHash: root.hash,
+    terminalVertexHash: terminal.hash,
+    vertexHashes: vertices.map((vertex) => vertex.hash),
+    atomIds: vertices.map((vertex) => vertex.atomId),
+    decisionId,
+  };
 }
 
 function stableStringify(value: unknown): string {

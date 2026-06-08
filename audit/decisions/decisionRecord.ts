@@ -1,3 +1,5 @@
+import { DagPathProvenance } from "../../memory/jsonl/provenance.js";
+
 export interface DecisionRecord {
   decisionId: string;
   memories: string[];
@@ -27,6 +29,7 @@ export interface DecisionRecord {
   authorityId?: string;
   signerId?: string;
   signatureArtifactHash?: string;
+  provenance?: DagPathProvenance;
 }
 
 export class AuditEngine {
