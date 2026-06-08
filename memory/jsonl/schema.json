@@ -48,6 +48,49 @@
         "previous_hash": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "rootAtomId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rootVertexHash": {
+              "type": "string",
+              "minLength": 1
+            },
+            "terminalVertexHash": {
+              "type": "string",
+              "minLength": 1
+            },
+            "vertexHashes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "atomIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "decisionId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "rootAtomId",
+            "rootVertexHash",
+            "terminalVertexHash",
+            "vertexHashes",
+            "atomIds"
+          ]
         }
       }
     }

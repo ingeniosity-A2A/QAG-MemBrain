@@ -24,6 +24,7 @@ export function canonicalRecordForSigning(record: MemoryRecord): string {
     metadata: {
       confidence: record.metadata.confidence,
       importance: record.metadata.importance,
+      provenance: record.metadata.provenance,
       previous_hash: record.metadata.previous_hash,
     },
   });

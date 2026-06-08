@@ -23,11 +23,12 @@
 Validation: write memory, restart service, read back identical data.
 
 ## Phase 1b - Neo4j Retrieval Migration (parallel to Phase 1)
-- Provision Neo4j for retrieval and graph context workloads.
-- Apply schema for Memory, Theme, Lexicon, and relationship edges.
-- Create vector index in Neo4j for semantic retrieval.
+- Provision Neo4j Community for retrieval and graph context workloads.
+- Apply schema for Memory, Policy, Agent, Decision, Session, Document, Replay, and relationship edges.
+- Create Neo4j vector indexes for semantic retrieval.
 - Port retrieval query layer from pgvector to Neo4j GraphRAG patterns.
-- Validate deterministic replay compatibility with graph traversal paths.
+- Add GDS job definitions for similarity, centrality, and pathfinding.
+- Validate deterministic replay compatibility with vector lookup and graph traversal paths.
 - Retire pgvector from active retrieval architecture.
 
 Validation:
@@ -37,6 +38,8 @@ Validation:
 
 Constraint:
 - Do not run Neo4j and pgvector dual-write retrieval beyond the validation window; dual writes introduce drift risk and break replay guarantees.
+- Neo4j is the sole retrieval database after Phase 1b validation.
+- Enterprise edition is not required for Phase 1b. Upgrade later only if GDS workloads require parallelized algorithms at graph scale.
 
 ## Phase 2 - Integrate Tashi (2 days)
 - Move Rust tashi sidecar into /tashi.

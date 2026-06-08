@@ -1,3 +1,5 @@
+import { DagPathProvenance, assertDagPathProvenance } from "./provenance.js";
+
 export interface MemoryRecord {
   id: string;
   type: string;
@@ -9,6 +11,7 @@ export interface MemoryRecord {
     importance?: string;
     signature?: string;
     previous_hash?: string;
+    provenance?: DagPathProvenance;
   };
 }
 
@@ -65,5 +68,9 @@ export function assertMemoryRecord(value: unknown): asserts value is MemoryRecor
 
   if (typeof value.metadata.previous_hash !== "undefined" && typeof value.metadata.previous_hash !== "string") {
     throw new Error("MemoryRecord.metadata.previous_hash must be a string when provided");
+  }
+
+  if (typeof value.metadata.provenance !== "undefined") {
+    assertDagPathProvenance(value.metadata.provenance);
   }
 }
