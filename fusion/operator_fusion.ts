@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { appendAtom, readAtoms } from "../memory/atomic_memory";
-import { AtomicMemory, PrecedentResult } from "../shared/types";
+import { AtomicMemory, ObservationProposal, PrecedentResult } from "../shared/types";
 import { MemBrainGraph } from "../retrieval/neo4j_graph";
 
 export class OperatorFusion {
@@ -42,16 +42,13 @@ export class OperatorFusion {
       .join("\n");
   }
 
-  async captureOverride(input: {
-    proposedAction: Record<string, unknown>;
-    overrideAction: Record<string, unknown>;
-    context: string;
-    tags: string[];
-  }): Promise<void> {
+  async captureOverride(proposal: ObservationProposal, rejectedBy: string, reason: string): Promise<void> {
     const content = JSON.stringify({
-      proposedAction: input.proposedAction,
-      overrideAction: input.overrideAction,
-      context: input.context,
+      intent: proposal.intent,
+      confidence: proposal.confidence,
+      payload: proposal.payload,
+      rejectedBy,
+      reason,
     });
     const atom: AtomicMemory = {
       id: createHash("sha256").update(content + Date.now()).digest("hex").slice(0, 26),
@@ -60,12 +57,13 @@ export class OperatorFusion {
       timestamp: Date.now(),
       title: "Operator override precedent",
       content,
-      tags: ["precedent", ...input.tags],
+      tags: ["precedent", rejectedBy],
       embedding: null,
       metadata: {
         confidence: 1.0,
         importance: "medium",
         risk_level: "low",
+        edge_only: false,
       },
     };
     await appendAtom(atom, this.precedentPath);
