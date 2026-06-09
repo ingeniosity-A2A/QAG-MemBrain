@@ -1,9 +1,17 @@
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ReplayEngine } from "../../temporal/replay/replayEngine.js";
-import timelineSchema from "../../temporal/serialization/timeline_schema.json";
 import { TimelineEvent } from "../../temporal/timeline/types.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const timelineSchema = JSON.parse(
+  readFileSync(join(__dirname, "../../temporal/serialization/timeline_schema.json"), "utf8"),
+);
 
 describe("temporal timeline schema contract", () => {
   it("accepts timeline and replay-export payloads from timeline_schema.json", () => {

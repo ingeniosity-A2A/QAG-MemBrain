@@ -1,7 +1,15 @@
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
-import schema from "../../memory/jsonl/schema.json";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const schema = JSON.parse(
+  readFileSync(join(__dirname, "../../memory/jsonl/schema.json"), "utf8"),
+);
 
 describe("memory jsonl schema contract", () => {
   it("accepts a valid memory record per schema.json", () => {
