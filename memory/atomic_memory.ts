@@ -95,6 +95,37 @@ export async function appendAtom(atom: AtomicMemory, filePath: string): Promise<
   });
 }
 
+export function createEdgeCustomerAtom(input: {
+  customerDid: string;
+  name: string;
+  preferredTech?: string;
+  title?: string;
+  content?: string;
+  tags?: string[];
+}): AtomicMemory {
+  return {
+    id: uuid(),
+    type: "memory",
+    source: "nfc",
+    timestamp: Date.now(),
+    title: input.title ?? `Customer: ${input.name}`,
+    content: input.content ?? JSON.stringify({
+      name: input.name,
+      did: input.customerDid,
+      preferred_tech: input.preferredTech,
+    }),
+    tags: input.tags ?? ["customer", "edge_only"],
+    embedding: null,
+    metadata: {
+      confidence: 1.0,
+      importance: "high",
+      customer_did: input.customerDid,
+      edge_only: true,
+      risk_level: "low",
+    },
+  };
+}
+
 export async function* readAtoms(filePath: string): AsyncIterable<AtomicMemory> {
   const rl = createInterface({ input: createReadStream(filePath, "utf8") });
   for await (const line of rl) {
