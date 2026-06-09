@@ -1,8 +1,0 @@
-{
-  "highConfidenceIntentMap": {
-    "voice_call": "initiate_webrtc",
-    "send_message": "route_rcs",
-    "ping_mesh": "broadcast_presence",
-    "emergency_sos": "activate_emergency_stack"
-  }
-}
