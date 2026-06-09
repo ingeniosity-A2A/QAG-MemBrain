@@ -13,6 +13,18 @@
     "types": ["node", "vitest/globals"]
   },
   "include": [
-    "src/**/*.ts"
+    "shared/**/*.ts",
+    "contract/**/*.ts",
+    "memory/**/*.ts",
+    "tashi/**/*.ts",
+    "temporal/**/*.ts",
+    "retrieval/**/*.ts",
+    "subconscious/**/*.ts",
+    "brain/**/*.ts",
+    "fusion/**/*.ts",
+    "quantum/**/*.ts",
+    "proximity/**/*.ts",
+    "training/**/*.py",
+    "pipeline_impl.ts"
   ]
 }
