@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "commonjs",
+    "moduleResolution": "node",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -13,25 +13,6 @@
     "types": ["node", "vitest/globals"]
   },
   "include": [
-    "authority/**/*.ts",
-    "memory/**/*.ts",
-    "graph/**/*.ts",
-    "temporal/**/*.ts",
-    "lineage/**/*.ts",
-    "policy/**/*.ts",
-    "governance/**/*.ts",
-    "audit/**/*.ts",
-    "consensus/**/*.ts",
-    "brain/**/*.ts",
-    "ava007/**/*.ts",
-    "evaluation/**/*.ts",
-    "bin/**/*.ts",
-    "accelerators/**/*.ts",
-    "interfaces/**/*.ts",
-    "trust/**/*.ts",
-    "cognition/**/*.ts",
-    "interpretation/**/*.ts",
-    "review/**/*.ts",
-    "tests/**/*.ts"
+    "src/**/*.ts"
   ]
 }
