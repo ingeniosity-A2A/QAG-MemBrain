@@ -28,6 +28,7 @@ import { MemBrainGraph }               from "./retrieval/neo4j_graph";
 import { RevIke }                      from "./subconscious/rev_ike";
 import { Ava007 }                      from "./brain/ava007";
 import { OperatorFusion }              from "./fusion/operator_fusion";
+import { GriptapeTaskMemory }          from "./memory/task_memory_store";
 import {
   AtomicMemory, TimelineDefinition, GateConfig, DEFAULT_GATE_CONFIG,
   ObservationProposal, AVA007Decision, InMemoryTaskStore, TaskMemoryStore,
@@ -73,7 +74,7 @@ export class QAGMemBrainPipeline {
 
   constructor(config: PipelineConfig) {
     this.config     = config;
-    this.taskMemory = config.taskMemory ?? new InMemoryTaskStore();
+    this.taskMemory = config.taskMemory ?? new GriptapeTaskMemory();
 
     this.tashi        = new TashiNode(config.nodeDidCreator, config.jsonlPath);
     this.graph        = new MemBrainGraph(config.neo4jUrl, config.neo4jUser, config.neo4jPassword);
@@ -128,9 +129,10 @@ export class QAGMemBrainPipeline {
     );
     if (decision.outcome === "ACCEPT") await this.graph.writeAtom(atom);
 
+    const rationale = decision.rationale ?? "";
     const tier_used: PipelineResult["tier_used"] =
-      decision.rationale.startsWith("Reflex")     ? "reflex"
-      : decision.rationale.startsWith("Executive") ? "executive"
+      rationale.startsWith("Reflex")     ? "reflex"
+      : rationale.startsWith("Executive") ? "executive"
       : "cortex";
 
     return { atom_id: atom.id, proposal, decision, tier_used,

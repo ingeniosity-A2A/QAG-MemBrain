@@ -97,7 +97,7 @@ export class Ava007 {
 
     // 1. Fetch graph context (SIMPLE restrictor — no join bombs)
     const [ancestors, hasConflict] = await Promise.all([
-      this.graph.getAncestors(atom.id, this.config.executive_max_dag_depth, "SIMPLE"),
+      this.graph.getAncestors(atom.id, this.config.executive_max_dag_depth),
       this.graph.detectPolicyConflict(atom.id, atom.type),
     ]);
 
@@ -116,6 +116,11 @@ export class Ava007 {
       layer:         this.layer,
       timestamp:     Date.now(),
       proposal_id:   proposal.id,
+      action:        proposal.proposed_action ?? proposal.intent,
+      params:        {},
+      escalate:      outcome !== "ACCEPT",
+      confidence:    proposal.confidence,
+      reason:        rationale,
       outcome,
       rationale,
       memory_action,
@@ -177,14 +182,15 @@ export class Ava007 {
       switch (d.action) {
         case "create_memory":
           if (d.payload) {
+            const payload = d.payload as Record<string, unknown>;
             const newAtom: AtomicMemory = {
               id:        uuid(),
-              type:      d.payload.type ?? "memory",
+              type:      (payload.type as AtomicMemory["type"]) ?? "memory",
               source:    "system",
               timestamp: Date.now(),
-              title:     d.payload.title ?? "AtomMem creation",
-              content:   d.payload.content ?? "",
-              tags:      d.payload.tags ?? ["atom_mem"],
+              title:     (payload.title as string) ?? "AtomMem creation",
+              content:   (payload.content as string) ?? "",
+              tags:      (payload.tags as string[]) ?? ["atom_mem"],
               embedding: null,
               metadata:  { confidence: 0.9, importance: "medium" },
             };
@@ -195,10 +201,11 @@ export class Ava007 {
         case "update_memory":
           // In production: mark old atom as superseded, append updated version
           if (d.atom_id && d.payload) {
+            const payload = d.payload as Record<string, unknown>;
             await auditAppend({
               type: "audit", source: "ava-007",
               title: `AtomMem UPDATE: ${d.atom_id}`,
-              content: d.payload.content ?? "",
+              content: (payload.content as string) ?? "",
               timestamp: Date.now(),
               metadata: { importance: "low", confidence: 1.0, supersedes: d.atom_id },
             });
