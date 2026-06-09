@@ -4,7 +4,7 @@ export type EasingWavefunction = (t: number) => number;
 
 export type AtomType =
   | "event" | "note" | "article" | "task" | "memory"
-  | "conversation" | "code" | "sensor" | "vision"
+  | "conversation" | "code" | "sensor" | "vision" | "precedent"
   | "policy_update" | "audit" | "tween_atom";
 
 export type AtomSource =
@@ -31,6 +31,7 @@ export interface AtomicMemory {
     customer_did?: string;
     risk_level?: "low" | "medium" | "high";
     riskLevel?: "low" | "medium" | "high";
+    edge_only?: boolean;
     prefix_key?: string;
     vertex_hash?: string;
     parent_hashes?: string[];
