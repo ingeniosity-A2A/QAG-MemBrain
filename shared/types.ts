@@ -38,6 +38,9 @@ export interface AtomicMemory {
   vertex_hash?: string;
   signature?: string;
   parent_hashes?: string[];
+  fingerprint?: string;
+  supersedes?: string;
+  tombstone_of?: string;
 }
 
 export interface TweenAtom {
@@ -155,13 +158,24 @@ export interface CFGLResult {
 }
 
 export interface ObservationProposal {
+  id?: string;
   intent: string;
   confidence: number;
   payload: unknown;
   cachedTweenHash?: string;
+  anomaly?: boolean;
+  pattern?: string;
+  insight?: string;
+  proposed_action?: string;
+  off_prompt_context_key?: string;
 }
 
 export interface AVA007Decision {
+  id?: string;
+  decided_by?: string;
+  layer?: string;
+  timestamp?: number;
+  proposal_id?: string;
   action: string;
   params: Record<string, unknown>;
   delegatedTo?: "goose" | "rev_ike" | "executive";
@@ -169,12 +183,19 @@ export interface AVA007Decision {
   confidence: number;
   reason: string;
   memory_action?: string;
+  outcome?: "ACCEPT" | "REJECT";
+  rationale?: string;
+  precedents_used?: PrecedentResult[];
 }
 
 export interface AtomMemDirective {
-  operation: "create" | "read" | "query";
+  action?: "create_memory" | "read_memory" | "update_memory" | "delete_memory";
+  operation?: "create" | "read" | "query";
   filter?: Partial<AtomicMemory>;
   newAtom?: AtomicMemory;
+  atom_id?: string;
+  payload?: Record<string, unknown>;
+  rationale?: string;
 }
 
 export interface PrecedentResult {
