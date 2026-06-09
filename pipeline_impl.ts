@@ -28,7 +28,8 @@ import { MemBrainGraph }               from "./retrieval/neo4j_graph";
 import { RevIke }                      from "./subconscious/rev_ike";
 import { Ava007 }                      from "./brain/ava007";
 import { OperatorFusion }              from "./fusion/operator_fusion";
-import { GriptapeTaskMemory }          from "./memory/task_memory_store";
+import { EdgeCustomerStore }           from "./memory/edge_customers";
+import { VectorTaskMemory }            from "./memory/vector_task_memory";
 import {
   AtomicMemory, TimelineDefinition, GateConfig, DEFAULT_GATE_CONFIG,
   ObservationProposal, AVA007Decision, InMemoryTaskStore, TaskMemoryStore,
@@ -69,12 +70,13 @@ export class QAGMemBrainPipeline {
   private revIke:       RevIke;
   private ava007:       Ava007;
   private fusion:       OperatorFusion;
+  private edgeCustomers: EdgeCustomerStore;
 
   private sessionTimeline: TimelineDefinition;
 
   constructor(config: PipelineConfig) {
     this.config     = config;
-    this.taskMemory = config.taskMemory ?? new GriptapeTaskMemory();
+    this.taskMemory = config.taskMemory ?? new VectorTaskMemory("./data/task_memory.db");
 
     this.tashi        = new TashiNode(config.nodeDidCreator, config.jsonlPath);
     this.graph        = new MemBrainGraph(config.neo4jUrl, config.neo4jUser, config.neo4jPassword);
@@ -84,6 +86,7 @@ export class QAGMemBrainPipeline {
     this.notebook     = new LiteNotebookLM(this.revival);
     this.revIke       = new RevIke(this.taskMemory);
     this.fusion       = new OperatorFusion(this.graph);
+    this.edgeCustomers = new EdgeCustomerStore("./data/customers.edge.jsonl");
     this.ava007       = new Ava007({
       graph: this.graph, jsonlPath: config.jsonlPath,
       auditPath: config.auditPath, privateKeyPem: config.privateKeyPem,
@@ -186,7 +189,25 @@ export class QAGMemBrainPipeline {
     proposedAction: Record<string, unknown>;
     overrideAction: Record<string, unknown>;
     context: string; tags: string[];
-  }): Promise<void> { await this.fusion.captureOverride(opts); }
+  }): Promise<void> {
+    await this.fusion.captureOverride(
+      opts.proposedAction as unknown as ObservationProposal,
+      "pipeline_impl",
+      opts.context,
+    );
+  }
+
+  async addEdgeCustomer(input: {
+    id: string;
+    did: string;
+    name: string;
+    preferredTech?: string;
+  }): Promise<void> {
+    await this.edgeCustomers.addCustomer({
+      ...input,
+      edgeOnly: true,
+    }, "ava007");
+  }
 
   // ─── Status ─────────────────────────────────────────────────────────
   status() {

@@ -215,4 +215,6 @@ export interface InMemoryTaskStore {
 export interface TaskMemoryStore extends InMemoryTaskStore {
   bufferSignal(signal: Record<string, unknown>): Promise<void>;
   flush(): Promise<Record<string, unknown>[]>;
+  putVector?(key: string, text: string, metadata?: Record<string, unknown>): Promise<void>;
+  semanticSearch?(query: string, limit?: number): Promise<Array<{ key: string; text: string; embedding: number[]; metadata: Record<string, unknown> }>>;
 }
