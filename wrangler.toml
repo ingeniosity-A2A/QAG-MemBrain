@@ -1,0 +1,12 @@
+name = "qag-membrain"
+main = "dist/src/ws/cloudflare-worker.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+DATA_DIR = "/tmp/membrain-data"
+PORT = "8080"
+
+[[d1_databases]]
+binding = "MEMBRAIN_DB"
+database_name = "membrain-memory"
+database_id = "968d6386-a051-4863-90a7-3ba4fe26ecef"

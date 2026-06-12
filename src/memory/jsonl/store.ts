@@ -61,7 +61,8 @@ export class MemoryStore {
     let prev = '0'.repeat(64);
     for (const e of entries) {
       if (e.prevHash !== prev) return false;
-      const recomputed = this._hash({ ...e, hash: '' });
+      const { hash: _h, ...rest } = e;
+      const recomputed = this._hash(rest);
       if (e.hash !== recomputed) return false;
       prev = e.hash;
     }
