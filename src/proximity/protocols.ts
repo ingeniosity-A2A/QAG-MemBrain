@@ -1,16 +1,42 @@
 /**
- * Proximity Protocols – NFC, WiFi Aware NAN, Blecon IoT, UWB NameDrop
- * Each handler converts a proximity event into an InteractionQuantum
- * and persists it via the append-only JSONL ledger.
+ * Proximity Protocols - NFC, WiFi Aware NAN, Blecon IoT, UWB NameDrop
+ * Converts proximity events into AtomicMemory and persists via JSONL ledger.
  */
-import {
-  InteractionQuantum,
-  buildRFQuantum,
-  rssiToConfidence,
-  type RFPhysical,
-} from '../../quantum/interaction_quantum';
-import { appendAtom } from '../../memory/atomic_memory';
-import type { AtomicMemory, Importance } from '../../shared/types';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
+
+// ─── Inline types (avoids importing broken root-level modules) ───────
+
+type Importance = 'low' | 'medium' | 'high' | 'critical';
+
+interface AtomicMemory {
+  id: string;
+  type: string;
+  source: string;
+  timestamp: number;
+  title: string;
+  content: string;
+  tags: string[];
+  embedding: number[] | null;
+  metadata: {
+    confidence: number;
+    importance: Importance;
+    [key: string]: unknown;
+  };
+}
+
+async function appendAtom(atom: AtomicMemory, filePath: string): Promise<void> {
+  const dir = path.dirname(filePath);
+  fs.mkdirSync(dir, { recursive: true });
+  return new Promise((resolve, reject) => {
+    const stream = fs.createWriteStream(filePath, { flags: 'a', encoding: 'utf8' });
+    stream.write(JSON.stringify(atom) + '\n', (err) => {
+      stream.close();
+      err ? reject(err) : resolve();
+    });
+  });
+}
 
 // ─── Payload types ───────────────────────────────────────────────────
 
@@ -44,6 +70,12 @@ export interface UWBPosition {
 
 // ─── Shared helpers ──────────────────────────────────────────────────
 
+function rssiToConfidence(rssi: number): number {
+  const FLOOR = -116;
+  const CEIL = -30;
+  return Math.max(0, Math.min(1, (rssi - FLOOR) / (CEIL - FLOOR)));
+}
+
 function importanceFromConfidence(confidence: number): Importance {
   if (confidence > 0.9) return 'critical';
   if (confidence > 0.7) return 'high';
@@ -51,40 +83,53 @@ function importanceFromConfidence(confidence: number): Importance {
   return 'low';
 }
 
+function makeProximityAtom(opts: {
+  source: string;
+  destination: string;
+  protocol: string;
+  frequency_hz: number;
+  rssi_dbm: number;
+  content: string;
+  extra?: Record<string, unknown>;
+}): AtomicMemory {
+  const confidence = rssiToConfidence(opts.rssi_dbm);
+  return {
+    id: `prox_${opts.protocol}_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
+    type: 'sensor',
+    source: 'nfc',
+    timestamp: Date.now(),
+    title: `Proximity: ${opts.protocol} from ${opts.source}`,
+    content: opts.content,
+    tags: ['proximity', opts.protocol.toLowerCase()],
+    embedding: null,
+    metadata: {
+      confidence,
+      importance: importanceFromConfidence(confidence),
+      customer_did: opts.source,
+      ...opts.extra,
+    },
+  };
+}
+
 // ─── NFC handler ─────────────────────────────────────────────────────
 
 export async function handleNFC(
   payload: NFCNDEFPayload,
   sourceDevice: string,
-): Promise<InteractionQuantum> {
-  const rf: RFPhysical = {
-    transceiver: 'simulated',
-    modulation: 'none',
+): Promise<AtomicMemory> {
+  const atom = makeProximityAtom({
+    source: sourceDevice,
+    destination: payload.handshakeId ?? sourceDevice,
+    protocol: 'NFC',
     frequency_hz: 13.56e6,
-    bandwidth_hz: 0,
-    spreading_factor: 0,
-    coding_rate: 'none',
-    tx_power_dbm: 0,
-    rx_sensitivity_dbm: -30,
-    regional_plan: 'none',
-    data_rate_bps: 424000,
-  };
-
-  const quantum = buildRFQuantum({
-    source_did: sourceDevice,
-    destination_did: payload.handshakeId ?? sourceDevice,
-    rf,
-    crypto: { aead: 'none', key_exchange: 'none', mesh_protocol: 'direct' },
+    rssi_dbm: -30,
     content: JSON.stringify(payload),
+    extra: { handshakeId: payload.handshakeId },
   });
-
-  quantum.metadata.confidence = 0.99;
-  quantum.metadata.importance = 'high';
-  (quantum as any).protocol = 'NFC';
-  (quantum as any).handshakeId = payload.handshakeId;
-
-  await appendAtom(quantum, './data/memory.jsonl');
-  return quantum;
+  atom.metadata.confidence = 0.99;
+  atom.metadata.importance = 'high';
+  await appendAtom(atom, './data/memory.jsonl');
+  return atom;
 }
 
 // ─── WiFi Aware NAN handler ──────────────────────────────────────────
@@ -92,42 +137,18 @@ export async function handleNFC(
 export async function handleNAN(
   event: NANDiscoveryEvent,
   sourceDevice: string,
-): Promise<InteractionQuantum> {
-  const confidence = rssiToConfidence(event.rssi_dbm);
-  const importance = importanceFromConfidence(confidence);
-
-  const rf: RFPhysical = {
-    transceiver: 'WiFiAware',
-    modulation: 'NAN',
+): Promise<AtomicMemory> {
+  const atom = makeProximityAtom({
+    source: sourceDevice,
+    destination: event.peerId,
+    protocol: 'WiFi_Aware_NAN',
     frequency_hz: 5e9,
-    bandwidth_hz: 20e6,
-    spreading_factor: 0,
-    coding_rate: 'none',
-    tx_power_dbm: 20,
-    rx_sensitivity_dbm: event.rssi_dbm,
-    regional_plan: 'none',
-    data_rate_bps: 0,
-  };
-
-  const quantum = buildRFQuantum({
-    source_did: sourceDevice,
-    destination_did: event.peerId,
-    rf,
-    crypto: { mesh_protocol: 'AODV' },
+    rssi_dbm: event.rssi_dbm,
     content: JSON.stringify({ peerId: event.peerId, service: event.serviceName }),
+    extra: { distanceCm: event.distanceEstimateCm },
   });
-
-  quantum.metadata.confidence = confidence;
-  quantum.metadata.importance = importance;
-  (quantum as any).protocol = 'WiFi_Aware_NAN';
-  (quantum as any).distanceCm = event.distanceEstimateCm;
-
-  if (quantum.temporal_index) {
-    quantum.temporal_index.gsap_ticker_ms = Date.now();
-  }
-
-  await appendAtom(quantum, './data/memory.jsonl');
-  return quantum;
+  await appendAtom(atom, './data/memory.jsonl');
+  return atom;
 }
 
 // ─── Blecon IoT handler ──────────────────────────────────────────────
@@ -135,42 +156,18 @@ export async function handleNAN(
 export async function handleBlecon(
   reading: BleconIoTReading,
   sourceDevice: string,
-): Promise<InteractionQuantum> {
-  const confidence = rssiToConfidence(reading.rssi_dbm);
-  const importance = importanceFromConfidence(confidence);
-
-  const rf: RFPhysical = {
-    transceiver: 'BLE5',
-    modulation: 'BLE',
+): Promise<AtomicMemory> {
+  const atom = makeProximityAtom({
+    source: sourceDevice,
+    destination: reading.sensorId,
+    protocol: 'Blecon',
     frequency_hz: 2.4e9,
-    bandwidth_hz: 2e6,
-    spreading_factor: 0,
-    coding_rate: 'none',
-    tx_power_dbm: 10,
-    rx_sensitivity_dbm: reading.rssi_dbm,
-    regional_plan: 'none',
-    data_rate_bps: 0,
-  };
-
-  const quantum = buildRFQuantum({
-    source_did: sourceDevice,
-    destination_did: reading.sensorId,
-    rf,
-    crypto: { aead: 'ChaCha20-Poly1305', mesh_protocol: 'direct' },
+    rssi_dbm: reading.rssi_dbm,
     content: JSON.stringify(reading.payload),
+    extra: { sensorId: reading.sensorId },
   });
-
-  quantum.metadata.confidence = confidence;
-  quantum.metadata.importance = importance;
-  (quantum as any).protocol = 'Blecon';
-  (quantum as any).sensorId = reading.sensorId;
-
-  if (quantum.temporal_index) {
-    quantum.temporal_index.gsap_ticker_ms = reading.timestamp;
-  }
-
-  await appendAtom(quantum, './data/memory.jsonl');
-  return quantum;
+  await appendAtom(atom, './data/memory.jsonl');
+  return atom;
 }
 
 // ─── UWB NameDrop handler ────────────────────────────────────────────
@@ -178,27 +175,13 @@ export async function handleBlecon(
 export async function handleUWB(
   position: UWBPosition,
   sourceDevice: string,
-): Promise<InteractionQuantum> {
-  const confidence = rssiToConfidence(position.rssi_dbm);
-
-  const rf: RFPhysical = {
-    transceiver: 'UWB',
-    modulation: 'none',
+): Promise<AtomicMemory> {
+  const atom = makeProximityAtom({
+    source: sourceDevice,
+    destination: position.peerDid,
+    protocol: 'UWB_NameDrop',
     frequency_hz: 8e9,
-    bandwidth_hz: 500e6,
-    spreading_factor: 0,
-    coding_rate: 'none',
-    tx_power_dbm: 0,
-    rx_sensitivity_dbm: position.rssi_dbm,
-    regional_plan: 'none',
-    data_rate_bps: 0,
-  };
-
-  const quantum = buildRFQuantum({
-    source_did: sourceDevice,
-    destination_did: position.peerDid,
-    rf,
-    crypto: { aead: 'ChaCha20-Poly1305', key_exchange: 'X25519-ECDH' },
+    rssi_dbm: position.rssi_dbm,
     content: JSON.stringify({
       did: position.peerDid,
       x: position.x_cm,
@@ -206,17 +189,9 @@ export async function handleUWB(
       z: position.z_cm,
     }),
   });
-
-  quantum.metadata.confidence = confidence;
-  quantum.metadata.importance = 'high';
-  (quantum as any).protocol = 'UWB_NameDrop';
-
-  if (quantum.temporal_index) {
-    quantum.temporal_index.gsap_ticker_ms = Date.now();
-  }
-
-  await appendAtom(quantum, './data/memory.jsonl');
-  return quantum;
+  atom.metadata.importance = 'high';
+  await appendAtom(atom, './data/memory.jsonl');
+  return atom;
 }
 
 // ─── Unified router ──────────────────────────────────────────────────
@@ -230,7 +205,7 @@ export type ProximityEvent =
 export async function routeProximityEvent(
   event: ProximityEvent,
   sourceDevice: string,
-): Promise<InteractionQuantum> {
+): Promise<AtomicMemory> {
   switch (event.type) {
     case 'NFC':    return handleNFC(event.payload, sourceDevice);
     case 'NAN':    return handleNAN(event.event, sourceDevice);

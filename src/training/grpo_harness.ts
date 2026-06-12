@@ -2,8 +2,46 @@
  * GRPO Training Harness
  * Records episodes, computes advantages, exports JSONL for fine-tuning.
  */
-import { appendAtom } from '../../memory/atomic_memory';
-import type { AVA007Decision } from '../../shared/types';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// ─── Inline types ────────────────────────────────────────────────────
+
+type Importance = 'low' | 'medium' | 'high' | 'critical';
+
+interface AVA007Decision {
+  action: string;
+  params: Record<string, unknown>;
+  escalate: boolean;
+  confidence: number;
+  reason: string;
+}
+
+interface AtomicMemory {
+  id: string;
+  type: string;
+  source: string;
+  timestamp: number;
+  title: string;
+  content: string;
+  tags: string[];
+  embedding: number[] | null;
+  metadata: { confidence: number; importance: Importance; [key: string]: unknown };
+}
+
+async function appendAtom(atom: AtomicMemory, filePath: string): Promise<void> {
+  const dir = path.dirname(filePath);
+  fs.mkdirSync(dir, { recursive: true });
+  return new Promise((resolve, reject) => {
+    const stream = fs.createWriteStream(filePath, { flags: 'a', encoding: 'utf8' });
+    stream.write(JSON.stringify(atom) + '\n', (err) => {
+      stream.close();
+      err ? reject(err) : resolve();
+    });
+  });
+}
+
+// ─── GRPO types ──────────────────────────────────────────────────────
 
 export interface GRPOEpisode {
   id: string;
@@ -25,9 +63,6 @@ export interface GRPOBatch {
 export class GRPOHarness {
   private episodes: Map<string, GRPOEpisode[]> = new Map();
 
-  /**
-   * Record an episode after Ava007.evaluate() finishes.
-   */
   async recordEpisode(
     queryGroup: string,
     actions: AVA007Decision[],
@@ -68,9 +103,6 @@ export class GRPOHarness {
     );
   }
 
-  /**
-   * Compute reward signal for a single step.
-   */
   static computeReward(
     exactMatch: boolean,
     memoryEfficiency: number,
@@ -85,35 +117,20 @@ export class GRPOHarness {
     );
   }
 
-  /**
-   * Compute advantages using GRPO formula: (reward - mean) / std
-   */
   computeAdvantages(queryGroup: string): GRPOBatch | null {
     const episodes = this.episodes.get(queryGroup);
     if (!episodes || episodes.length === 0) return null;
 
     const totalRewards = episodes.map((e) => e.totalReward);
-    const mean =
-      totalRewards.reduce((a, b) => a + b, 0) / totalRewards.length;
+    const mean = totalRewards.reduce((a, b) => a + b, 0) / totalRewards.length;
     const variance =
-      totalRewards.reduce((acc, r) => acc + (r - mean) ** 2, 0) /
-      totalRewards.length;
+      totalRewards.reduce((acc, r) => acc + (r - mean) ** 2, 0) / totalRewards.length;
     const std = Math.sqrt(variance + 1e-8);
-
     const advantages = totalRewards.map((r) => (r - mean) / std);
 
-    return {
-      queryGroup,
-      episodes: episodes.slice(),
-      meanReward: mean,
-      stdReward: std,
-      advantages,
-    };
+    return { queryGroup, episodes: episodes.slice(), meanReward: mean, stdReward: std, advantages };
   }
 
-  /**
-   * Export a batch as JSONL for fine-tuning.
-   */
   async exportGRPOBatch(
     queryGroup: string,
     filePath: string = './data/grpo_batch.jsonl',
@@ -149,9 +166,6 @@ export class GRPOHarness {
     }
   }
 
-  /**
-   * Clear episodes for a query group after export.
-   */
   clearEpisodes(queryGroup: string): void {
     this.episodes.delete(queryGroup);
   }
