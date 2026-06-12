@@ -6,14 +6,19 @@ import { TemporalReplay, GSAPTemporalReconstructor } from '../temporal/index.js'
 import { Ava007, type Decision } from '../ava007/index.js';
 import { IngestionPipeline } from '../memory/ingestion/pipeline.js';
 import { CavernBridge } from '../audio/cavern_bridge.js';
-import { DynamicPromptEngine } from '../cognition/index.js';
-import type { PerceptionInput, CognitiveState, OrchestratorConstraints } from '../cognition/index.js';
+import { DynamicPromptEngine, AgentRouter, TaskArtifactManager } from '../cognition/index.js';
+import type { PerceptionInput, CognitiveState, OrchestratorConstraints, HandoffThresholds, AgentExecutor } from '../cognition/index.js';
+import type { Atom } from '../ava007/coordination_types.js';
 
 export interface BrainConfig {
   dataDir: string;
   signerKeyPem?: string;
   /** Optional constraints for the cognitive runtime. */
   cognitiveConstraints?: Partial<OrchestratorConstraints>;
+  /** Optional handoff thresholds for Task Memory offloading. */
+  handoffThresholds?: Partial<HandoffThresholds>;
+  /** Optional custom agent executors (override deterministic stubs). */
+  customExecutors?: AgentExecutor[];
 }
 
 export class Brain {
@@ -27,6 +32,8 @@ export class Brain {
   public readonly cavern: CavernBridge;
   public readonly ava: Ava007;
   public readonly cognition: DynamicPromptEngine;
+  public readonly router: AgentRouter;
+  public readonly artifacts: TaskArtifactManager;
 
   constructor(config: BrainConfig) {
     this.memory = new MemoryStore(config.dataDir, 'brain.jsonl');
@@ -39,6 +46,8 @@ export class Brain {
     this.ingestion = new IngestionPipeline(this.memory);
     this.ava = new Ava007(this.memory, this.graph, this.subconscious, config.signerKeyPem);
     this.cognition = new DynamicPromptEngine(this.memory, config.cognitiveConstraints);
+    this.artifacts = new TaskArtifactManager(this.memory, config.handoffThresholds, `${config.dataDir}/artifacts`);
+    this.router = new AgentRouter(this.memory, this.artifacts, config.cognitiveConstraints, config.customExecutors);
   }
 
   process(input: unknown): Decision {
@@ -54,5 +63,14 @@ export class Brain {
       this.graph.addNode({ id: decision.id, label: 'decision', properties: { action: decision.action, confidence: decision.confidence } });
     }
     return decision;
+  }
+
+  /**
+   * Route an atom through the full Agent Router pipeline.
+   * This is the primary entry point for the A2A-OA executive switchboard:
+   *   Atom → ObservationProposal → Capability Matching → Handoff → Dispatch
+   */
+  async routeAtom(atom: Atom): Promise<import('../cognition/observation_types.js').RoutingResult> {
+    return this.router.routeAtom(atom);
   }
 }
