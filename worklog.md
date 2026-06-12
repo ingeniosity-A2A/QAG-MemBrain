@@ -40,3 +40,30 @@ Stage Summary:
 - Commit: `40b7aa7` (local only, not pushed)
 - SSH deploy key needs to be added to github.com:ingeniosity-A2A/QAG-MemBrain- repo settings
 - Public key: `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL5YbHlnaieDf8t3T8xh4K/nE6CFYdJBLm6nuEs5zMYF`
+
+---
+Task ID: 3
+Agent: main
+Task: Implement cognition layer (CognitiveState, CapabilityManifest, DynamicPromptEngine, DevHarness)
+
+Work Log:
+- Created src/cognition/ module with 5 new files + barrel index
+- cognitive_state.ts: Formal interfaces for AtmosphereState (visuals, audio, mood), CognitiveState (sensors, interaction, emotion, rhythm, tier, constraints), PerceptionEngine types, default factory functions
+- capability_manifest.ts: Sub-agent contract — CapabilityManifest with 8 Griptape tool declarations, CapabilityBid for sealed-bid auction, SubAgentResult + SubAgentArtifact for Task Memory offloading, OrchestratorConstraints with thermal/battery/network gates
+- dynamic_prompt_engine.ts: 4-stage prompt pipeline (Perception → Interpretation → Assembly → Routing) with schema pre-fill token optimization (40-60 tokens saved), artifact offloading for large Neo4j context, thermal-aware atmosphere computation
+- dev_harness.ts: Deterministic degradation testing — thermal ramp, battery drain, network failover, OOM, coordination coherence, form factor transitions, CLI entry point
+- Wired DynamicPromptEngine into Brain as brain.cognition
+- Fixed ProcessAtomResult import in src/ava007/index.ts (was importing from orchestrator.ts, changed to coordination_types.ts)
+- TypeScript compiles (only pre-existing serialport errors remain)
+- All 128 passing tests still pass; 24 failures are pre-existing authority/replay tests
+- Committed as `1cdb9b2`
+- Push failed: SSH deploy key still not added to GitHub
+
+Stage Summary:
+- New module: src/cognition/ (5 files, 1349 lines)
+- Commit: `1cdb9b2` (local only)
+- All 4 user-requested next moves completed:
+  1. CognitiveState + AtmosphereState interfaces formalized
+  2. AgentOrchestrator sub-agent contract defined (capability manifest + result schema)
+  3. DynamicPromptEngine prototyped with staged pipeline + offloading
+  4. Dev harness created for thermal/load simulation
