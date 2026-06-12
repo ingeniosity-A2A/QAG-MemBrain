@@ -5,6 +5,7 @@ import { GraphStore } from '../graph/neo4j/index.js';
 import { SubconsciousObserver } from '../subconscious/index.js';
 import { TemporalReplay } from '../temporal/index.js';
 import { enforceAuthority } from '../contract/enforcement.js';
+import { StrategicQueryTransformer, type StrategicTransformation } from './query_transform.js';
 
 export interface Decision {
   id: string;
@@ -20,6 +21,7 @@ export interface Decision {
 export class Ava007 {
   private signer: TashiSigner;
   private temporal: TemporalReplay;
+  private queryTransformer: StrategicQueryTransformer;
 
   constructor(
     private memory: MemoryStore,
@@ -29,6 +31,7 @@ export class Ava007 {
   ) {
     this.signer = new TashiSigner(pemKey);
     this.temporal = new TemporalReplay(memory);
+    this.queryTransformer = new StrategicQueryTransformer(memory);
     enforceAuthority({ sourceLayer: 6, targetLayer: 6, action: 'execute' });
   }
 
@@ -58,6 +61,15 @@ export class Ava007 {
     const density = this.subconscious.patternDensity(nodeId);
     const recent = this.memory.readRange(Math.max(1, this.memory.seq - 10), Infinity);
     return { density, recentEvents: recent.length };
+  }
+
+  /**
+   * Strategic Query Transformation: translate a tactical issue
+   * into a philosophical search string for GraphRAG retrieval.
+   * The "Prefrontal Turn" for executive control.
+   */
+  transformQuery(tacticalIssue: string): StrategicTransformation {
+    return this.queryTransformer.transform(tacticalIssue);
   }
 
   static bootstrapKey(): string {
