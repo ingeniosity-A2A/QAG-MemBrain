@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -10,23 +10,11 @@
     "resolveJsonModule": true,
     "rootDir": ".",
     "outDir": "dist",
-    "types": ["node", "vitest/globals"]
+    "declaration": true,
+    "sourceMap": true
   },
   "include": [
-    "shared/**/*.ts",
-    "contract/**/*.ts",
-    "memory/atomic_memory.ts",
-    "memory/edge_customers.ts",
-    "memory/task_memory_store.ts",
-    "memory/vector_task_memory.ts",
-    "tashi/**/*.ts",
-    "temporal/**/*.ts",
-    "retrieval/**/*.ts",
-    "subconscious/**/*.ts",
-    "brain/**/*.ts",
-    "fusion/**/*.ts",
-    "quantum/**/*.ts",
-    "proximity/**/*.ts",
-    "pipeline_impl.ts"
-  ]
+    "src/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "swarm"]
 }
