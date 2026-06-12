@@ -6,6 +6,10 @@ import { SubconsciousObserver } from '../subconscious/index.js';
 import { TemporalReplay } from '../temporal/index.js';
 import { enforceAuthority } from '../contract/enforcement.js';
 import { StrategicQueryTransformer, type StrategicTransformation } from './query_transform.js';
+import { Ava007Orchestrator, type ProcessAtomResult } from './orchestrator.js';
+import { DeterministicMellum2Client } from './mellum2.js';
+import { DeterministicMercury2Client } from './mercury2.js';
+import type { Atom, GateConfig, Mellum2Client, Mercury2Client } from './coordination_types.js';
 
 export interface Decision {
   id: string;
@@ -22,6 +26,7 @@ export class Ava007 {
   private signer: TashiSigner;
   private temporal: TemporalReplay;
   private queryTransformer: StrategicQueryTransformer;
+  private orchestrator: Ava007Orchestrator;
 
   constructor(
     private memory: MemoryStore,
@@ -32,9 +37,20 @@ export class Ava007 {
     this.signer = new TashiSigner(pemKey);
     this.temporal = new TemporalReplay(memory);
     this.queryTransformer = new StrategicQueryTransformer(memory);
+    this.orchestrator = new Ava007Orchestrator(
+      memory,
+      graph,
+      this.signer,
+      new DeterministicMellum2Client(),
+      new DeterministicMercury2Client(),
+    );
     enforceAuthority({ sourceLayer: 6, targetLayer: 6, action: 'execute' });
   }
 
+  /**
+   * L6 sole decision entry point (legacy/compat API).
+   * For the full coordination loop, use processAtom() instead.
+   */
   decide(input: unknown, rationale: string, action: string, confidence: number): Decision {
     enforceAuthority({ sourceLayer: 6, targetLayer: 6, action: 'decide' });
     if (confidence < 0 || confidence > 1) throw new Error('Confidence must be between 0 and 1');
@@ -47,6 +63,14 @@ export class Ava007 {
     const decision: Decision = { id, ts, input, rationale, action, confidence, signature, signerPubKey: this.signer.pubKeyDer };
     this.memory.append(6, 'decision', decision);
     return decision;
+  }
+
+  /**
+   * Full coordination loop: Observe → Interpret → Orchestrate → Verify → Commit → Anchor
+   * Routes through Reflex → Executive (Mellum2) → Cortex (Mercury 2) tiers.
+   */
+  async processAtom(atom: Atom): Promise<ProcessAtomResult> {
+    return this.orchestrator.processAtom(atom);
   }
 
   verifyDecision(decision: Decision): boolean {
