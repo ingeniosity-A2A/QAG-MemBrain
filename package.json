@@ -13,7 +13,8 @@
     "verify": "node dist/bin/ava007.js",
     "evaluate": "npm run build && node dist/evaluation/runEvaluation.js",
     "benchmark:reconstruction": "npm run build && node dist/evaluation/benchmark/runReconstructionBenchmark.js",
-    "evaluate:memory-judge": "npm run build && node dist/evaluation/memoryJudge/runMemoryJudge.js"
+    "evaluate:memory-judge": "npm run build && node dist/evaluation/memoryJudge/runMemoryJudge.js",
+    "start": "node dist/pipeline_impl.js"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

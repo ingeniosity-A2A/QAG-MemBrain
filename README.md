@@ -1,151 +1,169 @@
-# QAG_MemBrain
+# Quantum Atomic GSAP MemBrain
 
-QAG_MemBrain is the authoritative **memory architecture** repository.
+**Edge‑Native Executive Control for A2A Telecom Networks**<br>
+*Implementation of the Prefrontal Turn (arXiv:2605.18535)*
 
-It is **memory-first, timeline-first, and audit-first**.
+## Overview
 
-## Repository Charter
+The **Quantum Atomic GSAP MemBrain** is a distributed, sovereign intelligence substrate that replaces monolithic cloud LLMs with a **functional dissociation** between posterior knowledge (cloud) and prefrontal executive control (edge). It combines:
 
-QAG_MemBrain implements and maintains:
+- **JSONL atomic memory** (append‑only, cryptographically signed)
+- **Tashi DAG consensus** with temporal cognition signatures (`{time, seed}`)
+- **Neo4j GraphRAG** with philosophical query transformation
+- **LoRa mesh** (ESP32 + RadioLib) for distributed swarm actuation
+- **GSAP deterministic temporal reconstruction** (tween atoms, no DOM)
+- **Strict authority layering** (L1–L6) enforced at runtime
 
-- Layer 0: JSONL Atomic Memory (canonical memory, immutable event source)
-- Layer 1: Tashi DAG (verification, lineage, consensus)
-- Layer 2: GSAP Temporal Substrate (temporal replay, state reconstruction)
-- Layer 3: Dual Brain (reasoning, planning, execution)
-- Layer 4: Neo4j Cognitive Graph (GraphRAG, vector similarity, path and policy analysis)
+The system runs primarily on a **Snapdragon 8 Elite** edge host (S25/S26 Ultra) and coordinates a swarm of **ESP32** nodes running RadioLib + SX1262.
 
-## Layer Boundaries
-
-QAG_MemBrain separates concerns into clear layers:
-
-1. **Surface Layer (out of scope for this repository)**
-   - Customer/developer surfaces, docking station, Opera Air UI, weather/chat modules,
-     spatial and sonification canvases.
-2. **Runtime Layer (integration boundary, not source of truth)**
-   - GSAP/Three.js/audio/spatial/lens/temporal execution systems and agent routing.
-3. **QAG_MemBrain Cognition Layer (core of this repository)**
-   - Memory ingestion, immutable storage, verification lineage, temporal reconstruction,
-     Neo4j GraphRAG context assembly, audit, and learning.
-
-UI implementations are not part of the core architecture and must consume QAG_MemBrain APIs
-from separate packages/repositories.
-
-## Retrieval Authority
-
-QAG_MemBrain uses Neo4j GraphRAG as the cognitive retrieval layer.
-
-Neo4j provides:
-
-- Graph traversal
-- Vector similarity
-- Relationship analysis
-- Policy lineage traversal
-- Cognitive path reconstruction
-
-Authority boundaries:
-
-- JSONL is authoritative for canonical memory.
-- Tashi is authoritative for cryptographic verification and lineage consensus.
-- GSAP is authoritative for temporal replay and deterministic reconstruction.
-- Neo4j is authoritative for relationship intelligence and context assembly.
-
-Neo4j can be rebuilt. JSONL cannot.
-
-## Architecture Goals
-
-1. Deterministic replay
-2. Memory immutability
-3. Cryptographic verification
-4. Offline-first synchronization
-5. Temporal reconstruction
-6. Auditability
-7. Long-term cognitive continuity
-
-## Repository Structure
+## Repository Structure (Canonical)
 
 ```text
 QAG_MemBrain/
-├── memory/
-│   ├── jsonl/
-│   │   └── schemas/
-│   └── audit/
-├── consensus/
-│   └── tashi/
-│       ├── signatures/
-│       └── lineage/
-├── temporal/
-│   └── gsap/
-│       ├── replay/
-│       └── timelines/
-├── cortex/
-│   ├── executive/
-│   ├── reflex/
-│   └── learning/
-├── graph/
-│   └── neo4j/
-│       ├── schema/
-│       ├── graphrag/
-│       ├── vector/
-│       ├── cypher/
-│       └── gds/
-├── output/
-│   ├── agents/
-│   ├── routing/
-│   └── surfaces/
-├── docs/
-│   └── architecture/
-│       ├── charter/
-│       ├── migration/
-│       └── specifications/
-├── interfaces/
-│   ├── api/
-│   └── sdk/
-├── tests/
-└── archive/
-    └── legacy-references/
+├── src/                              # All TypeScript source
+│   ├── contract/                     # Runtime authority guards
+│   ├── memory/
+│   │   ├── jsonl/                    # Append‑only atomic memory
+│   │   ├── vector/                   # SQLite + sqlite‑vec (TaskMemory)
+│   │   ├── ingestion/                # YouTube/Whisper pipeline stub
+│   │   └── edge/                     # Edge‑only customer vault (SQLite)
+│   ├── temporal/                     # GSAP engine, RAF ticker, LiteNotebookLM
+│   ├── consensus/tashi/              # Tashi DAG, temporal signatures, gossip
+│   ├── graph/neo4j/                  # Atomic Interaction Graph + GraphRAG
+│   ├── quantum/                      # InteractionQuantum (extends AtomicMemory)
+│   ├── subconscious/                 # Rev.Ike (L5 read‑only interpreter)
+│   ├── brain/                        # Ava007 adapter (L6) – thin wrapper over canonical
+│   ├── hal/                          # LoRa serial bridge (ESP32)
+│   ├── shared/                       # Global TypeScript types
+│   └── pipeline_impl.ts              # Main entry point
+├── swarm/esp32/                      # ESP32 firmware (RadioLib + SX1262)
+├── archive/                          # Legacy migration artifacts
+├── data/                             # Runtime JSONL, SQLite, Neo4j logs
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-## Neo4j Edition Guidance
+## Authority Chain (L1–L6)
 
-Start with Neo4j Community.
+| Layer | Directory | Role | Enforcement |
+|-------|-----------|------|-------------|
+| L1 | `memory/jsonl/` | Append‑only truth | `assertCanWrite()` |
+| L2 | `consensus/tashi/` | Signing + DAG | Ed25519 (placeholder), SHA‑256 fingerprint |
+| L3 | `temporal/` | Deterministic replay | Pure JS, no DOM |
+| L4 | `graph/neo4j/` | Retrieval, depth ≤5 | `enforceMaxDepth()` |
+| L5 | `subconscious/` | Read‑only observation | `write/decide/execute` throw |
+| L6 | `brain/` + `ava007/` | Sole decision & commit | `assertCanDecide()`, `assertCanWrite()` |
 
-Upgrade trigger candidates:
+## Getting Started
 
-- Greater than 10M nodes
-- Heavy Graph Data Science workloads
-- Distributed graph analytics
-- Large-scale learning loops
+### Prerequisites
 
-The core simplification is one graph, one vector index, one traversal engine,
-and one query language.
+- Node.js 20+ (on edge host – Snapdragon, Termux, or dev machine)
+- Neo4j database (local or cloud)
+- ESP32 with SX1262/CC1101 module (for swarm nodes)
+- (Optional) Serial connection between edge host and ESP32
 
-```text
-JSONL -> Neo4j -> Graph + Vector -> Context Assembly
+### Installation
+
+```bash
+git clone <repo-url>
+cd QAG_MemBrain
+npm install
+npm run build
 ```
 
-See `docs/architecture/specifications/repository-charter.md` for authoritative charter details.
+### Configuration
 
-## Added Context and Neo4j Docs
+Create `.env` file (or set environment variables):
 
-- `docs/architecture/specifications/neo4j-cognitive-graph.md`
-- `docs/architecture/migration/neo4j-authority-stack-migration.md`
-- `docs/architecture/context/manual-of-mind-operation-mapping.md`
-- `docs/architecture/context/sage-parallels.md`
-- `docs/neo4j/README.md`
+```env
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
+LORA_SERIAL_PORT=/dev/ttyUSB0   # ESP32 serial device
+```
 
-Uploaded documents preserved verbatim:
+### Running the MemBrain Pipeline
 
-- `docs/architecture/charter/repository-charter-uploaded.md`
-- `docs/architecture/migration/migration-plan-uploaded.md`
-- `docs/specifications/consumption-api-uploaded.md`
+```bash
+npm start
+```
 
-Migration note:
+This starts:
 
-Legacy directories such as `brain/`, `retrieval/`, and `tashi/` remain in place for compatibility while new paths under `cortex/`, `graph/neo4j/`, and `consensus/tashi/` are adopted.
+- LoRa bridge (listens for ESP32 packets)
+- Tashi DAG node (gossips temporal signatures)
+- Neo4j GraphRAG (stores and retrieves Interaction Quanta)
+- GSAP engine (idle, ready for timeline reconstruction)
 
-Uploaded documents System tools
+### ESP32 Firmware
 
-- using-griptape-with-goose.md
-- mpeg-h-audio-processing.md
-- cavern-room-correction.md
-- using-hf-cli-with-goose.md
+1. Open `swarm/esp32/lora_bridge.ino` in PlatformIO or Arduino IDE.
+2. Install RadioLib and ArduinoJson libraries.
+3. Set your frequency, SF, encryption key.
+4. Upload to ESP32.
+5. Connect ESP32 to edge host via USB.
+
+## Key Concepts
+
+### Interaction Quantum
+
+Every signal (LoRa packet, NFC tap, user command) becomes an **atomic JSON object** stored in `data/memory.jsonl`. It includes RF metadata (RSSI, SNR, frequency), temporal index (GSAP tick, Doppler), and optional T‑SLAT (4D structured latents).
+
+### Distributed Temporal Coherence
+
+Instead of synchronising full state, Tashi nodes gossip only `{timelineId, time, seed, velocity}`. Every node reconstructs the same GSAP timeline deterministically, achieving consensus with **bytes per second** instead of megabytes.
+
+### Query Transformation (GraphRAG)
+
+When a tactical failure occurs (e.g., “stalled hardware”), the system translates it into a **philosophical query** (“illusion of obstacles”) before retrieving relevant Interaction Quanta from Neo4j. The retrieved “Revelation” provides both a strategic diagnosis and a tactical directive.
+
+### Prefrontal Turn (Edge Executive)
+
+All executive functions (Ava007 decision, Rev.Ike interpretation, Tashi consensus) run locally on the edge host. The cloud is used only for posterior retrieval (Neo4j, long‑term archives). This eliminates feedback latency and preserves high‑fidelity episodic memory.
+
+## Legacy Compatibility
+
+Old directories `brain/`, `retrieval/`, `tashi/` are **deprecated** and exist only as thin adapters re‑exporting from the canonical `src/` locations. They will be removed after two release cycles. New code **must not import** from these legacy paths.
+
+## Testing
+
+```bash
+npm test
+```
+
+Unit tests cover:
+
+- JSONL append & query
+- Tashi vertex validation
+- GraphRAG query transformation
+- Contract guards (authority violations)
+
+## Deployment
+
+- **Edge host** (Snapdragon 8 Elite): Run Node.js + `npm start` inside Termux or native Linux.
+- **Swarm nodes** (ESP32): Flash `lora_bridge.ino`, power via battery.
+- **Neo4j**: Can run on the edge host (ARM64) or a lightweight cloud instance.
+
+## Contributing
+
+- Follow the **one owner per domain** rule – do not duplicate functionality.
+- All memory writes must go through `JSONLMemoryStore.append()` with a valid layer string.
+- New agents must respect L5 (read‑only) / L6 (decision) separation.
+- Run `npm run build` and `npm test` before submitting PRs.
+
+## References
+
+- arXiv:2605.18535 – *The Prefrontal Turn: Why Agentic AI Demands Edge‑Native Executive Control*
+- Quantum Atomic GSAP MemBrain white paper (this repository)
+- RadioLib documentation – [https://radiolib.org](https://radiolib.org)
+- NullSec LoRa Mesh Framework (encryption & AODV)
+
+## License
+
+MIT – see LICENSE file.
+
+---
+
+*Last updated: 2026-06-11 – Canonical Quantum Atomic 2026 architecture.*

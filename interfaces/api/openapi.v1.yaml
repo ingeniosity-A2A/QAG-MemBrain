@@ -146,6 +146,7 @@ paths:
         "101":
           description: Switching Protocols
       x-websocket:
+        path: /timeline
         messages:
           oneOf:
             - $ref: '#/components/schemas/TimelineTweenUpdateMessage'
