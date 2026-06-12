@@ -4,10 +4,10 @@ import { GraphStore } from '../graph/neo4j/index.js';
 import { SubconsciousObserver } from '../subconscious/index.js';
 import { TemporalReplay, GSAPTemporalReconstructor } from '../temporal/index.js';
 import { Ava007, type Decision } from '../ava007/index.js';
-import { IngestionPipeline } from '../memory/ingestion/pipeline.js';
-import { CavernBridge } from '../audio/cavern_bridge.js';
+import { IngestionPipeline } from '../memory/ingestion/index.js';
+import { CavernBridge } from '../audio/index.js';
 import { DynamicPromptEngine, AgentRouter, TaskArtifactManager } from '../cognition/index.js';
-import type { PerceptionInput, CognitiveState, OrchestratorConstraints, HandoffThresholds, AgentExecutor } from '../cognition/index.js';
+import type { OrchestratorConstraints, HandoffThresholds, AgentExecutor } from '../cognition/index.js';
 import type { Atom } from '../ava007/coordination_types.js';
 
 export interface BrainConfig {
@@ -50,6 +50,11 @@ export class Brain {
     this.router = new AgentRouter(this.memory, this.artifacts, config.cognitiveConstraints, config.customExecutors);
   }
 
+  /**
+   * Legacy synchronous decision API.
+   * For the full coordination loop, use ava.processAtom() instead.
+   * For capability dispatch, use routeAtom().
+   */
   process(input: unknown): Decision {
     this.memory.append(1, 'input', input);
     const signals = this.ava.consult('root');
