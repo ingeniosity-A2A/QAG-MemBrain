@@ -67,3 +67,24 @@ Stage Summary:
   2. AgentOrchestrator sub-agent contract defined (capability manifest + result schema)
   3. DynamicPromptEngine prototyped with staged pipeline + offloading
   4. Dev harness created for thermal/load simulation
+
+---
+Task ID: 4
+Agent: main
+Task: Implement AgentRouter, ObservationProposal, TaskArtifactManager
+
+Work Log:
+- Created observation_types.ts: ObservationProposal type from Rev.Ike, AgentTarget enum (11 targets), classifyIntent() zero-LLM classifier, INTENT_TARGET_MAP skill registry, RoutedPayload (inline/offloaded), RoutingResult
+- Created task_artifact_manager.ts: TaskArtifactManager with store/retrieve/handoff/gc, HandoffThresholds (4KB inline max, 10-row SQL limit, ~200-word summaries, 1h TTL), SHA-256 content hashing, per-kind cognitive summary generators
+- Created agent_router.ts: AgentRouter with 4-stage pipeline (Input → Capability Match → Handoff → Dispatch), 8 deterministic stub executors (SQL, WebSearch, WebScraper, Neo4j, Temporal, A2UI, TTS, Executive), concurrency enforcement (max 5), network/cortex constraint gates, routeAtom() convenience method, registerExecutor() for custom injection
+- Wired into Brain: brain.router (AgentRouter), brain.artifacts (TaskArtifactManager), brain.routeAtom(atom), BrainConfig extended with handoffThresholds and customExecutors
+- Updated src/cognition/index.ts barrel exports for all new types
+- TypeScript compiles clean (only pre-existing serialport errors)
+- 128 tests still pass, no regressions
+- Committed as `f75b2f7`
+
+Stage Summary:
+- 3 new files: observation_types.ts, task_artifact_manager.ts, agent_router.ts
+- Modified: index.ts (barrel), brain/index.ts (wiring)
+- Commit: `f75b2f7` (local only)
+- Total cognition module: 8 files, ~2400 lines
