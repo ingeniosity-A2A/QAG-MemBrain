@@ -6,8 +6,15 @@ import { TemporalReplay, GSAPTemporalReconstructor } from '../temporal/index.js'
 import { Ava007, type Decision } from '../ava007/index.js';
 import { IngestionPipeline } from '../memory/ingestion/pipeline.js';
 import { CavernBridge } from '../audio/cavern_bridge.js';
+import { DynamicPromptEngine } from '../cognition/index.js';
+import type { PerceptionInput, CognitiveState, OrchestratorConstraints } from '../cognition/index.js';
 
-export interface BrainConfig { dataDir: string; signerKeyPem?: string; }
+export interface BrainConfig {
+  dataDir: string;
+  signerKeyPem?: string;
+  /** Optional constraints for the cognitive runtime. */
+  cognitiveConstraints?: Partial<OrchestratorConstraints>;
+}
 
 export class Brain {
   public readonly memory: MemoryStore;
@@ -19,6 +26,7 @@ export class Brain {
   public readonly ingestion: IngestionPipeline;
   public readonly cavern: CavernBridge;
   public readonly ava: Ava007;
+  public readonly cognition: DynamicPromptEngine;
 
   constructor(config: BrainConfig) {
     this.memory = new MemoryStore(config.dataDir, 'brain.jsonl');
@@ -30,6 +38,7 @@ export class Brain {
     this.gsapReplay = new GSAPTemporalReconstructor(this.memory, this.cavern);
     this.ingestion = new IngestionPipeline(this.memory);
     this.ava = new Ava007(this.memory, this.graph, this.subconscious, config.signerKeyPem);
+    this.cognition = new DynamicPromptEngine(this.memory, config.cognitiveConstraints);
   }
 
   process(input: unknown): Decision {
