@@ -5,6 +5,7 @@
   "description": "QAG_MemBrain foundational authority stack scaffolding",
   "type": "module",
   "scripts": {
+    "start": "node --env-file=.env dist/main.js",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:strict:authority": "AVA007_STRICT_AUTHORITY_VERIFICATION=true vitest run tests/authority/strict-mode.test.ts tests/authority/historical-verification.test.ts tests/authority/manifest.verification.test.ts tests/authority/rotation.test.ts tests/authority/signer.registry.test.ts",
