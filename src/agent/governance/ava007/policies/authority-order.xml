@@ -1,8 +1,0 @@
-<authority_order>
-  <rule priority="1">JSONL</rule>
-  <rule priority="2">Tashi</rule>
-  <rule priority="3">Neo4j</rule>
-  <rule priority="4">GSAP</rule>
-  <rule priority="5">Runtime</rule>
-  <constraint>If layers disagree, trust the highest-priority authority.</constraint>
-</authority_order>
