@@ -6,3 +6,5 @@ coverage/
 authority/signing/*.private.pem
 authority/signing/generatedAuthorityPrivateKeys.json
 data/
+upload/
+*.zip
