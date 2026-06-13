@@ -1,62 +1,139 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Termux setup for Ava007 edge node (S25 Ultra)
-# Installs cloudflared, python, nodejs, and configures persistent tunnel.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Ava007 Edge Node — Termux Setup (S25 Ultra)
+# Fixes: native module builds, Termux paths, cloudflared ARM64,
+#         runit service, env loading, ping alternative
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-set -e
+# Don't use set -e in Termux — some pkg commands return non-zero spuriously
 
 echo "=== Ava007 Termux Setup ==="
+echo ""
 
-# Update packages
-pkg update -y && pkg upgrade -y
+# ─── 1. Package install ────────────────────────────────────────────
+echo "[1/7] Updating packages..."
+pkg update -y 2>/dev/null || true
+pkg upgrade -y 2>/dev/null || true
 
-# Install essential tools
-pkg install -y nodejs-lts python python-pip git openssl-tool termux-services termux-api
+echo "[1/7] Installing core packages..."
+pkg install -y nodejs-lts python git openssl-tool termux-api 2>/dev/null || true
 
-# Install cloudflared
-if ! command -v cloudflared &> /dev/null; then
-    echo "Installing cloudflared..."
-    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -O $PREFIX/bin/cloudflared
-    chmod +x $PREFIX/bin/cloudflared
+# inetutils provides ping (needed by BackhaulManager)
+pkg install -y inetutils 2>/dev/null || true
+
+# Build tools for native npm modules (better-sqlite3, serialport)
+pkg install -y cmake make clang libandroid-spawn 2>/dev/null || true
+
+# ─── 2. Cloudflared (ARM64) ───────────────────────────────────────
+echo "[2/7] Installing cloudflared..."
+if ! command -v cloudflared &>/dev/null; then
+    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 \
+        -O "$PREFIX/bin/cloudflared" 2>/dev/null && \
+        chmod +x "$PREFIX/bin/cloudflared" && \
+        echo "  cloudflared installed: $(cloudflared --version 2>&1 | head -1)" || \
+        echo "  WARNING: cloudflared install failed — tunnel won't work"
+else
+    echo "  cloudflared already installed"
 fi
 
-# Install RadioLib dependencies (for LoRa bridge)
-pkg install -y cmake libusb
-
-# Clone repository if not already present
+# ─── 3. Clone repo ────────────────────────────────────────────────
 REPO_URL="https://github.com/ingeniosity-A2A/QAG-MemBrain-.git"
-if [ ! -d "$HOME/QAG_MemBrain" ]; then
-    echo "Cloning QAG_MemBrain repository..."
-    git clone "$REPO_URL" "$HOME/QAG_MemBrain"
+REPO_DIR="$HOME/QAG_MemBrain"
+
+echo "[3/7] Cloning repository..."
+if [ ! -d "$REPO_DIR" ]; then
+    git clone "$REPO_URL" "$REPO_DIR" || {
+        echo "  Clone failed. Trying with personal token..."
+        echo "  Run manually: git clone https://<TOKEN>@github.com/ingeniosity-A2A/QAG-MemBrain-.git $REPO_DIR"
+    }
+else
+    echo "  Repository already exists, pulling latest..."
+    cd "$REPO_DIR" && git pull 2>/dev/null || true
 fi
 
-cd "$HOME/QAG_MemBrain"
+cd "$REPO_DIR" || { echo "ERROR: Cannot cd to $REPO_DIR"; exit 1; }
 
-# Install Node.js dependencies
-npm install
+# ─── 4. npm install ───────────────────────────────────────────────
+echo "[4/7] Installing npm dependencies..."
+# Termux needs this for native modules
+export CPPFLAGS="-P"
+npm install 2>&1 || {
+    echo "  npm install had errors — retrying with --ignore-scripts for non-critical modules..."
+    npm install --ignore-scripts 2>&1 || true
+}
 
-# Build the project
-npm run build
+# ─── 5. Build TypeScript ──────────────────────────────────────────
+echo "[5/7] Building TypeScript..."
+npm run build 2>&1 || { echo "ERROR: Build failed"; exit 1; }
 
-# Create Termux service for auto-start (using termux-services)
-SERVICE_NAME="avamembrain"
-SERVICE_SCRIPT="$PREFIX/var/service/$SERVICE_NAME/run"
+# Verify build output
+if [ ! -f "dist/main.js" ]; then
+    echo "ERROR: dist/main.js not found — build did not produce output"
+    exit 1
+fi
+echo "  Build OK: dist/main.js exists"
 
-mkdir -p "$(dirname "$SERVICE_SCRIPT")"
-cat > "$SERVICE_SCRIPT" << EOF
+# ─── 6. Create .env ───────────────────────────────────────────────
+echo "[6/7] Setting up .env..."
+if [ ! -f .env ]; then
+    cp .env.example .env
+    echo "  Created .env from template — EDIT IT with your keys:"
+    echo "    nano $REPO_DIR/.env"
+else
+    echo "  .env already exists"
+fi
+
+# ─── 7. Create runit service (Termux boot) ────────────────────────
+echo "[7/7] Creating Termux boot service..."
+TERMUX_BOOT_DIR="$HOME/.termux/boot"
+mkdir -p "$TERMUX_BOOT_DIR"
+
+cat > "$TERMUX_BOOT_DIR/avamembrain.sh" << 'SERVICEEOF'
 #!/data/data/com.termux/files/usr/bin/bash
-exec $HOME/QAG_MemBrain/scripts/start_gateway.sh
-EOF
-chmod +x "$SERVICE_SCRIPT"
+# Auto-start Ava007 MemBrain on device boot
+export HOME=/data/data/com.termux/files/home
+cd "$HOME/QAG_MemBrain" || exit 1
 
-echo "Service created. To start automatically on boot, run: sv up $SERVICE_NAME"
-echo "To start now: sv up $SERVICE_NAME"
+# Load env
+while IFS='=' read -r key value; do
+    # Skip comments and empty lines
+    [[ "$key" =~ ^#.*$ ]] && continue
+    [[ -z "$key" ]] && continue
+    # Strip surrounding quotes
+    value="${value%\"}"
+    value="${value#\"}"
+    export "$key"="$value"
+done < .env
 
-# Cloudflare tunnel setup (interactive)
-if [ ! -f "$HOME/.cloudflared/cert.pem" ]; then
-    echo "Please authenticate with Cloudflare Zero Trust:"
-    cloudflared tunnel login
-fi
+# Start gateway in background
+"$HOME/QAG_MemBrain/scripts/start_gateway.sh" &
+SERVICEEOF
 
-echo "Termux setup complete. Next steps:"
-echo "1. Edit $HOME/QAG_MemBrain/.env with your Telnyx API key and Cloudflare Tunnel ID."
-echo "2. Start the gateway: $HOME/QAG_MemBrain/scripts/start_gateway.sh"
+chmod +x "$TERMUX_BOOT_DIR/avamembrain.sh"
+echo "  Boot service created: $TERMUX_BOOT_DIR/avamembrain.sh"
+
+# Also enable Termux:Boot if not already
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  SETUP COMPLETE"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "  NEXT STEPS:"
+echo ""
+echo "  1. Edit your .env:"
+echo "     nano ~/QAG_MemBrain/.env"
+echo ""
+echo "  2. Test the server:"
+echo "     ~/QAG_MemBrain/scripts/start_gateway.sh"
+echo ""
+echo "  3. Verify it's running (in another Termux session):"
+echo "     curl http://localhost:8080/health"
+echo ""
+echo "  4. For auto-start on boot, install Termux:Boot from F-Droid"
+echo ""
+echo "  5. For Cloudflare tunnel auth:"
+echo "     cloudflared tunnel login"
+echo ""
+echo "  QUICK TEST (no keys needed):"
+echo "     cd ~/QAG_MemBrain && node dist/main.js"
+echo ""
