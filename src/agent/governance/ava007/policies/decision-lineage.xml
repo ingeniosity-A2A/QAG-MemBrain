@@ -1,6 +1,0 @@
-<decision_lineage>
-  <rule>Every decision must reference the memory atoms used.</rule>
-  <rule>Lineage must include relationship context and policy scope.</rule>
-  <rule>Lineage must be verifiable through Tashi when available.</rule>
-  <rule>Decisions without lineage are invalid.</rule>
-</decision_lineage>
