@@ -6,8 +6,28 @@ export class LoRaBridge {
   private callback: LoRaCallback | null = null;
   private mockInterval: ReturnType<typeof setInterval> | null = null;
   private mockMode: boolean = true;
+  private active: boolean = false;
+  private opened: boolean = false;
 
   constructor(private serialPath: string = '/dev/ttyUSB0', private baudRate: number = 115200) {}
+
+  /** Activate the bridge — opens serial/mock port and starts reading. */
+  async start(): Promise<void> {
+    if (this.active) return;
+    this.active = true;
+    await this.open();
+    console.log('[LoRaBridge] Started');
+  }
+
+  /** Deactivate the bridge — stops reading and closes the port. */
+  stop(): void {
+    if (!this.active) return;
+    this.active = false;
+    this.close();
+    console.log('[LoRaBridge] Stopped');
+  }
+
+  get isActive(): boolean { return this.active; }
 
   async open(): Promise<void> {
     const fs = await import('fs');
@@ -37,6 +57,7 @@ export class LoRaBridge {
   close(): void {
     if (this.mockInterval) { clearInterval(this.mockInterval); this.mockInterval = null; }
     if (this.port) { this.port.close(); this.port = null; }
+    this.opened = false;
   }
 
   get isMockMode(): boolean { return this.mockMode; }

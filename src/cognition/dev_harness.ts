@@ -394,7 +394,7 @@ function formatResult(result: HarnessResult): string {
   return lines.join('\n');
 }
 
-if (require.main === module || (process.argv[1] && process.argv[1].endsWith('dev_harness.ts'))) {
+if (process.argv[1] && (process.argv[1].endsWith('dev_harness.js') || process.argv[1].endsWith('dev_harness.ts'))) {
   const scenarioArg = process.argv.find(a => a.startsWith('--scenario='))?.split('=')[1] as HarnessScenario ?? 'all';
   const validScenarios: HarnessScenario[] = ['thermal', 'battery', 'network_failover', 'oom', 'coordination_coherence', 'form_factor', 'deterministic_degradation', 'all'];
 

@@ -25,6 +25,73 @@ import { routeProximityEvent } from './proximity/index.js';
 import type { Atom } from './ava007/coordination_types.js';
 import { runHarness } from './cognition/index.js';
 import { TelnyxBridge } from './telnyx/index.js';
+import { exec } from 'child_process';
+
+// ─── Backhaul Failover Manager ───────────────────────────────────────
+type BackhaulType = 'cellular' | 'loramesh';
+
+class BackhaulManager {
+  private currentBackhaul: BackhaulType = 'cellular';
+  private loraBridge: LoRaBridge;
+  private onSwitchCallbacks: Array<(newBackhaul: BackhaulType) => void> = [];
+  private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+  private pingHost: string;
+  private heartbeatMs: number;
+
+  constructor(loraBridge: LoRaBridge) {
+    this.loraBridge = loraBridge;
+    this.pingHost = process.env.CELLULAR_PING_HOST || '8.8.8.8';
+    this.heartbeatMs = parseInt(process.env.BACKHAUL_HEARTBEAT_INTERVAL_MS || '30000', 10);
+    this.startCellularHeartbeat();
+  }
+
+  private startCellularHeartbeat(): void {
+    this.heartbeatInterval = setInterval(() => {
+      if (this.currentBackhaul === 'loramesh') {
+        exec(`ping -c 1 -W 2 ${this.pingHost}`, (error) => {
+          if (!error) {
+            console.log('[Backhaul] Cellular recovered — switching back...');
+            this.switchToCellular();
+          }
+        });
+      }
+    }, this.heartbeatMs);
+  }
+
+  switchToLoRa(): void {
+    if (this.currentBackhaul === 'loramesh') return;
+    console.log('[Backhaul] Switching to LoRa mesh backhaul');
+    this.currentBackhaul = 'loramesh';
+    if (!this.loraBridge.isActive) {
+      this.loraBridge.start().catch((err: Error) =>
+        console.error(`[Backhaul] LoRa start failed: ${err.message}`),
+      );
+    }
+    this.notifySwitch('loramesh');
+  }
+
+  switchToCellular(): void {
+    if (this.currentBackhaul === 'cellular') return;
+    console.log('[Backhaul] Switching back to cellular backhaul');
+    this.currentBackhaul = 'cellular';
+    if (this.loraBridge.isActive) {
+      this.loraBridge.stop();
+    }
+    this.notifySwitch('cellular');
+  }
+
+  private notifySwitch(backhaul: BackhaulType): void {
+    process.env.ACTIVE_BACKHAUL = backhaul;
+    for (const cb of this.onSwitchCallbacks) cb(backhaul);
+  }
+
+  onSwitch(cb: (backhaul: BackhaulType) => void): void { this.onSwitchCallbacks.push(cb); }
+  getCurrent(): BackhaulType { return this.currentBackhaul; }
+
+  destroy(): void {
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+  }
+}
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const DATA_DIR = process.env.DATA_DIR || './data';
@@ -73,9 +140,30 @@ if (CLOUDFLARE_TUNNEL_TOKEN) {
 }
 
 // ── LoRa Bridge (ESP32 serial or mock) ──
-const lora = new LoRaBridge('/dev/ttyUSB0', 115200);
+const lora = new LoRaBridge(
+  process.env.LORA_SERIAL_PORT || '/dev/ttyUSB0',
+  parseInt(process.env.LORA_BAUD_RATE || '115200', 10),
+);
 lora.open().then(() => {
   console.log(`LoRa bridge: ${lora.isMockMode ? 'MOCK' : 'SERIAL'} mode`);
+});
+
+// ── Backhaul Failover (SIGUSR1 → LoRa mesh, SIGUSR2 → cellular) ──
+const backhaul = new BackhaulManager(lora);
+
+backhaul.onSwitch((newBackhaul) => {
+  console.log(`[Main] Backhaul switched to ${newBackhaul}`);
+  process.env.ACTIVE_BACKHAUL = newBackhaul;
+});
+
+process.on('SIGUSR1', () => {
+  console.log('[Main] SIGUSR1 — switching to LoRa mesh backhaul');
+  backhaul.switchToLoRa();
+});
+
+process.on('SIGUSR2', () => {
+  console.log('[Main] SIGUSR2 — switching to cellular backhaul');
+  backhaul.switchToCellular();
 });
 
 lora.onPacket((packet) => {
@@ -188,6 +276,8 @@ console.log(`║  Loop: Observe → Interpret → Orchestrate → Verify → Com
 console.log(`║  Tiers: Reflex (<5ms) → Executive (Mellum2) → Cortex (Mercury) ║`);
 console.log(`║  Telnyx: ${(telnyx ? TELNYX_PHONE : 'disabled').padEnd(53)}║`);
 console.log(`║  Tunnel: ${(CLOUDFLARE_TUNNEL_TOKEN ? 'Cloudflare' : 'local-only').padEnd(53)}║`);
+console.log(`║  Backhaul: ${backhaul.getCurrent().padEnd(51)}║`);
+console.log(`║  Device: ${(process.env.EDGE_DEVICE_DID || 'unknown').padEnd(53)}║`);
 console.log(`╚══════════════════════════════════════════════════════════════════╝`);
 console.log(``);
 
@@ -195,14 +285,15 @@ demonstrateQueryTransform();
 
 process.on('SIGINT', () => {
   console.log('Shutting down...');
-  // Garbage collect expired artifacts before exit
   const collected = brain.artifacts.gc();
   if (collected > 0) console.log(`Garbage collected ${collected} expired artifacts`);
+  backhaul.destroy();
   lora.close();
   server.close();
   process.exit(0);
 });
 process.on('SIGTERM', () => {
+  backhaul.destroy();
   lora.close();
   server.close();
   process.exit(0);
