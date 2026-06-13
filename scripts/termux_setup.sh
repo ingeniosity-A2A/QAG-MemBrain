@@ -55,12 +55,15 @@ cd "$REPO_DIR" || { echo "ERROR: Cannot cd to $REPO_DIR"; exit 1; }
 
 # ─── 4. npm install ───────────────────────────────────────────────
 echo "[4/7] Installing npm dependencies..."
-# Termux needs this for native modules
+# Termux: install non-native deps first, then try native ones
+npm install --ignore-scripts 2>&1 || true
+# Try building native modules (better-sqlite3, serialport) — OK if they fail
 export CPPFLAGS="-P"
-npm install 2>&1 || {
-    echo "  npm install had errors — retrying with --ignore-scripts for non-critical modules..."
-    npm install --ignore-scripts 2>&1 || true
+npm rebuild 2>&1 || {
+    echo "  Some native modules failed to build — server will use fallbacks"
 }
+# Ensure ws types are present even if native modules failed
+npm install ws @types/ws 2>&1 || true
 
 # ─── 5. Build TypeScript ──────────────────────────────────────────
 echo "[5/7] Building TypeScript..."

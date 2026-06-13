@@ -33,7 +33,9 @@ export class LoRaBridge {
     const fs = await import('fs');
     if (!fs.existsSync(this.serialPath)) { this.mockMode = true; this._startMock(); return; }
     try {
+      // @ts-ignore — serialport may not compile on ARM/Termux
       const { SerialPort } = await import('serialport');
+      // @ts-ignore — serialport may not compile on ARM/Termux
       const { ReadlineParser } = await import('@serialport/parser-readline');
       this.port = new SerialPort({ path: this.serialPath, baudRate: this.baudRate });
       await new Promise<void>((resolve, reject) => {
