@@ -24,6 +24,7 @@ import { LoRaBridge } from './hal/index.js';
 import { routeProximityEvent } from './proximity/index.js';
 import type { Atom } from './ava007/coordination_types.js';
 import { runHarness } from './cognition/index.js';
+import { TelnyxBridge } from './telnyx/index.js';
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const DATA_DIR = process.env.DATA_DIR || './data';
@@ -34,7 +35,42 @@ if (!SIGNER_KEY) {
 }
 
 const brain = new Brain({ dataDir: DATA_DIR, signerKeyPem: SIGNER_KEY });
-const server = new MemBrainWSServer({ port: PORT, brain });
+
+// ── Telnyx SMS/Voice Bridge ──
+const TELNYX_API_KEY = process.env.TELNYX_API_KEY;
+const TELNYX_PHONE = process.env.TELNYX_PHONE_NUMBER || '+14044391350';
+const TELNYX_MESSAGING_PROFILE = process.env.TELNYX_MESSAGING_PROFILE_ID;
+
+let telnyx: TelnyxBridge | undefined;
+if (TELNYX_API_KEY) {
+  telnyx = new TelnyxBridge({
+    apiKey: TELNYX_API_KEY,
+    phoneNumber: TELNYX_PHONE,
+    messagingProfileId: TELNYX_MESSAGING_PROFILE,
+  });
+  telnyx.attach(brain);
+  console.log(`Telnyx bridge: ${TELNYX_PHONE} (SMS + Voice → AgentRouter)`);
+} else {
+  console.warn('WARNING: TELNYX_API_KEY not set — SMS/Voice bridge disabled.');
+}
+
+const server = new MemBrainWSServer({ port: PORT, brain, telnyx });
+
+// ── Cloudflare Tunnel ──
+const CLOUDFLARE_TUNNEL_TOKEN = process.env.CLOUDFLARE_TUNNEL_TOKEN;
+if (CLOUDFLARE_TUNNEL_TOKEN) {
+  import('child_process').then(({ spawn }) => {
+    const tunnel = spawn('cloudflared', ['tunnel', 'run', '--token', CLOUDFLARE_TUNNEL_TOKEN], {
+      stdio: 'inherit',
+      detached: false,
+    });
+    tunnel.on('error', (err: Error) => console.error(`[Cloudflare] Tunnel error: ${err.message}`));
+    tunnel.on('exit', (code: number) => console.log(`[Cloudflare] Tunnel exited with code ${code}`));
+    console.log('[Cloudflare] Tunnel starting...');
+  });
+} else {
+  console.warn('WARNING: CLOUDFLARE_TUNNEL_TOKEN not set — external access disabled. Use `cloudflared tunnel --url http://localhost:3000` for quick tunnel.');
+}
 
 // ── LoRa Bridge (ESP32 serial or mock) ──
 const lora = new LoRaBridge('/dev/ttyUSB0', 115200);
@@ -150,6 +186,8 @@ console.log(`║  Memory seq: ${String(brain.memory.seq).padEnd(47)}║`);
 console.log(`║  Authority: L1→L2→L3→L4→L5→L6 (Ava007 sole decision)         ║`);
 console.log(`║  Loop: Observe → Interpret → Orchestrate → Verify → Commit    ║`);
 console.log(`║  Tiers: Reflex (<5ms) → Executive (Mellum2) → Cortex (Mercury) ║`);
+console.log(`║  Telnyx: ${(telnyx ? TELNYX_PHONE : 'disabled').padEnd(53)}║`);
+console.log(`║  Tunnel: ${(CLOUDFLARE_TUNNEL_TOKEN ? 'Cloudflare' : 'local-only').padEnd(53)}║`);
 console.log(`╚══════════════════════════════════════════════════════════════════╝`);
 console.log(``);
 
