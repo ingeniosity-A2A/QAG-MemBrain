@@ -1,0 +1,22 @@
+export const RELATIONSHIP_TYPES = [
+  "RELATED_TO",
+  "INFLUENCED_BY",
+  "GENERATED",
+  "REFERENCES",
+  "SUPPORTS",
+  "CONTRADICTS",
+  "REPLAYED",
+  "VERIFIED_BY",
+  "FAILED_BY",
+] as const;
+
+export type Neo4jRelationshipType = (typeof RELATIONSHIP_TYPES)[number];
+
+export type ReplayRelationshipType = "REPLAYED" | "VERIFIED_BY" | "FAILED_BY";
+
+export interface CognitiveRelationship {
+  fromId: string;
+  toId: string;
+  type: Neo4jRelationshipType;
+  properties?: Record<string, unknown>;
+}

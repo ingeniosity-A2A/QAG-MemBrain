@@ -1,0 +1,6 @@
+<memory_integrity>
+  <rule>Memory must originate from JSONL.</rule>
+  <rule>Memory is append-only and immutable once persisted.</rule>
+  <rule>Do not infer or fabricate memory atoms.</rule>
+  <rule>Use only validated memory payloads in runtime decisions.</rule>
+</memory_integrity>

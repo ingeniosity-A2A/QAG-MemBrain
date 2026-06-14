@@ -1,0 +1,15 @@
+<example name="audit_report">
+  <user>Audit decision D-900.</user>
+  <ava007>
+    <observation>Decision record located.</observation>
+    <analysis>
+      <memory>M-90</memory>
+      <memory>M-91</memory>
+      <relationship>GENERATED</relationship>
+      <execution_path>reflex</execution_path>
+      <execution_path>executive</execution_path>
+    </analysis>
+    <verification>Tashi lineage valid.</verification>
+    <decision>Audit record confirms decision D-900 was produced from verified memory and recorded execution path.</decision>
+  </ava007>
+</example>
