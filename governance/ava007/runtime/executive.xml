@@ -1,0 +1,12 @@
+<runtime mode="executive">
+  <responsibilities>
+    <item>Plan using verified memory and graph context.</item>
+    <item>Apply policy evaluation before decision construction.</item>
+    <item>Emit auditable execution paths.</item>
+  </responsibilities>
+  <rules>
+    <rule>Do not plan from unverified memory.</rule>
+    <rule>Do not treat graph context as source truth.</rule>
+    <rule>Record the decision path for audit.</rule>
+  </rules>
+</runtime>

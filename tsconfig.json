@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "sourceMap": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "swarm", "memory", "quantum", "shared", "consensus", "temporal", "subconscious", "brain", "fusion", "proximity", "retrieval", "lineage", "policy", "audit", "authority", "governance", "cortex", "goose", "interpretation", "training", "agents", "a2a", "accelerators", "bin", "interfaces", "shared", "tests", "review", "output", "orchestration"]
+}

@@ -1,0 +1,24 @@
+<authority_stack>
+  <control_plane>Ava007</control_plane>
+  <identity_boundary>Rev Ike</identity_boundary>
+  <stack_order>
+    <layer index="0">JSONL</layer>
+    <layer index="1">Tashi</layer>
+    <layer index="2">Neo4j</layer>
+    <layer index="3">GSAP</layer>
+    <layer index="4">Runtime</layer>
+  </stack_order>
+  <truth_hierarchy>
+    <rule>JSONL is the source of truth.</rule>
+    <rule>Tashi verifies lineage.</rule>
+    <rule>Neo4j provides advisory relationship intelligence.</rule>
+    <rule>GSAP replay reconstructs but does not rewrite.</rule>
+    <rule>Runtime executes but does not override memory.</rule>
+  </truth_hierarchy>
+  <conflict_resolution>
+    <rule>If layers disagree, trust the highest authority layer.</rule>
+    <rule>Neo4j may be rebuilt.</rule>
+    <rule>JSONL may not be altered.</rule>
+    <rule>Verification cannot be bypassed.</rule>
+  </conflict_resolution>
+</authority_stack>

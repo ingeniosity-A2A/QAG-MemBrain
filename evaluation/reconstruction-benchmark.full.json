@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-06-03T12:28:14.353Z",
+  "scales": [
+    {
+      "events": 10,
+      "reconstructMs": 0.071,
+      "verifyAuthorityMs": 5.328,
+      "explainLineageMs": 0.091,
+      "totalMs": 5.491,
+      "authorityIntegrityPercent": 100,
+      "explainabilityScore": 100,
+      "transitionBytes": 856,
+      "signedTransitionBytes": 18064,
+      "stateOnlyBytes": 19490,
+      "storageReductionPercent": 7.317,
+      "faissLikeLookupMs": 0.12,
+      "openSearchLikeLookupMs": 0.024
+    },
+    {
+      "events": 100,
+      "reconstructMs": 0.035,
+      "verifyAuthorityMs": 39.669,
+      "explainLineageMs": 0.041,
+      "totalMs": 39.745,
+      "authorityIntegrityPercent": 100,
+      "explainabilityScore": 100,
+      "transitionBytes": 8643,
+      "signedTransitionBytes": 180877,
+      "stateOnlyBytes": 195564,
+      "storageReductionPercent": 7.51,
+      "faissLikeLookupMs": 0.324,
+      "openSearchLikeLookupMs": 0.034
+    },
+    {
+      "events": 1000,
+      "reconstructMs": 0.094,
+      "verifyAuthorityMs": 298.941,
+      "explainLineageMs": 0.432,
+      "totalMs": 299.467,
+      "authorityIntegrityPercent": 100,
+      "explainabilityScore": 100,
+      "transitionBytes": 87394,
+      "signedTransitionBytes": 1811680,
+      "stateOnlyBytes": 1964278,
+      "storageReductionPercent": 7.769,
+      "faissLikeLookupMs": 0.296,
+      "openSearchLikeLookupMs": 0.088
+    },
+    {
+      "events": 10000,
+      "reconstructMs": 0.91,
+      "verifyAuthorityMs": 3011.013,
+      "explainLineageMs": 2.692,
+      "totalMs": 3014.614,
+      "authorityIntegrityPercent": 100,
+      "explainabilityScore": 100,
+      "transitionBytes": 883895,
+      "signedTransitionBytes": 18146683,
+      "stateOnlyBytes": 19732292,
+      "storageReductionPercent": 8.036,
+      "faissLikeLookupMs": 3.788,
+      "openSearchLikeLookupMs": 0.929
+    },
+    {
+      "events": 100000,
+      "reconstructMs": 10.857,
+      "verifyAuthorityMs": 29231.217,
+      "explainLineageMs": 11.947,
+      "totalMs": 29254.021,
+      "authorityIntegrityPercent": 100,
+      "explainabilityScore": 100,
+      "transitionBytes": 8938896,
+      "signedTransitionBytes": 181766686,
+      "stateOnlyBytes": 198222306,
+      "storageReductionPercent": 8.302,
+      "faissLikeLookupMs": 34.687,
+      "openSearchLikeLookupMs": 10.524
+    }
+  ],
+  "notes": [
+    "faissLikeLookupMs is a deterministic in-process cosine similarity baseline, not a FAISS runtime.",
+    "openSearchLikeLookupMs is a deterministic in-process keyword scan baseline, not an OpenSearch runtime.",
+    "Authority verification uses strict replay verification against local authority registry."
+  ]
+}

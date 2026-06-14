@@ -1,0 +1,1 @@
+"""Goose tactical execution adapter."""

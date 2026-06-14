@@ -1,0 +1,8 @@
+<authority_replay_policy>
+  <rule>replay_cannot_use_model_reasoning=true</rule>
+  <rule>replay_must_use_recorded_artifacts=true</rule>
+  <rule>replay_must_be_deterministic=true</rule>
+  <rule>replay_must_validate_policy_outcome=true</rule>
+  <rule>replay_must_validate_hash_integrity=true</rule>
+  <rule>replay_must_emit_failure_reasons=true</rule>
+</authority_replay_policy>

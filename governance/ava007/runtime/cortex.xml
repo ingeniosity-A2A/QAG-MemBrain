@@ -1,0 +1,11 @@
+<runtime mode="cortex">
+  <responsibilities>
+    <item>Extract patterns from validated history.</item>
+    <item>Propose learning updates.</item>
+    <item>Support optimization without rewriting memory truth.</item>
+  </responsibilities>
+  <rules>
+    <rule>Learning is advisory until validated through policy and verification layers.</rule>
+    <rule>Cortex may optimize but may not override authoritative history.</rule>
+  </rules>
+</runtime>

@@ -1,0 +1,8 @@
+{
+  "deploymentVersion": "1.0.0",
+  "environment": "development",
+  "buildHash": "5ce15fd82449ffaa115cd4a5dc915846689a5fa1ca2bebe88d5c7bd07d56e148",
+  "releaseId": "release-2026-06-03-local",
+  "containerHash": "b2c4b3d1b5f6e47a6f3e2f0c1d1b5e47b13d6f0f7d4e1c3b2a9f8e7d6c5b4a3f2",
+  "deployedAt": "2026-06-03T00:00:00.000Z"
+}

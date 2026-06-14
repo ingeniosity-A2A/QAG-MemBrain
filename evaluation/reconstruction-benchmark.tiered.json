@@ -1,0 +1,34 @@
+{
+  "generatedAt": "2026-06-03T12:35:46.194Z",
+  "scales": [
+    {
+      "events": 100000,
+      "reconstructMs": 5.896,
+      "verifyAuthorityMs": 29646.245,
+      "verifyCheckpointMs": 718.546,
+      "verifyMerkleMs": 624.925,
+      "explainLineageMs": 10.667,
+      "totalMs": 29662.808,
+      "totalCheckpointMs": 735.109,
+      "totalMerkleMs": 641.489,
+      "checkpointInterval": 5000,
+      "authorityIntegrityPercent": 100,
+      "checkpointIntegrityPercent": 100,
+      "merkleIntegrityPercent": 100,
+      "explainabilityScore": 100,
+      "transitionBytes": 8938896,
+      "signedTransitionBytes": 181766686,
+      "stateOnlyBytes": 198222306,
+      "storageReductionPercent": 8.302,
+      "faissLikeLookupMs": 33.661,
+      "openSearchLikeLookupMs": 7.932
+    }
+  ],
+  "notes": [
+    "faissLikeLookupMs is a deterministic in-process cosine similarity baseline, not a FAISS runtime.",
+    "openSearchLikeLookupMs is a deterministic in-process keyword scan baseline, not an OpenSearch runtime.",
+    "Authority verification uses strict replay verification against local authority registry.",
+    "verifyCheckpointMs verifies one signed checkpoint per segment plus segment Merkle root recomputation.",
+    "verifyMerkleMs verifies only segment Merkle root recomputation (archive-mode integrity check)."
+  ]
+}

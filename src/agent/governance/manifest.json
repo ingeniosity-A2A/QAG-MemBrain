@@ -1,0 +1,11 @@
+{
+  "governanceVersion": "1.5",
+  "authorityOrder": [
+    "JSONL",
+    "Tashi",
+    "Neo4j",
+    "GSAP",
+    "Runtime"
+  ],
+  "packageRoot": "ava007"
+}

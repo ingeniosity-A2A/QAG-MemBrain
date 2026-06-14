@@ -1,0 +1,9 @@
+{
+  "algorithm": "ed25519",
+  "authorityId": "ava007-authority-v2",
+  "signerId": "ava007-authority-v2",
+  "signedAt": "2026-06-04T05:09:02.711Z",
+  "hash": "9b4c6fd7b6a7ba40dc3db3cf4322f195bebeea95a35c6dffa95dc606441ddd5f",
+  "signature": "U7oSJlSqgcnPRT25JkTF+O3RXqA0Usvykc1Sge8gGDyP/GIJxztQsXKY2+r06RMKpxgGMJLaig8zBMRm7bUpAw==",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAsiwwxyLTlfTQMpNQih4DDIYh2e2Ek3qNBt+Qs/oQzk0=\n-----END PUBLIC KEY-----\n"
+}

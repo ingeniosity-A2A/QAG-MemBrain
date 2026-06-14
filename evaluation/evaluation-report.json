@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-06-04T05:09:02.710Z",
+  "totals": {
+    "decisionsEvaluated": 310
+  },
+  "capability": {
+    "accuracy": 1,
+    "precision": 1,
+    "recall": 1,
+    "totalCases": 300,
+    "correctCases": 300
+  },
+  "reliability": {
+    "stability": 1,
+    "identicalRuns": 10,
+    "totalRuns": 10
+  },
+  "governance": {
+    "governanceCoveragePercent": 100,
+    "covered": 310,
+    "total": 310
+  },
+  "provenance": {
+    "provenanceContinuityPercent": 100,
+    "continuous": 310,
+    "total": 310
+  },
+  "judgment": {
+    "authorityEscalationScore": 100,
+    "correct": 5,
+    "total": 5
+  },
+  "safety": {
+    "boundaryCompliancePercent": 100,
+    "compliant": 5,
+    "total": 5
+  },
+  "replayIntegrity": {
+    "replayFidelityPercent": 100,
+    "faithful": 310,
+    "total": 310
+  },
+  "signature": {
+    "signatureVerificationRate": 100,
+    "verified": 310,
+    "total": 310
+  },
+  "operational": {
+    "decisionTime": {
+      "p50": 0.003,
+      "p95": 0.006,
+      "p99": 0.01
+    },
+    "lineageTime": {
+      "p50": 0.046,
+      "p95": 0.093,
+      "p99": 0.128
+    },
+    "replayTime": {
+      "p50": 0.175,
+      "p95": 0.281,
+      "p99": 0.38
+    },
+    "graphTime": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0
+    },
+    "auditTime": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0
+    }
+  }
+}

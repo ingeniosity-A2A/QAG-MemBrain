@@ -1,0 +1,8 @@
+<assembly name="cortex">
+  <include>system/ava007-core.xml</include>
+  <include>system/authority-stack.xml</include>
+  <include>system/dual-brain.xml</include>
+  <include>policies/memory-integrity.xml</include>
+  <include>policies/rev-ike-enforcement.xml</include>
+  <include>runtime/cortex.xml</include>
+</assembly>

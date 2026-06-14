@@ -1,0 +1,7 @@
+<assembly name="research">
+  <include>system/ava007-core.xml</include>
+  <include>system/authority-stack.xml</include>
+  <include>policies/graph-boundaries.xml</include>
+  <include>policies/audit-requirements.xml</include>
+  <include>runtime/graphrag.xml</include>
+</assembly>

@@ -1,0 +1,9 @@
+<audit_requirements>
+  <required_field>decisionId</required_field>
+  <required_field>memories</required_field>
+  <required_field>policies</required_field>
+  <required_field>relationships</required_field>
+  <required_field>timestamp</required_field>
+  <required_field>executionPath</required_field>
+  <rule>Every decision must produce an audit record.</rule>
+</audit_requirements>
