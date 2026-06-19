@@ -1,0 +1,81 @@
+version: '3.8'
+services:
+  neo4j:
+    image: neo4j:5.15-community
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/sovereign_context_secret
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - ava-network
+
+  anythingllm:
+    image: mintplexlabs/anythingllm:latest
+    ports:
+      - "3001:3001"
+    environment:
+      - DISABLE_TELEMETRY=true
+    volumes:
+      - anythingllm_storage:/app/server/storage
+    networks:
+      - ava-network
+
+  orchestrator:
+    build: ./services/orchestration
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_AI_OPENAI_API_KEY=${OPENROUTER_API_KEY}
+      - NEO4J_URI=bolt://neo4j:7687
+    depends_on:
+      - neo4j
+    networks:
+      - ava-network
+
+  tools:
+    build: ./services/tools
+    ports:
+      - "5000:5000"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    networks:
+      - ava-network
+
+  hermes:
+    build: ./services/hermes
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - ava-network
+
+  redis:
+    image: redis:alpine
+    networks:
+      - ava-network
+
+  cave:
+    build: ./services/cave
+    ports:
+      - "5001:5001"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    networks:
+      - ava-network
+
+volumes:
+  neo4j_data:
+  anythingllm_storage:
+
+networks:
+  ava-network:
+    driver: bridge

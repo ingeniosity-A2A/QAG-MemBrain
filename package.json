@@ -1,11 +1,12 @@
 {
-  "name": "qag-membrain",
-  "version": "0.1.0",
+  "name": "ava007-runtime",
+  "version": "1.0.0",
   "private": true,
-  "description": "QAG_MemBrain foundational authority stack scaffolding",
+  "description": "AVA007 Sovereign Context Runtime",
   "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "start": "node --env-file=.env dist/main.js",
+    "start": "./start.sh",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:strict:authority": "AVA007_STRICT_AUTHORITY_VERIFICATION=true vitest run tests/authority/strict-mode.test.ts tests/authority/historical-verification.test.ts tests/authority/manifest.verification.test.ts tests/authority/rotation.test.ts tests/authority/signer.registry.test.ts",
@@ -14,7 +15,9 @@
     "verify": "node dist/bin/ava007.js",
     "evaluate": "npm run build && node dist/evaluation/runEvaluation.js",
     "benchmark:reconstruction": "npm run build && node dist/evaluation/benchmark/runReconstructionBenchmark.js",
-    "evaluate:memory-judge": "npm run build && node dist/evaluation/memoryJudge/runMemoryJudge.js"
+    "evaluate:memory-judge": "npm run build && node dist/evaluation/memoryJudge/runMemoryJudge.js",
+    "mobile:sync": "cd apps/mobile && npx cap sync android",
+    "mobile:open": "cd apps/mobile && npx cap open android"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
