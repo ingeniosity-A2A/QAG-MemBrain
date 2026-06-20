@@ -1,8 +1,8 @@
-import { GovernanceContract, GovernanceContext } from './runtime/governance/GovernanceContract.js';
-import { ContextAssembler } from './runtime/governance/ContextAssembler.js';
-import { AgentStop } from './runtime/governance/AgentStop.js';
-import { BoundaryEnforcer } from './runtime/governance/BoundaryEnforcer.js';
-import { HeadroomManager } from './runtime/governance/HeadroomManager.js';
+import { GovernanceContract, GovernanceContext } from '@runtime/governance/GovernanceContract.js';
+import { ContextAssembler } from '@runtime/governance/ContextAssembler.js';
+import { AgentStop } from '@runtime/governance/AgentStop.js';
+import { BoundaryEnforcer } from '@runtime/governance/BoundaryEnforcer.js';
+import { HeadroomManager } from '@runtime/governance/HeadroomManager.js';
 import { photoQuoteWorkflow, PhotoInput, Quote } from './workflows/photo_quote/PhotoQuoteWorkflow.js';
 import { bookingWorkflow, SchedulingRequest, Booking } from './workflows/booking/BookingWorkflow.js';
 import { memoryRecordWorkflow, JobOutcome } from './workflows/memory_record/MemoryRecordWorkflow.js';
@@ -33,7 +33,7 @@ export class CoreRuntime {
     this.governance = new GovernanceContract();
     this.contextAssembler = new ContextAssembler({
       maxTokens: config.maxTokens,
-      reserved: config.reserveTokens,
+      objective: '',
       priorityOrder: ['objective', 'memory', 'graph', 'tools', 'policies'],
     });
     this.agentStop = new AgentStop(this.governance);

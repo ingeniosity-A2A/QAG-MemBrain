@@ -35,11 +35,11 @@ export class AuthorityReplayEngine {
 
     const reconstructor = new DecisionReconstructor();
     const reconstruction = await reconstructor.reconstruct(lineageId, {
-      loadLineage: async (id) => this.deps.loadLineage(id),
-      loadMemoryAtom: async (id) => this.deps.loadMemoryReference(id),
-      loadGraphNode: async (id) => this.deps.loadGraphReference(id),
-      loadPolicy: async (id) => this.deps.loadPolicyReference(id),
-      loadTimelineEvent: async (id) => this.deps.loadTimelineReference(id),
+      loadLineage: async (id: string) => this.deps.loadLineage(id),
+      loadMemoryAtom: async (id: string) => this.deps.loadMemoryReference(id),
+      loadGraphNode: async (id: string) => this.deps.loadGraphReference(id),
+      loadPolicy: async (id: string) => this.deps.loadPolicyReference(id),
+      loadTimelineEvent: async (id: string) => this.deps.loadTimelineReference(id),
     });
 
     const [missingMemory, missingGraph, missingTimeline, missingPolicy] = await Promise.all([

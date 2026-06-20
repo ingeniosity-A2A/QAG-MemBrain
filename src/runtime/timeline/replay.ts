@@ -16,13 +16,13 @@ export class TemporalReplay {
 
   replay(): ReadonlyArray<Readonly<TimelineEntry>> {
     const entries = this.store.readAll();
-    this.timeline = entries.map(e => this._project(e));
+    this.timeline = entries.map((e: any) => this._project(e));
     return this.timeline;
   }
 
   replayFrom(checkpointSeq: number): ReadonlyArray<Readonly<TimelineEntry>> {
     const entries = this.store.readRange(checkpointSeq, Infinity);
-    return entries.map(e => this._project(e));
+    return entries.map((e: any) => this._project(e));
   }
 
   get current(): ReadonlyArray<Readonly<TimelineEntry>> { return this.timeline; }

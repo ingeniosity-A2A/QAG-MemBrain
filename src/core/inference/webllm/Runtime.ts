@@ -59,7 +59,7 @@ export class WebLLMRuntime {
 
   private async loadModel(config: ModelConfig): Promise<void> {
     this.engine = await CreateMLCEngine(config.modelId, {
-      initProgressCallback: (progress) => {
+      initProgressCallback: (progress: any) => {
         console.log(`[WebLLM] Loading ${config.modelId}: ${progress.text}`);
       },
     });

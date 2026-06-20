@@ -1,9 +1,9 @@
-import { CognitiveGraphRepository } from "../neo4j/repositories/cognitiveGraphRepository.js";
-import { CognitiveNode } from "../neo4j/schema/nodeTypes.js";
-import { CognitiveRelationship } from "../neo4j/schema/relationshipTypes.js";
-import { query } from "../../memory/jsonl/jsonlStore.js";
-import { computeRecordHash } from "../../memory/jsonl/hash.js";
-import { MemoryRecord } from "../../memory/jsonl/memoryRecord.js";
+import { CognitiveGraphRepository } from "@graph/repositories/cognitiveGraphRepository.js";
+import { CognitiveNode } from "../schema/nodeTypes.js";
+import { CognitiveRelationship } from "../schema/relationshipTypes.js";
+import { query } from "@memory/jsonl/index.js";
+import { computeRecordHash } from "@memory/jsonl/hash.js";
+import { MemoryRecord } from "@memory/jsonl/index.js";
 import { extractEntities } from "./entityExtraction.js";
 import { computeGraphHash, GraphSnapshot } from "./graphHash.js";
 

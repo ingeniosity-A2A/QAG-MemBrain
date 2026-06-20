@@ -1,4 +1,4 @@
-import { SharedTensor, SharedTensorManager, TensorMetadata } from './SharedTensor.js';
+import { SharedTensor, SharedTensorManager, TensorMetadata, sharedTensorManager } from './SharedTensor.js';
 
 export interface ArrowField {
   name: string;

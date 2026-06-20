@@ -24,21 +24,21 @@ export function detectPatterns(context: PatternDetectionContext): Interpretation
     });
   }
 
-  if (context.graphSnapshot.relationships.some((relationship) => relationship.type === "RELATED_TO")) {
+  if (context.graphSnapshot.relationships.some((relationship: any) => relationship.type === "RELATED_TO")) {
     patterns.push({
       patternId: "graph-replay-alignment",
       label: "graph_replay_alignment",
       evidence: context.graphSnapshot.relationships
-        .filter((relationship) => relationship.type === "RELATED_TO")
-        .map((relationship) => `${relationship.fromId}->${relationship.toId}`),
+        .filter((relationship: any) => relationship.type === "RELATED_TO")
+        .map((relationship: any) => `${relationship.fromId}->${relationship.toId}`),
     });
   }
 
-  if (context.graphSnapshot.nodes.some((node) => node.type === "Policy")) {
+  if (context.graphSnapshot.nodes.some((node: any) => node.type === "Policy")) {
     patterns.push({
       patternId: "policy-reference",
       label: "policy_reference",
-      evidence: context.graphSnapshot.nodes.filter((node) => node.type === "Policy").map((node) => node.id),
+      evidence: context.graphSnapshot.nodes.filter((node: any) => node.type === "Policy").map((node: any) => node.id),
     });
   }
 

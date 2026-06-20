@@ -33,8 +33,8 @@ import type {
   CapabilityManifest,
 } from './capability_manifest.js';
 import { DEFAULT_ORCHESTRATOR_CONSTRAINTS } from './capability_manifest.js';
-import type { Atom } from '../ava007/coordination_types.js';
-import { MemoryStore } from '../memory/jsonl/index.js';
+import type { Atom } from './coordination_types.js';
+import { MemoryStore } from '@memory/jsonl/index.js';
 
 // ─── Stage 1: Perception ─────────────────────────────────────────────
 

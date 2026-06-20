@@ -27,7 +27,7 @@ export function generateInsights(
     {
       insightId: "insight-graph-size",
       statement: `Graph projection contains ${context.graphSnapshot.nodes.length} nodes and ${context.graphSnapshot.relationships.length} relationships.`,
-      evidence: context.graphSnapshot.nodes.map((node) => node.id),
+      evidence: context.graphSnapshot.nodes.map((node: any) => node.id),
     },
   ];
 

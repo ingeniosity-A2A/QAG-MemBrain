@@ -20,7 +20,7 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { MemoryStore } from '../memory/jsonl/index.js';
+import { MemoryStore } from '@memory/jsonl/index.js';
 
 // ─── Artifact Types ──────────────────────────────────────────────────
 

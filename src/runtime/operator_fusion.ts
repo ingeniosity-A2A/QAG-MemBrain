@@ -8,7 +8,7 @@ export class OperatorFusion {
 
   async fetchPrecedents(query: string, limit = 5): Promise<PrecedentResult[]> {
     const nodes = await this.graph.graphRagSearch([], query, limit, 1).catch(() => []);
-    const graphPrecedents = nodes.map((entry) => ({
+    const graphPrecedents = nodes.map((entry: any) => ({
       matched: true,
       vertexHash: entry.atom.vertex_hash,
       action: "precedent_match",
@@ -23,8 +23,8 @@ export class OperatorFusion {
       // Missing file is fine; precedents are optional on first run.
     }
     const diskPrecedents = persisted
-      .filter((atom) => atom.type === "precedent")
-      .filter((atom) => atom.content.includes(query) || atom.tags.some((tag) => query.includes(tag)))
+      .filter((atom: any) => atom.type === "precedent")
+      .filter((atom: any) => atom.content.includes(query) || atom.tags.some((tag: any) => query.includes(tag)))
       .slice(0, limit)
       .map((atom) => ({
         matched: true,

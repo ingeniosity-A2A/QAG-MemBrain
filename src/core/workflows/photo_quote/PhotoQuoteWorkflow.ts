@@ -1,7 +1,7 @@
-import { GovernanceContract, GovernanceContext } from '../../runtime/governance/GovernanceContract.js';
-import { ContextAssembler } from '../../runtime/governance/ContextAssembler.js';
-import { vibeThinkerProvider } from '../../inference/webllm/VibeThinkerProvider.js';
-import { webllmRuntime, ContextBuffer } from '../../inference/webllm/Runtime.js';
+import { GovernanceContract, GovernanceContext } from '@runtime/governance/GovernanceContract.js';
+import { ContextAssembler } from '@runtime/governance/ContextAssembler.js';
+import { vibeThinkerProvider } from '@core/inference/webllm/VibeThinkerProvider.js';
+import { webllmRuntime, ContextBuffer } from '@core/inference/webllm/Runtime.js';
 
 export interface PhotoInput {
   imageData: Uint8Array;

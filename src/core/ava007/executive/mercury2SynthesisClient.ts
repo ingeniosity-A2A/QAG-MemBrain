@@ -1,4 +1,4 @@
-import { RevikeMemoryChunk } from "../../graph/neo4j/repositories/revikeRetrievalRepository.js";
+import { RevikeMemoryChunk } from "@graph/repositories/revikeRetrievalRepository.js";
 
 export interface Mercury2SynthesisInput {
   requestId: string;

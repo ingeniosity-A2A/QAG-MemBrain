@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { CognitiveNode } from "../neo4j/schema/nodeTypes.js";
-import { CognitiveRelationship } from "../neo4j/schema/relationshipTypes.js";
+import { CognitiveNode } from "../schema/nodeTypes.js";
+import { CognitiveRelationship } from "../schema/relationshipTypes.js";
 
 export interface GraphSnapshot {
   nodes: CognitiveNode[];

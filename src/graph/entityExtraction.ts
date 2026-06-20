@@ -1,4 +1,4 @@
-import { MemoryRecord } from "../../memory/jsonl/memoryRecord.js";
+import { MemoryRecord } from "@memory/jsonl/index.js";
 
 export interface ExtractedEntity {
   id: string;

@@ -31,8 +31,8 @@ import type {
 } from './observation_types.js';
 import { INTENT_TARGET_MAP, classifyIntent } from './observation_types.js';
 import type { TaskArtifactManager, ArtifactKind } from './task_artifact_manager.js';
-import { MemoryStore } from '../memory/jsonl/index.js';
-import type { Atom } from '../ava007/coordination_types.js';
+import { MemoryStore } from '@memory/jsonl/index.js';
+import type { Atom } from './coordination_types.js';
 
 // ─── Agent Execution Interface ───────────────────────────────────────
 

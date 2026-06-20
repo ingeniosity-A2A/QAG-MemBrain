@@ -54,7 +54,28 @@ export class BoundaryEnforcer {
       .contextualRelationshipCheck(request, denials)
       .temporalRestrictionCheck(request, denials)
       .securityAttestationCheck(request, denials)
-      .deviceHealthCheck(request, denials);
+      .deviceHealthCheck(request, denials)) {
+      const allowed = denials.length === 0;
+      const reason = allowed ? 'Access granted' : denials.join('; ');
+      const restrictions = this.getRestrictions(request);
+
+      const auditEvent: AuditEvent = {
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+        authority: this.authorityState.activeAuthority,
+        action: 'boundary_enforcement',
+        outcome: allowed ? 'allowed' : 'denied',
+        details: {
+          requesterId: request.requesterId,
+          resourceId: request.resourceId,
+          action: request.action,
+          denials,
+          restrictions,
+        },
+      };
+
+      return { allowed, reason, restrictions, auditEvent };
+    }
 
     const allowed = denials.length === 0;
     const reason = allowed ? 'Access granted' : denials.join('; ');
@@ -80,7 +101,7 @@ export class BoundaryEnforcer {
 
   private authorizationCheck(request: AccessRequest, denials: string[]): this {
     const hasPermission = this.authorityState.permissions.some(
-      p => p === '*' || p === `${request.action}:${request.resourceId}` || p === `${request.action}:*`
+      (p: string) => p === '*' || p === `${request.action}:${request.resourceId}` || p === `${request.action}:*`
     );
 
     if (!hasPermission) {
