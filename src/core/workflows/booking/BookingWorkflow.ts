@@ -1,6 +1,6 @@
-import { GovernanceContract } from '../../runtime/governance/GovernanceContract.js';
-import { vibeThinkerProvider } from '../../inference/webllm/VibeThinkerProvider.js';
-import { ContextBuffer } from '../../inference/webllm/Runtime.js';
+import { GovernanceContract } from '@runtime/governance/GovernanceContract.js';
+import { vibeThinkerProvider } from '@core/inference/webllm/VibeThinkerProvider.js';
+import { ContextBuffer } from '@core/inference/webllm/Runtime.js';
 
 export interface Quote {
   id: string;

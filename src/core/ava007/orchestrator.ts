@@ -23,14 +23,15 @@ import type {
   PolicyConflict,
   ExecutiveResult,
 } from './coordination_types.js';
+import type { GraphNode, GraphEdge } from '@graph/neo4j/enforcement.js';
 import { assertAtom } from './coordination_types.js';
 import { evaluateReflexGate, evaluateExecutiveGate } from './escalation_gates.js';
 import { buildMercuryPrompt } from './mercury2.js';
 import { DEFAULT_GATE_CONFIG, loadGateConfigFromEnv } from './gate_config.js';
-import { MemoryStore } from '../memory/jsonl/index.js';
-import { GraphStore } from '../graph/neo4j/index.js';
-import { TashiSigner } from '../consensus/tashi/index.js';
-import { enforceAuthority } from '../contract/enforcement.js';
+import { MemoryStore } from '@memory/jsonl/index.js';
+import { GraphStore } from '@graph/neo4j/index.js';
+import { TashiSigner } from '@memory/tashi/consensus/index.js';
+import { enforceAuthority } from '@contract/enforcement.js';
 
 // ─── DAG Slice from GraphStore (in-memory, depth ≤5) ─────────────────
 
@@ -39,13 +40,13 @@ function buildDagSlice(graph: GraphStore, atomId: string, maxDepth: number): Dag
   return {
     rootId: atomId,
     maxDepth,
-    nodes: traversal.nodes.map((n, i) => ({
+    nodes: traversal.nodes.map((n: GraphNode, i: number) => ({
       id: n.id,
       labels: [n.label],
       properties: n.properties,
       depth: i,
     })),
-    relationships: traversal.edges.map(e => ({
+    relationships: traversal.edges.map((e: GraphEdge) => ({
       fromId: e.source,
       toId: e.target,
       type: e.type,

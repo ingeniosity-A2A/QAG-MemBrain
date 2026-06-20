@@ -17,7 +17,7 @@ export async function interpretLedger(
   options: InterpretLedgerOptions = {},
 ): Promise<MemoryReflection> {
   const records = await readRecords(filePath);
-  const replayed = await replayFromGenesis(filePath, [] as string[], (state, record) => [...state, record.id]);
+  const replayed = await replayFromGenesis(filePath, [] as string[], (state: any, record: any) => [...state, record.id]);
   const repository = options.repositoryFactory?.() ?? new InMemoryCognitiveGraphRepository();
   const graph = await projectJsonlLedgerToGraphHash(filePath, repository);
 

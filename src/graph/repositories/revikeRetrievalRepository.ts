@@ -1,5 +1,5 @@
 import neo4j, { Driver } from "neo4j-driver";
-import { RevikeTheme } from "../../../cognition/reflex/gemmaQueryTransformer.js";
+import { RevikeTheme } from "@core/ava007/reflex/gemmaQueryTransformer.js";
 
 export interface RevikeMemoryChunk {
   id: string;

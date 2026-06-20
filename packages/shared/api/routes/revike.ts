@@ -2,16 +2,17 @@ import {
   DeterministicMercury2SynthesisClient,
   HttpMercury2SynthesisClient,
   Mercury2SynthesisClient,
-} from "../../../cognition/executive/mercury2SynthesisClient.js";
+} from "@core/ava007/executive/mercury2SynthesisClient.js";
 import {
   buildGemmaTransformerPrompt,
   transformTacticalToPhilosophical,
-} from "../../../cognition/reflex/gemmaQueryTransformer.js";
+} from "@core/ava007/reflex/gemmaQueryTransformer.js";
 import {
   DEFAULT_REVIKE_MEMORIES,
   InMemoryRevikeRetrievalRepository,
+  RevikeMemoryChunk,
   RevikeRetrievalRepository,
-} from "../../../graph/neo4j/repositories/revikeRetrievalRepository.js";
+} from "@graph/repositories/revikeRetrievalRepository.js";
 
 export interface RevikeRequest {
   request_id: string;
@@ -81,7 +82,7 @@ export async function handleRevikePost(
     audio_asset_url: candidate.required_output === "audio" ? `https://storage.local/revike/${candidate.request_id}.mp3` : undefined,
     retrieval: {
       themes: transformed.themes,
-      memory_ids: retrievedChunks.map((chunk) => chunk.id),
+      memory_ids: retrievedChunks.map((chunk: RevikeMemoryChunk) => chunk.id),
     },
   };
 }

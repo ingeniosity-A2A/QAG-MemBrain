@@ -102,6 +102,7 @@ export class QNNDelegate {
   }
 
   private async npuExecute(graphName: string, inputs: Map<string, Tensor>): Promise<GraphExecutionResult> {
+    const start = performance.now();
     const outputTensor = this.allocateTensor(`${graphName}_output`, [1, 512], 'float32');
     
     await new Promise(resolve => setTimeout(resolve, 5));
@@ -114,6 +115,7 @@ export class QNNDelegate {
   }
 
   private async cpuFallback(graphName: string, inputs: Map<string, Tensor>): Promise<GraphExecutionResult> {
+    const start = performance.now();
     const outputTensor = this.allocateTensor(`${graphName}_output`, [1, 512], 'float32');
     
     await new Promise(resolve => setTimeout(resolve, 20));

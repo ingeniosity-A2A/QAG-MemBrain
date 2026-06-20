@@ -121,7 +121,7 @@ export class DecisionLineageEngine {
         throw new Error("Decision lineage requires policyEvaluations with reason");
       }
 
-      if (!Array.isArray(evaluation.evidence) || evaluation.evidence.some((item) => typeof item !== "string")) {
+      if (!Array.isArray(evaluation.evidence) || evaluation.evidence.some((item: any) => typeof item !== "string")) {
         throw new Error("Decision lineage requires policyEvaluations with evidence array");
       }
     }

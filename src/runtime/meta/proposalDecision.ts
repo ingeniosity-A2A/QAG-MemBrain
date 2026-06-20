@@ -53,7 +53,7 @@ export async function commitAcceptedProposal(
 
   const signed = signRecord(record, options.privateKeyPem);
   await append(options.ledgerPath, signed, {
-    signatureVerifier: (candidate) =>
+    signatureVerifier: (candidate: any) =>
       candidate.metadata.signature === signed.metadata.signature &&
       hashProposalCandidate(candidate) === hashProposalCandidate(signed),
   });

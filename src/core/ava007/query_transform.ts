@@ -8,8 +8,8 @@
  * The Ava007.decide() method remains the sole decision entry point;
  * this module provides the query transformation logic it can delegate to.
  */
-import { enforceAuthority, type Layer } from '../contract/enforcement.js';
-import { MemoryStore } from '../memory/jsonl/index.js';
+import { enforceAuthority } from '@contract/enforcement.js';
+import { MemoryStore } from '@memory/jsonl/index.js';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
