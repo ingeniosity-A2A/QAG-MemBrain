@@ -1,0 +1,29 @@
+{
+  "component": "Meta Harness (AMOS v2.1)",
+  "pillar": "meta",
+  "status": "GREENFIELD \u2014 does not exist on main or fix/build-stabilization",
+  "branch": "mobile-runtime",
+  "responsibilities": [
+    "Observe all flows",
+    "Validate before action",
+    "Confidence scoring",
+    "Conflict arbitration",
+    "Policy enforcement",
+    "Audit logging \u2192 TASHI",
+    "Lifecycle hooks (PRISM-style)"
+  ],
+  "implementation_split": {
+    "rust_core": "rust/meta-harness/",
+    "ts_bindings": "src/meta/"
+  },
+  "planned_files": [
+    "src/meta/index.ts",
+    "src/meta/Interceptor.ts",
+    "src/meta/Validator.ts",
+    "src/meta/ConfidenceScorer.ts",
+    "src/meta/Arbitrator.ts",
+    "src/meta/PolicyEngine.ts",
+    "src/meta/AuditLogger.ts",
+    "src/meta/LifecycleHooks.ts"
+  ]
+}

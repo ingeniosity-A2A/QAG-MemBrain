@@ -1,0 +1,26 @@
+{
+  "component": "EPOCH (AMOS v2.1)",
+  "pillar": "epoch",
+  "status": "GREENFIELD",
+  "branch": "mobile-runtime",
+  "responsibilities": [
+    "Structured adaptive presentation",
+    "ArrowJS Sandbox rendering",
+    "GSAP animation",
+    "Three.js 3D scene viewer",
+    "Frame scheduling to Adreno GPU"
+  ],
+  "implementation_split": {
+    "wasm_modules": "wasm/",
+    "ts_components": "src/epoch/",
+    "mobile_shell": "mobile/capacitor/src/components/"
+  },
+  "planned_files": [
+    "src/epoch/index.ts",
+    "src/epoch/AnimatedUI.ts",
+    "src/epoch/AgentSandbox.ts",
+    "src/epoch/FurnitureViewer.ts",
+    "src/epoch/FrameScheduler.ts",
+    "src/epoch/AdaptiveLayout.ts"
+  ]
+}

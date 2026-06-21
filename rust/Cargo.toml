@@ -1,0 +1,21 @@
+# AMOS v2.1 Rust workspace
+# Built with cargo-ndk for Android arm64-v8a
+[workspace]
+resolver = "2"
+members = [
+    "qnn-bridge",
+    "arrow-bridge",
+    "meta-harness",
+    "constellation",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

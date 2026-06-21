@@ -1,0 +1,62 @@
+{
+  "component": "Mobile Runtime (AMOS v2.1)",
+  "branch": "mobile-runtime",
+  "source_branch": "fix/build-stabilization",
+  "status": "GREENFIELD \u2014 Phase 1 audit confirmed no mobile/ dir on main or fix/build-stabilization",
+  "target_platforms": [
+    "Samsung Galaxy S25 Ultra",
+    "Samsung Galaxy S26 Ultra"
+  ],
+  "hardware": "Snapdragon 8 Elite, 24GB RAM, Hexagon NPU",
+  "runtime_stack": [
+    "Capacitor ^5.7.0",
+    "@capacitor/android ^5.7.0",
+    "Rust + Android NDK",
+    "QNN SDK",
+    "Apache Arrow C Data Interface",
+    "@mlc-ai/web-llm ^0.2.0",
+    "@arrow-js/sandbox ^0.1.0",
+    "gsap ^3.12.5",
+    "react ^18.2.0",
+    "three ^0.164.0"
+  ],
+  "build_environment": "Termux + Ubuntu proot-distro",
+  "root_mode": "Magisk for full Meshrabiya network + data service unlock",
+  "non_root_fallback": "Pure NDK + Capacitor (Knox-safe)",
+  "pillars_served": [
+    "Mobile Runtime",
+    "Meta Harness (rust/meta-harness)",
+    "Constellation (rust/constellation)",
+    "EPOCH (mobile/capacitor/src/components/)"
+  ],
+  "target_files": [
+    "mobile/capacitor/package.json",
+    "mobile/capacitor/capacitor.config.ts",
+    "mobile/capacitor/src/main.tsx",
+    "mobile/capacitor/src/App.tsx",
+    "mobile/capacitor/src/components/AnimatedUI.tsx",
+    "mobile/capacitor/src/components/AgentSandbox.tsx",
+    "mobile/capacitor/src/components/FurnitureViewer.tsx",
+    "mobile/capacitor/src/services/WebLLMEngine.ts",
+    "mobile/capacitor/src/services/NPUBridge.ts",
+    "mobile/capacitor/src/services/DocumentParser.ts",
+    "mobile/capacitor/android/app/src/main/java/com/ava007/mobile/QNNPlugin.kt",
+    "mobile/capacitor/android/app/src/main/java/com/ava007/mobile/ArrowBridge.kt",
+    "mobile/capacitor/android/app/src/main/cpp/qnn_jni.cpp",
+    "mobile/capacitor/android/app/src/main/cpp/qnn_wrapper.cpp",
+    "mobile/capacitor/android/app/src/main/cpp/arrow_jni.cpp",
+    "mobile/capacitor/android/app/src/main/cpp/arrow_wrapper.cpp",
+    "mobile/capacitor/android/app/src/main/libs/arm64-v8a/libqnn_jni.so",
+    "mobile/capacitor/android/app/src/main/libs/arm64-v8a/libarrow_jni.so",
+    "mobile/capacitor/android/app/src/main/libs/arm64-v8a/libQnnNetRun.so",
+    "mobile/gsap-config.ts",
+    "mobile/performance.ts",
+    "rust/Cargo.toml",
+    "rust/qnn-bridge/Cargo.toml",
+    "rust/arrow-bridge/Cargo.toml",
+    "rust/meta-harness/Cargo.toml",
+    "rust/constellation/Cargo.toml",
+    "wasm/README.md"
+  ],
+  "implementation_phase": "Phase 3 (per device deployment priority)"
+}

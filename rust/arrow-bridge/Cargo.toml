@@ -1,0 +1,13 @@
+[package]
+name = "arrow-bridge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Apache Arrow zero-copy bridge for AMOS Mobile Runtime"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# TODO: arrow = "52"
+# TODO: jni = "0.21"

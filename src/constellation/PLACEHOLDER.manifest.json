@@ -1,0 +1,25 @@
+{
+  "component": "Constellation (AMOS v2.1)",
+  "pillar": "constellation",
+  "status": "GREENFIELD",
+  "branch": "mobile-runtime",
+  "responsibilities": [
+    "Model selection",
+    "Quantization & backend choice",
+    "Budget awareness",
+    "Hybrid routing (local-first)",
+    "Fallback & load balancing"
+  ],
+  "implementation_split": {
+    "rust_core": "rust/constellation/",
+    "ts_bindings": "src/constellation/"
+  },
+  "planned_files": [
+    "src/constellation/index.ts",
+    "src/constellation/Router.ts",
+    "src/constellation/BackendRegistry.ts",
+    "src/constellation/BudgetCalculator.ts",
+    "src/constellation/HealthChecker.ts",
+    "src/constellation/PolicyStore.ts"
+  ]
+}
