@@ -9,5 +9,10 @@ description = "Apache Arrow zero-copy bridge for AMOS Mobile Runtime"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-# TODO: arrow = "52"
-# TODO: jni = "0.21"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+default = []
+# Enable when the `arrow` crate is added (e.g. `arrow = "52"`).
+arrow = []

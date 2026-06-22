@@ -9,6 +9,8 @@ description = "Meta Harness — first-class runtime wrapper for AMOS v2.1"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-# TODO: serde = { version = "1", features = ["derive"] }
-# TODO: serde_json = "1"
-# TODO: tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+default = []
