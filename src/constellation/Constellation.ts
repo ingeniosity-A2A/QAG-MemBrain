@@ -5,11 +5,11 @@
  * and PolicyStore.
  */
 
-import { Router, type RoutingRequest, type RoutingDecision } from './Router';
-import { BackendRegistry } from './BackendRegistry';
-import { BudgetCalculator } from './BudgetCalculator';
-import { HealthChecker } from './HealthChecker';
-import { PolicyStore } from './PolicyStore';
+import { Router, type RoutingRequest, type RoutingDecision } from './Router.js';
+import { BackendRegistry } from './BackendRegistry.js';
+import { BudgetCalculator } from './BudgetCalculator.js';
+import { HealthChecker } from './HealthChecker.js';
+import { PolicyStore } from './PolicyStore.js';
 
 export class Constellation {
   public readonly router: Router;

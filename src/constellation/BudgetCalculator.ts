@@ -9,8 +9,8 @@
  *   - Current device thermal state (queried from mobile/performance.ts)
  */
 
-import type { Backend, BackendInfo } from './BackendRegistry';
-import type { RoutingRequest } from './Router';
+import type { Backend, BackendInfo } from './BackendRegistry.js';
+import type { RoutingRequest } from './Router.js';
 
 export interface Budget {
   /** Max acceptable latency in milliseconds */

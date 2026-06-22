@@ -10,25 +10,25 @@
  * Nothing bypasses Meta Harness.
  *
  * Public API:
- *   import { metaHarness } from './src/meta';
+ *   import { metaHarness } from './src/meta.js';
  *   const result = await metaHarness.intercept({ pillar: 'rev_ike', op: 'reflex', payload });
  */
 
-export { Interceptor, type Intercept, type InterceptionResult } from './Interceptor';
-export { Validator, type ValidationRule, type ValidationError } from './Validator';
-export { ConfidenceScorer, type Vote, type ConfidenceScore } from './ConfidenceScorer';
-export { Arbitrator, type Conflict, type ArbitrationDecision } from './Arbitrator';
-export { PolicyEngine, type Policy, type PolicyDecision } from './PolicyEngine';
-export { AuditLogger, type AuditEvent, type AuditReceipt } from './AuditLogger';
+export { Interceptor, type Intercept, type InterceptionResult } from './Interceptor.js';
+export { Validator, type ValidationRule, type ValidationError } from './Validator.js';
+export { ConfidenceScorer, type Vote, type ConfidenceScore } from './ConfidenceScorer.js';
+export { Arbitrator, type Conflict, type ArbitrationDecision } from './Arbitrator.js';
+export { PolicyEngine, type Policy, type PolicyDecision } from './PolicyEngine.js';
+export { AuditLogger, type AuditEvent, type AuditReceipt } from './AuditLogger.js';
 export {
   LifecycleHooks,
   type LifecyclePhase,
   type LifecycleContext,
   type LifecycleHook,
-} from './LifecycleHooks';
-export { MetaHarness } from './MetaHarness';
+} from './LifecycleHooks.js';
+export { MetaHarness } from './MetaHarness.js';
 
-import { MetaHarness } from './MetaHarness';
+import { MetaHarness } from './MetaHarness.js';
 
 // Singleton instance — wire up real implementations on first access.
 export const metaHarness = MetaHarness.create();

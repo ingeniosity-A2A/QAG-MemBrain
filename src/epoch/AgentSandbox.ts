@@ -31,8 +31,20 @@ export interface SandboxOptions {
   allowedApis?: string[];
 }
 
+
+// Minimal ArrowJS Sandbox interface for type-safety without requiring
+// the @arrow-js/sandbox types at dev time.
+interface ArrowSandboxLike {
+  createSandbox(opts: { timeout?: number; memoryLimit?: number }): ArrowSandboxInstance;
+}
+
+interface ArrowSandboxInstance {
+  execute(code: string, ctx: Record<string, unknown>): Promise<unknown>;
+  dispose(): void;
+}
+
 export class AgentSandbox {
-  private arrowSandbox: typeof import('@arrow-js/sandbox') | null = null;
+  private arrowSandbox: ArrowSandboxLike | null = null;
   private defaultOptions: SandboxOptions = {
     timeoutMs: 1000,
     maxMemoryBytes: 16 * 1024 * 1024, // 16 MB
@@ -40,7 +52,8 @@ export class AgentSandbox {
   };
 
   async init(): Promise<void> {
-    this.arrowSandbox = await import('@arrow-js/sandbox');
+    // @ts-ignore — @arrow-js/sandbox is an optional peer dep; lazy-loaded at runtime
+    this.arrowSandbox = (await import('@arrow-js/sandbox')) as ArrowSandboxLike;
   }
 
   /** Compile and execute an agent's render function in the sandbox. */
@@ -49,7 +62,7 @@ export class AgentSandbox {
       throw new Error('AgentSandbox not initialized — call init() first');
     }
     const opts = { ...this.defaultOptions, ...options };
-    const sandbox = this.arrowSandbox.createSandbox({
+    const sandbox = this.arrowSandbox!.createSandbox({
       timeout: opts.timeoutMs,
       memoryLimit: opts.maxMemoryBytes,
     });

@@ -11,7 +11,6 @@
 #![cfg_attr(not(feature = "arrow"), allow(dead_code, unused_variables))]
 
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 /// Error returned by Arrow bridge operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,7 +65,7 @@ pub struct Field {
     pub nullable: bool,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ArrowDataType {
     Int32,
@@ -79,7 +78,7 @@ pub enum ArrowDataType {
 }
 
 // Workaround for serde recursion in enum variants — wrap in a struct
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ArrowDataTypeRef(pub ArrowDataType);
 
 #[derive(Debug, Clone)]
@@ -210,7 +209,6 @@ mod tests {
 
     #[test]
     fn make_batch_validates_arity() {
-        let bridge = ArrowBridge::new();
         let schema = Schema { fields: vec![
             Field { name: "a".to_string(), data_type: ArrowDataType::Int32, nullable: false },
         ]};
@@ -218,12 +216,11 @@ mod tests {
             Column::Int32(vec![1, 2, 3]),
             Column::Int64(vec![4, 5, 6]), // extra column
         ];
-        assert!(matches!(bridge.make_batch(schema, cols), Err(ArrowError::SchemaMismatch { .. })));
+        assert!(matches!(ArrowBridge::make_batch(schema, cols), Err(ArrowError::SchemaMismatch { .. })));
     }
 
     #[test]
     fn make_batch_succeeds_with_matching_arity() {
-        let bridge = ArrowBridge::new();
         let schema = Schema { fields: vec![
             Field { name: "a".to_string(), data_type: ArrowDataType::Int32, nullable: false },
             Field { name: "b".to_string(), data_type: ArrowDataType::Float32, nullable: true },
@@ -232,7 +229,7 @@ mod tests {
             Column::Int32(vec![1, 2, 3]),
             Column::Float32(vec![1.0, 2.0, 3.0]),
         ];
-        let batch = bridge.make_batch(schema, cols).expect("ok");
+        let batch = ArrowBridge::make_batch(schema, cols).expect("ok");
         assert_eq!(batch.num_rows(), 3);
         assert_eq!(batch.num_columns(), 2);
     }

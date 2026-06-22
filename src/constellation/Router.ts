@@ -9,10 +9,10 @@
  *   5. Pick highest score; if none survives, return RoutingError
  */
 
-import type { BackendRegistry, Backend, BackendInfo } from './BackendRegistry';
-import type { BudgetCalculator, Budget, BudgetEstimate } from './BudgetCalculator';
-import type { HealthChecker, HealthStatus } from './HealthChecker';
-import type { PolicyStore, RoutingPolicy } from './PolicyStore';
+import type { BackendRegistry, Backend, BackendInfo } from './BackendRegistry.js';
+import type { BudgetCalculator, Budget, BudgetEstimate } from './BudgetCalculator.js';
+import type { HealthChecker, HealthStatus } from './HealthChecker.js';
+import type { PolicyStore, RoutingPolicy } from './PolicyStore.js';
 
 export interface RoutingRequest {
   prompt: string;

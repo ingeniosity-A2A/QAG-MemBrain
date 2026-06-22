@@ -10,7 +10,7 @@
  * Router skips it until recovery.
  */
 
-import type { Backend } from './BackendRegistry';
+import type { Backend } from './BackendRegistry.js';
 
 export interface HealthStatus {
   backend: Backend;

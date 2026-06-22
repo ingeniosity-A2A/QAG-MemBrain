@@ -13,7 +13,7 @@
  *   - budget: enforce per-session cost / time / battery limits
  */
 
-import type { Intercept } from './Interceptor';
+import type { Intercept } from './Interceptor.js';
 
 export interface Policy {
   id: string;

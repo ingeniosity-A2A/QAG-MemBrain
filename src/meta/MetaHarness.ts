@@ -4,13 +4,13 @@
  * PolicyEngine, AuditLogger, LifecycleHooks).
  */
 
-import { Interceptor, type Intercept, type InterceptionResult } from './Interceptor';
-import { Validator } from './Validator';
-import { ConfidenceScorer } from './ConfidenceScorer';
-import { Arbitrator } from './Arbitrator';
-import { PolicyEngine } from './PolicyEngine';
-import { AuditLogger } from './AuditLogger';
-import { LifecycleHooks } from './LifecycleHooks';
+import { Interceptor, type Intercept, type InterceptionResult } from './Interceptor.js';
+import { Validator } from './Validator.js';
+import { ConfidenceScorer } from './ConfidenceScorer.js';
+import { Arbitrator } from './Arbitrator.js';
+import { PolicyEngine } from './PolicyEngine.js';
+import { AuditLogger } from './AuditLogger.js';
+import { LifecycleHooks } from './LifecycleHooks.js';
 
 export class MetaHarness {
   public readonly interceptor: Interceptor;
@@ -51,7 +51,7 @@ export class MetaHarness {
   }
 
   /** Register a lifecycle hook for a given phase. */
-  on(phase: import('./LifecycleHooks').LifecyclePhase, hook: import('./LifecycleHooks').LifecycleHook): void {
+  on(phase: import('./LifecycleHooks.js').LifecyclePhase, hook: import('./LifecycleHooks.js').LifecycleHook): void {
     this.lifecycleHooks.register(phase, hook);
   }
 }

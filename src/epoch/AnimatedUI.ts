@@ -10,7 +10,7 @@
  * installed.
  */
 
-import type { FrameScheduler } from './FrameScheduler';
+import type { FrameScheduler } from './FrameScheduler.js';
 
 export interface AnimationSpec {
   /** Target element selector or ref */
@@ -38,15 +38,33 @@ export interface UITimeline {
   kill(): void;
 }
 
+
+// Minimal GSAP interface for type-safety without requiring the gsap types.
+// Real gsap module satisfies this; we just don't want to force dev-time
+// installation of gsap for code that only runs in the browser.
+interface GsapLike {
+  timeline(): GsapTimelineLike;
+  to(target: unknown, vars: Record<string, unknown>, position?: string | number): GsapTimelineLike;
+}
+interface GsapTimelineLike {
+  play(): void;
+  pause(): void;
+  seek(time: number): void;
+  duration(): number;
+  kill(): void;
+  to(target: unknown, vars: Record<string, unknown>, position?: string | number): GsapTimelineLike;
+}
+
 export class AnimatedUI {
   private scheduler: FrameScheduler | null = null;
-  private gsapModule: typeof import('gsap') | null = null;
+  private gsapModule: GsapLike | null = null;
   private activeTimelines: Set<UITimeline> = new Set();
 
   async init(scheduler: FrameScheduler): Promise<void> {
     this.scheduler = scheduler;
     // Lazy-load GSAP so this file is importable even before npm install
-    this.gsapModule = (await import('gsap')).default ?? (await import('gsap'));
+    // @ts-ignore — gsap is an optional peer dep; lazy-loaded at runtime
+    this.gsapModule = (await import('gsap')).default ?? (await import('gsap')) as GsapLike;
   }
 
   /** Create a timeline from a list of specs. */
@@ -55,7 +73,7 @@ export class AnimatedUI {
       throw new Error('AnimatedUI not initialized — call init() first');
     }
     const gsap = this.gsapModule;
-    const tl = gsap.timeline();
+    const tl = (gsap as GsapLike).timeline();
     for (const spec of specs) {
       const target = typeof spec.target === 'string'
         ? document.querySelector(spec.target)

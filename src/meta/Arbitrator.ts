@@ -6,7 +6,7 @@
  * System-2 planning, or to AVA007 for executive decision).
  */
 
-import { ConfidenceScorer, type Vote, type ConfidenceScore } from './ConfidenceScorer';
+import { ConfidenceScorer, type Vote, type ConfidenceScore } from './ConfidenceScorer.js';
 
 export interface Conflict {
   /** The original question/operation being arbitrated */

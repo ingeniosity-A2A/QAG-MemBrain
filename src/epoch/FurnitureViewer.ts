@@ -34,27 +34,66 @@ export interface FurnitureModel {
   scale?: number;
 }
 
+
+// Minimal Three.js interface for type-safety without requiring the three
+// types at dev time. Real `three` module satisfies this interface.
+interface ThreeLike {
+  Scene: new () => ThreeSceneLike;
+  Color: new (hex: number) => unknown;
+  PerspectiveCamera: new (fov: number, aspect: number, near: number, far: number) => ThreeCameraLike;
+  WebGLRenderer: new (opts: { antialias?: boolean; powerPreference?: string }) => ThreeRendererLike;
+  BoxGeometry: new (w: number, h: number, d: number) => unknown;
+  MeshStandardMaterial: new (opts: { color: number }) => unknown;
+  Mesh: new (geo: unknown, mat: unknown) => ThreeMeshLike;
+}
+
+interface ThreeSceneLike {
+  background: unknown;
+  add(o: ThreeMeshLike): void;
+  remove(o: ThreeMeshLike): void;
+}
+
+interface ThreeCameraLike {
+  position: { set(x: number, y: number, z: number): void };
+  aspect: number;
+  updateProjectionMatrix(): void;
+}
+
+interface ThreeRendererLike {
+  setSize(w: number, h: number): void;
+  domElement: HTMLCanvasElement;
+  render(scene: ThreeSceneLike, camera: ThreeCameraLike): void;
+  dispose(): void;
+}
+
+interface ThreeMeshLike {
+  position: { set(x: number, y: number, z: number): void };
+  rotation: { set(x: number, y: number, z: number): void };
+  scale: { setScalar(s: number): void };
+}
+
 export class FurnitureViewer {
-  private threeModule: typeof import('three') | null = null;
-  private scene: unknown = null;
-  private camera: unknown = null;
-  private renderer: unknown = null;
-  private activeModels: Map<string, unknown> = new Map();
+  private threeModule: ThreeLike | null = null;
+  private scene: ThreeSceneLike | null = null;
+  private camera: ThreeCameraLike | null = null;
+  private renderer: ThreeRendererLike | null = null;
+  private activeModels: Map<string, ThreeMeshLike> = new Map();
 
   async init(opts: SceneInit): Promise<void> {
-    this.threeModule = await import('three');
+    // @ts-ignore — three is an optional peer dep; lazy-loaded at runtime
+    this.threeModule = (await import('three')) as unknown as ThreeLike;
     const THREE = this.threeModule;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(opts.backgroundColor ?? 0x0a0a0a);
     this.camera = new THREE.PerspectiveCamera(60, opts.width / opts.height, 0.1, 1000);
     if (opts.cameraPos) {
-      (this.camera as { position: { set: (x:number,y:number,z:number)=>void } }).position.set(...opts.cameraPos);
+      this.camera!.position.set(...opts.cameraPos);
     } else {
-      (this.camera as { position: { set: (x:number,y:number,z:number)=>void } }).position.set(0, 5, 10);
+      this.camera!.position.set(0, 5, 10);
     }
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    (this.renderer as { setSize: (w:number,h:number)=>void; domElement: HTMLCanvasElement }).setSize(opts.width, opts.height);
-    opts.container.appendChild((this.renderer as { domElement: HTMLCanvasElement }).domElement);
+    this.renderer!.setSize(opts.width, opts.height);
+    opts.container.appendChild(this.renderer!.domElement);
   }
 
   /** Add a furniture model to the scene. */
@@ -71,7 +110,7 @@ export class FurnitureViewer {
     if (model.position) mesh.position.set(...model.position);
     if (model.rotation) mesh.rotation.set(...model.rotation);
     if (model.scale) mesh.scale.setScalar(model.scale);
-    (this.scene as { add: (o: unknown) => void }).add(mesh);
+    this.scene!.add(mesh);
     this.activeModels.set(model.id, mesh);
   }
 
@@ -80,7 +119,7 @@ export class FurnitureViewer {
     const mesh = this.activeModels.get(id);
     if (mesh) {
       // Real impl would dispose geometry + material
-      (this.scene as { remove: (o: unknown) => void }).remove(mesh);
+      this.scene!.remove(mesh);
       this.activeModels.delete(id);
     }
   }
@@ -88,21 +127,21 @@ export class FurnitureViewer {
   /** Render a single frame. */
   render(): void {
     if (!this.renderer || !this.scene || !this.camera) return;
-    (this.renderer as { render: (s: unknown, c: unknown) => void }).render(this.scene, this.camera);
+    this.renderer!.render(this.scene!, this.camera!);
   }
 
   /** Resize the viewport. */
   resize(width: number, height: number): void {
     if (!this.renderer || !this.camera) return;
-    (this.renderer as { setSize: (w:number,h:number)=>void }).setSize(width, height);
-    (this.camera as { aspect: number; updateProjectionMatrix: () => void }).aspect = width / height;
-    (this.camera as { aspect: number; updateProjectionMatrix: () => void }).updateProjectionMatrix();
+    this.renderer!.setSize(width, height);
+    this.camera!.aspect = width / height;
+    this.camera!.updateProjectionMatrix();
   }
 
   /** Clean up — release WebGL resources. */
   dispose(): void {
     if (this.renderer) {
-      (this.renderer as { dispose: () => void }).dispose();
+      this.renderer!.dispose();
       this.renderer = null;
     }
     this.scene = null;

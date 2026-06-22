@@ -6,7 +6,7 @@
  * a programmatic rule API + a built-in shape checker.
  */
 
-import type { PolicyEngine } from './PolicyEngine';
+import type { PolicyEngine } from './PolicyEngine.js';
 
 export interface ValidationRule {
   pillar: string;

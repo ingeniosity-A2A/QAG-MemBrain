@@ -275,33 +275,46 @@ impl MetaHarness {
 
     fn evaluate_policies(&self, intercept: &Intercept) -> PolicyDecision {
         let mut inner = self.inner.lock().expect("harness mutex poisoned");
-        for policy in &inner.policies {
-            if let Some(p) = &policy.pillar {
-                if p != intercept.pillar.as_str() {
-                    continue;
+
+        // First pass: collect policies that match (pillar/operation filter).
+        // We clone the relevant fields so we don't hold an immutable borrow
+        // of `inner.policies` while mutating `inner.rate_limit_state` below.
+        let matching: Vec<(String, PolicyKind, serde_json::Value, String)> = inner
+            .policies
+            .iter()
+            .filter(|policy| {
+                if let Some(p) = &policy.pillar {
+                    if p != intercept.pillar.as_str() {
+                        return false;
+                    }
                 }
-            }
-            if let Some(op) = &policy.operation {
-                if op != &intercept.operation {
-                    continue;
+                if let Some(op) = &policy.operation {
+                    if op != &intercept.operation {
+                        return false;
+                    }
                 }
-            }
-            match policy.kind {
+                true
+            })
+            .map(|p| (p.id.clone(), p.kind, p.params.clone(), p.reason.clone()))
+            .collect();
+
+        for (policy_id, kind, params, reason) in matching {
+            match kind {
                 PolicyKind::Boundary => {
                     return PolicyDecision {
                         allow: false,
-                        policy: Some(policy.id.clone()),
-                        reason: format!("boundary policy '{}' forbids this: {}", policy.id, policy.reason),
+                        policy: Some(policy_id.clone()),
+                        reason: format!("boundary policy '{}' forbids this: {}", policy_id, reason),
                     };
                 }
                 PolicyKind::RateLimit => {
-                    let window_ms = policy.params.get("windowMs")
+                    let window_ms = params.get("windowMs")
                         .and_then(|v| v.as_u64())
                         .unwrap_or(60_000);
-                    let max = policy.params.get("max")
+                    let max = params.get("max")
                         .and_then(|v| v.as_u64())
                         .unwrap_or(100);
-                    let key = format!("{}:{}:{}", policy.id, intercept.pillar.as_str(), intercept.operation);
+                    let key = format!("{}:{}:{}", policy_id, intercept.pillar.as_str(), intercept.operation);
                     let now = Instant::now();
                     let state = inner.rate_limit_state.entry(key.clone()).or_insert(RateLimitState {
                         count: 0,
@@ -315,9 +328,9 @@ impl MetaHarness {
                         if state.count > max {
                             return PolicyDecision {
                                 allow: false,
-                                policy: Some(policy.id.clone()),
+                                policy: Some(policy_id.clone()),
                                 reason: format!("rate_limit '{}' exceeded: {}/{} in {}ms",
-                                    policy.id, state.count, max, window_ms),
+                                    policy_id, state.count, max, window_ms),
                             };
                         }
                     }
@@ -329,8 +342,8 @@ impl MetaHarness {
                     {
                         return PolicyDecision {
                             allow: false,
-                            policy: Some(policy.id.clone()),
-                            reason: format!("require_local policy '{}' needs metadata.require_local=true", policy.id),
+                            policy: Some(policy_id.clone()),
+                            reason: format!("require_local policy '{}' needs metadata.require_local=true", policy_id),
                         };
                     }
                 }

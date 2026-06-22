@@ -9,11 +9,11 @@
  *
  * Public API:
  *   import { AnimatedUI, AgentSandbox, FurnitureViewer, FrameScheduler, AdaptiveLayout }
- *     from './src/epoch';
+ *     from './src/epoch.js';
  */
 
-export { AnimatedUI } from './AnimatedUI';
-export { AgentSandbox } from './AgentSandbox';
-export { FurnitureViewer } from './FurnitureViewer';
-export { FrameScheduler } from './FrameScheduler';
-export { AdaptiveLayout } from './AdaptiveLayout';
+export { AnimatedUI } from './AnimatedUI.js';
+export { AgentSandbox } from './AgentSandbox.js';
+export { FurnitureViewer } from './FurnitureViewer.js';
+export { FrameScheduler } from './FrameScheduler.js';
+export { AdaptiveLayout } from './AdaptiveLayout.js';

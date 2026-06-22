@@ -9,10 +9,10 @@
  *   5. audit result with TASHI receipt
  */
 
-import type { Validator } from './Validator';
-import type { PolicyEngine, PolicyDecision } from './PolicyEngine';
-import type { AuditLogger, AuditEvent } from './AuditLogger';
-import type { Arbitrator } from './Arbitrator';
+import type { Validator } from './Validator.js';
+import type { PolicyEngine, PolicyDecision } from './PolicyEngine.js';
+import type { AuditLogger, AuditEvent } from './AuditLogger.js';
+import type { Arbitrator } from './Arbitrator.js';
 
 export type Pillar =
   | 'ava007'

@@ -157,7 +157,7 @@ pub struct BudgetEstimate {
     pub thermal: f32,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthStatus {
     pub backend: Backend,
     pub healthy: bool,
