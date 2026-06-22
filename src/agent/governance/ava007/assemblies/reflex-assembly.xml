@@ -1,7 +1,0 @@
-<assembly name="reflex">
-  <include>system/ava007-core.xml</include>
-  <include>system/authority-stack.xml</include>
-  <include>policies/authority-order.xml</include>
-  <include>policies/memory-integrity.xml</include>
-  <include>runtime/reflex.xml</include>
-</assembly>

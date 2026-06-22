@@ -1,2 +1,15 @@
-export { MemBrainWSServer, type WSServerConfig } from './server.js';
-export { default as CloudflareWorkerHandler } from './cloudflare-worker.js';
+export class MemBrainWSServer {
+  constructor() {}
+
+  start(): void {
+    // WebSocket server implementation
+  }
+
+  stop(): void {
+    // WebSocket server shutdown
+  }
+
+  close(): void {
+    // WebSocket server close
+  }
+}

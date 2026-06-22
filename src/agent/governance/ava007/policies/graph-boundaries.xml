@@ -1,6 +1,0 @@
-<graph_boundaries>
-  <rule>Neo4j provides relationship intelligence only.</rule>
-  <rule>Graph retrieval may support decisions but may not override memory truth.</rule>
-  <rule>Graph context conflicts resolve in favor of higher authority layers.</rule>
-  <rule>Graph projections are rebuildable artifacts, not source truth.</rule>
-</graph_boundaries>

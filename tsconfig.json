@@ -8,13 +8,34 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "dist",
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@ava007/*": ["src/*"],
+      "@runtime/*": ["src/runtime/*"],
+      "@core/*": ["src/core/*"],
+      "@memory/*": ["src/memory/*"],
+      "@graph/*": ["src/graph/*"],
+      "@execution/*": ["src/execution/*"],
+      "@telecom/*": ["src/telecom/*"],
+      "@edge/*": ["src/edge/*"],
+      "@subconscious/*": ["src/subconscious/*"],
+      "@a2a/*": ["src/a2a/*"],
+      "@training/*": ["src/training/*"],
+      "@contract/*": ["src/contract/*"],
+      "@app/*": ["src/app/*"],
+      "@packages/*": ["packages/*"]
+    }
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "bin/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "swarm", "memory", "quantum", "shared", "consensus", "temporal", "subconscious", "brain", "fusion", "proximity", "retrieval", "lineage", "policy", "audit", "authority", "governance", "cortex", "goose", "interpretation", "training", "agents", "a2a", "accelerators", "bin", "interfaces", "shared", "tests", "review", "output", "orchestration"]
+  "exclude": ["node_modules", "dist", "evaluation", "tests", "test"]
 }
