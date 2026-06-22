@@ -1,0 +1,8 @@
+{
+  "authorityId": "ava007-authority-v2",
+  "algorithm": "ed25519",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA7E/YMXoScr3seIM2/u13XwRD7HFx/NiTQw6PrTpOQac=\n-----END PUBLIC KEY-----\n",
+  "createdAt": "2026-07-01T00:00:00.000Z",
+  "validFrom": "2026-07-01T00:00:00.000Z",
+  "status": "active"
+}

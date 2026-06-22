@@ -1,35 +1,14 @@
-import { createHash } from "node:crypto";
-import { MemoryRecord } from "./memoryRecord.js";
-
-export function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    return JSON.stringify(value);
+export function hash(data: string): string {
+  // Simple hash implementation
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    const char = data.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
   }
-
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
-  }
-
-  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
-  return `{${entries.map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`).join(",")}}`;
+  return Math.abs(hash).toString(16);
 }
 
-export function canonicalRecordForSigning(record: MemoryRecord): string {
-  return stableStringify({
-    id: record.id,
-    type: record.type,
-    source: record.source,
-    timestamp: record.timestamp,
-    content: record.content,
-    metadata: {
-      confidence: record.metadata.confidence,
-      importance: record.metadata.importance,
-      provenance: record.metadata.provenance,
-      previous_hash: record.metadata.previous_hash,
-    },
-  });
-}
-
-export function computeRecordHash(record: MemoryRecord): string {
-  return createHash("sha256").update(canonicalRecordForSigning(record)).digest("hex");
+export function computeRecordHash(record: { id: string; content: string; timestamp: number; type: string }): string {
+  return hash(`${record.id}:${record.content}:${record.timestamp}:${record.type}`);
 }

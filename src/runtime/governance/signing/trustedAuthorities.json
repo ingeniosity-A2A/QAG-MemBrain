@@ -1,0 +1,22 @@
+{
+  "updatedAt": "2026-06-19T04:21:43.010Z",
+  "authorities": [
+    {
+      "authorityId": "ava007-authority-v1",
+      "algorithm": "ed25519",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA+kvyFRNifVYY1tn2f3Vg68A9wADkH4q9fy32lwyMOLY=\n-----END PUBLIC KEY-----\n",
+      "createdAt": "2026-06-03T00:00:00.000Z",
+      "validFrom": "2026-06-03T00:00:00.000Z",
+      "status": "retired",
+      "retiredAt": "2026-06-03T00:00:00.000Z"
+    },
+    {
+      "authorityId": "ava007-authority-v2",
+      "algorithm": "ed25519",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA7E/YMXoScr3seIM2/u13XwRD7HFx/NiTQw6PrTpOQac=\n-----END PUBLIC KEY-----\n",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "validFrom": "2026-07-01T00:00:00.000Z",
+      "status": "active"
+    }
+  ]
+}
