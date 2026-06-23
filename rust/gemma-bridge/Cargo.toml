@@ -1,0 +1,22 @@
+[package]
+name = "gemma-bridge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Gemma 2B inference bridge via llama.cpp Vulkan backend for AMOS Mobile Runtime"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+jni = { version = "0.21", optional = true }
+
+[features]
+default = []
+# Enable JNI bindings for Android NDK
+jni = ["dep:jni"]
+# Enable when llama.cpp is linked (provides real inference)
+# Without this feature, all calls return NotImplemented
+llama_linked = []

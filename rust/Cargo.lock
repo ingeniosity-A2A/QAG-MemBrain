@@ -450,6 +450,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gemma-bridge"
+version = "0.1.0"
+dependencies = [
+ "jni",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
