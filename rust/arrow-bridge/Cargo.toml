@@ -12,7 +12,15 @@ crate-type = ["cdylib", "rlib"]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# Optional — enable for real Arrow C Data Interface FFI
+arrow = { version = ">=50, <60", optional = true }
+
+# Optional — enable for JNI bindings (Android native)
+jni = { version = "0.21", optional = true }
+
 [features]
 default = []
-# Enable when the `arrow` crate is added (e.g. `arrow = "52"`).
-arrow = []
+# Enable real Arrow C Data Interface via the `arrow` crate
+arrow = ["dep:arrow"]
+# Enable JNI bindings for Android NDK
+jni = ["dep:jni"]
