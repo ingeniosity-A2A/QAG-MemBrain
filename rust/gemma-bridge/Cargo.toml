@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "Gemma 2B inference bridge via llama.cpp Vulkan backend for AMOS Mobile Runtime"
+build = "build.rs"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -13,10 +14,15 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 jni = { version = "0.21", optional = true }
 
+[build-dependencies]
+# None needed — build.rs is plain Rust
+
 [features]
 default = []
 # Enable JNI bindings for Android NDK
 jni = ["dep:jni"]
-# Enable when llama.cpp is linked (provides real inference)
-# Without this feature, all calls return NotImplemented
+# Enable when llama.cpp is linked (provides real inference).
+# Without this feature, all calls return NotImplemented.
+# When enabled, build.rs links to libllama + libggml-vulkan + libvulkan.
+# Set LLAMA_LIB_DIR env var to point at the directory containing the .so files.
 llama_linked = []
