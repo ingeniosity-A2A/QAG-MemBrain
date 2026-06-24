@@ -1,5 +1,5 @@
 /**
- * GemmaBackend — PRIMARY inference backend using Gemma 2B via llama.cpp Vulkan.
+ * GemmaBackend — PRIMARY inference backend using Gemma via llama.cpp Vulkan.
  *
  * AMOS v2.8 §5.1 — Primary backend.
  *
@@ -12,19 +12,36 @@
  *     → JNI → Rust libgemma_bridge.so → llama.cpp libllama.so + libggml-vulkan.so
  *     → Adreno GPU (Vulkan compute shaders)
  *
- * Why Gemma 2B is primary (per v2.8 §5.2):
+ * ## Multi-model support
+ *
+ * AMOS v2.8 supports TWO Gemma models for different roles:
+ *
+ *   1. PRIMARY (always-on, hot path):
+ *      - Gemma 2B Q4_K_M (~1.5 GB)
+ *      - Used by REV.IKE reflex layer for sub-100ms responses
+ *      - Always loaded in RAM after first use
+ *      - Path: /data/data/com.termux/files/usr/share/models/gemma-2-2b-it-Q4_K_M.gguf
+ *
+ *   2. FABLE (on-demand, multi-step planning):
+ *      - Gemma 4 12B agentic fine-tune (yuxinlu1/gemma-4-12B-agentic-fable5-composer2.5-v2-3.5x-tau2-GGUF)
+ *      - Used by FABLE pillar when task complexity exceeds REV.IKE's threshold
+ *      - Loaded on-demand, unloaded after task completes (frees ~5-7 GB RAM)
+ *      - 3.5× improvement over base on tau2-bench telecom (agentic tool use)
+ *      - Q4_K_M recommended (~7 GB) or Q3_K_M for tight RAM (~5.5 GB)
+ *      - Path: /data/data/com.termux/files/usr/share/models/gemma4-v2-Q4_K_M.gguf
+ *
+ * Why Gemma 2B is primary (not the 12B):
  *   - Already installed on device (zero download, zero startup cost)
  *   - Sovereign — open-weight, no Google dependency
- *   - Real — gemma-2-2b-it-Q4_K_M.gguf is on HuggingFace
- *   - Fits in RAM — ~1.5 GB Q4, leaves 10+ GB for AVA007
+ *   - Fits in RAM comfortably (~1.5 GB Q4, leaves 10+ GB for AVA007)
  *   - Fast on Adreno Vulkan — 50-150ms first-token
- *   - No Knox trip — llama.cpp uses standard Vulkan compute shaders
+ *   - The 12B model is too heavy for always-on (would starve other processes)
  *
- * Why NOT @mlc-ai/web-llm (which MlcLlmBackend uses):
- *   - @mlc-ai/web-llm runs in browser WebGPU context (sandboxed)
- *   - llama.cpp runs as native .so (full GPU access, no browser overhead)
- *   - For AVA007's primary path, native is faster + more sovereign
- *   - WebLLM stays as secondary for EPOCH/sandbox isolation
+ * Why the 12B fine-tune is FABLE (not primary):
+ *   - Agentic + tool-use + coding focus = exactly what FABLE needs
+ *   - Trained on Fable 5 traces (rebuilt with Opus 4.8)
+ *   - 3.5× improvement on tau2-bench telecom = real terminal/debugging work
+ *   - On-demand loading preserves battery + RAM for the common case
  */
 
 import type { Backend, Quantization } from '../BackendRegistry.js';
@@ -47,7 +64,7 @@ interface GemmaBridgePlugin {
     modelPath: string;
     gpuBackend: 'vulkan' | 'opencl' | 'cpu';
     contextLength?: number;
-    gpuLayers?: number; // -1 = all layers on GPU
+    gpuLayers?: number;
   }): Promise<{ success: boolean; error?: string }>;
 
   /** Generate text */
@@ -90,51 +107,113 @@ async function getGemmaBridge(): Promise<GemmaBridgePlugin | null> {
   }
 }
 
-export interface GemmaBackendConfig {
-  /** Path to the Gemma 2B GGUF model file on device.
-   *
-   * Per the architect: Gemma 2B is installed via Ubuntu proot.
-   * Typical path: /data/data/com.termux/files/usr/share/models/gemma-2-2b-it-Q4_K_M.gguf
-   * Or via the app's files dir: /data/data/com.ava007.mobile/files/models/gemma-2-2b-it-Q4_K_M.gguf
-   */
-  modelPath: string;
+/**
+ * Model role — determines which model is loaded.
+ *
+ * - 'primary': Gemma 2B (always-on, REV.IKE reflex path)
+ * - 'fable': Gemma 4 12B agentic fine-tune (on-demand, FABLE planning path)
+ */
+export type GemmaModelRole = 'primary' | 'fable';
 
+/**
+ * Configuration for a single Gemma model.
+ */
+export interface GemmaModelConfig {
+  /** Role: primary (always-on) or fable (on-demand). */
+  role: GemmaModelRole;
+  /** Path to the GGUF model file on device. */
+  modelPath: string;
+  /** Human-readable label for logs / audit. */
+  label: string;
+  /** Context length in tokens. */
+  contextLength: number;
+  /** GPU layers to offload. -1 = all. */
+  gpuLayers: number;
+  /** Default max tokens for generate(). */
+  defaultMaxTokens: number;
+  /** Default temperature for generate(). */
+  defaultTemperature: number;
+}
+
+/**
+ * Default model configurations.
+ *
+ * Override these via GemmaBackendConfig.models if your device has different paths.
+ */
+export const DEFAULT_MODELS: Record<GemmaModelRole, GemmaModelConfig> = {
+  primary: {
+    role: 'primary',
+    modelPath: '/data/data/com.termux/files/usr/share/models/gemma-2-2b-it-Q4_K_M.gguf',
+    label: 'Gemma 2B Q4 (primary)',
+    contextLength: 4096,
+    gpuLayers: -1,
+    defaultMaxTokens: 256,
+    defaultTemperature: 0.7,
+  },
+  fable: {
+    role: 'fable',
+    // Downloaded from https://huggingface.co/yuxinlu1/gemma-4-12B-agentic-fable5-composer2.5-v2-3.5x-tau2-GGUF
+    // Q4_K_M recommended (~7 GB), Q3_K_M for tight RAM (~5.5 GB)
+    modelPath: '/data/data/com.termux/files/usr/share/models/gemma4-v2-Q4_K_M.gguf',
+    label: 'Gemma 4 12B v2 agentic (FABLE)',
+    contextLength: 8192,  // larger context for multi-step planning
+    gpuLayers: -1,
+    defaultMaxTokens: 1024,  // longer outputs for plans
+    defaultTemperature: 0.3,  // lower temp for deterministic planning
+  },
+};
+
+export interface GemmaBackendConfig {
   /** GPU backend to use. Default: 'vulkan' (fastest on Adreno, no Knox trip). */
   gpuBackend?: 'vulkan' | 'opencl' | 'cpu';
-
-  /** Context length in tokens. Default: 4096. */
-  contextLength?: number;
-
-  /** Number of layers to offload to GPU. -1 = all. Default: -1. */
-  gpuLayers?: number;
+  /** Override default model configs. Optional. */
+  models?: Partial<Record<GemmaModelRole, Partial<GemmaModelConfig>>>;
 }
 
 export class GemmaBackend implements BackendExecutor {
   readonly backend: Backend = 'webgpu'; // Maps to 'webgpu' Backend type (Adreno GPU)
 
   private initialized = false;
-  private config: GemmaBackendConfig | null = null;
+  private config: GemmaBackendConfig;
   private bridge: GemmaBridgePlugin | null = null;
   private loadedModel: { modelId: string; quantization: Quantization } | null = null;
+  private loadedRole: GemmaModelRole | null = null;
+  private models: Record<GemmaModelRole, GemmaModelConfig>;
+
+  constructor(config: GemmaBackendConfig = {}) {
+    this.config = config;
+    // Merge defaults with any overrides
+    this.models = {
+      primary: { ...DEFAULT_MODELS.primary, ...config.models?.primary },
+      fable: { ...DEFAULT_MODELS.fable, ...config.models?.fable },
+    };
+  }
 
   isInitialized(): boolean {
     return this.initialized;
   }
 
   isModelLoaded(): boolean {
-    return this.loadedModel !== null;
+    return this.loadedModel !== null && this.loadedRole !== null;
   }
 
   getLoadedModel(): { modelId: string; quantization: Quantization } | null {
     return this.loadedModel;
   }
 
+  /** Which role is currently loaded (primary or fable). */
+  getLoadedRole(): GemmaModelRole | null {
+    return this.loadedRole;
+  }
+
+  /** Get the model config for a role. */
+  getModelConfig(role: GemmaModelRole): GemmaModelConfig {
+    return this.models[role];
+  }
+
   /**
-   * Initialize the backend. Does NOT load the model yet — that happens in
+   * Initialize the backend. Does NOT load any model yet — that happens in
    * `loadModel()`. Just acquires the Capacitor plugin reference.
-   *
-   * The config (including modelPath) is passed to `loadModel()`, not `init()`.
-   * This matches the BackendExecutor interface contract.
    */
   async init(): Promise<void> {
     if (this.initialized) return;
@@ -153,61 +232,61 @@ export class GemmaBackend implements BackendExecutor {
   }
 
   /**
-   * Load the Gemma 2B model via llama.cpp.
+   * Load a Gemma model.
    *
-   * The caller must provide the model path. Per the architect, Gemma 2B is
-   * already installed via Ubuntu proot. The path is typically:
-   *   /data/data/com.termux/files/usr/share/models/gemma-2-2b-it-Q4_K_M.gguf
+   * The `modelId` from Constellation's routing decision is interpreted as:
+   *   - 'gemma-2-2b' or 'gemma-2b' or 'primary' → primary model (Gemma 2B)
+   *   - 'gemma-4-12b' or 'gemma-4' or 'fable' → FABLE model (Gemma 4 12B agentic)
+   *   - Any other string → treated as a custom model path
    *
-   * This method calls the native GemmaBridge.kt plugin, which in turn calls
-   * rust/gemma-bridge/ → libllama.so + libggml-vulkan.so.
+   * If a different model is already loaded, it's unloaded first (frees RAM).
    */
   async loadModel(modelId: string, quantization: Quantization): Promise<void> {
     if (!this.initialized || !this.bridge) {
       throw new BackendError(this.backend, 'not_initialized', 'Call init() first');
     }
 
-    // The "modelId" from Constellation's routing decision is the HuggingFace-style
-    // name (e.g. "gemma-2-2b-it"). The actual GGUF file path comes from config.
-    // In production, we'd have a model registry mapping modelId -> file path.
-    // For now, use config.modelPath directly.
+    // Determine which role to load based on modelId
+    const role = this.roleFromModelId(modelId);
+    const modelConfig = this.models[role];
 
-    // Build the model path from modelId if config.modelPath isn't set
-    const defaultPath = `/data/data/com.termux/files/usr/share/models/${modelId}-Q4_K_M.gguf`;
-
-    if (!this.config) {
-      // Use default config
-      this.config = {
-        modelPath: defaultPath,
-        gpuBackend: 'vulkan',
-        contextLength: 4096,
-        gpuLayers: -1,
-      };
-    }
-
-    // No-op if already loaded with the same model
-    if (this.loadedModel?.modelId === modelId && this.loadedModel?.quantization === quantization) {
-      // Verify the native side agrees
+    // No-op if already loaded with the same model + role
+    if (this.loadedRole === role &&
+        this.loadedModel?.modelId === modelId &&
+        this.loadedModel?.quantization === quantization) {
       const status = await this.bridge.isModelLoaded();
       if (status.loaded) return;
     }
 
+    // Unload any previously loaded model (frees RAM — important when switching
+    // from primary to fable, since fable is much larger)
+    if (this.loadedModel) {
+      try {
+        await this.bridge.unload();
+      } catch {
+        // Ignore unload errors
+      }
+      this.loadedModel = null;
+      this.loadedRole = null;
+    }
+
     try {
       const result = await this.bridge.init({
-        modelPath: this.config.modelPath,
+        modelPath: modelConfig.modelPath,
         gpuBackend: this.config.gpuBackend ?? 'vulkan',
-        contextLength: this.config.contextLength ?? 4096,
-        gpuLayers: this.config.gpuLayers ?? -1,
+        contextLength: modelConfig.contextLength,
+        gpuLayers: modelConfig.gpuLayers,
       });
       if (!result.success) {
         throw new Error(result.error ?? 'Unknown init failure');
       }
       this.loadedModel = { modelId, quantization };
+      this.loadedRole = role;
     } catch (e) {
       throw new BackendError(
         this.backend,
         'model_load_failed',
-        `Failed to load Gemma 2B from '${this.config.modelPath}': ` +
+        `Failed to load ${modelConfig.label} from '${modelConfig.modelPath}': ` +
           `${e instanceof Error ? e.message : String(e)}. ` +
           `Ensure: (1) model file exists at the path, (2) libllama.so + libggml-vulkan.so ` +
           `are in jniLibs/arm64-v8a/, (3) GemmaBridge.kt is registered in MainActivity.`,
@@ -217,29 +296,32 @@ export class GemmaBackend implements BackendExecutor {
   }
 
   /**
-   * Generate text using Gemma 2B via llama.cpp Vulkan.
+   * Generate text using the currently loaded Gemma model.
    *
-   * Flow:
-   *   TS (this method) → Capacitor GemmaBridge plugin → Kotlin GemmaBridge.kt
-   *     → JNI → Rust libgemma_bridge.so → llama.cpp → Adreno GPU (Vulkan)
-   *     → generated tokens → back up the chain → BackendResponse
+   * For the FABLE model (Gemma 4 12B), the system prompt should describe the
+   * planning task. The model was fine-tuned for agentic + tool-use + coding,
+   * so it handles multi-step planning well.
+   *
+   * For the PRIMARY model (Gemma 2B), keep prompts short — this is the
+   * reflex path, not deep reasoning.
    */
   async generate(request: BackendRequest): Promise<BackendResponse> {
     if (!this.initialized || !this.bridge) {
       throw new BackendError(this.backend, 'not_initialized', 'Call init() first');
     }
-    if (!this.loadedModel) {
+    if (!this.loadedModel || !this.loadedRole) {
       throw new BackendError(this.backend, 'not_initialized', 'No model loaded. Call loadModel() first.');
     }
 
     const startedAt = Date.now();
+    const modelConfig = this.models[this.loadedRole];
 
     try {
       const result = await this.bridge.generate({
         prompt: request.prompt,
         systemPrompt: request.systemPrompt,
-        maxTokens: request.maxTokens ?? 256,
-        temperature: request.temperature ?? 0.7,
+        maxTokens: request.maxTokens ?? modelConfig.defaultMaxTokens,
+        temperature: request.temperature ?? modelConfig.defaultTemperature,
         topP: 0.9,
       });
 
@@ -252,14 +334,16 @@ export class GemmaBackend implements BackendExecutor {
         quantization: this.loadedModel.quantization,
         metadata: {
           tokensPerSec: result.tokensPerSec,
-          gpuBackend: this.config?.gpuBackend ?? 'vulkan',
+          gpuBackend: this.config.gpuBackend ?? 'vulkan',
+          modelRole: this.loadedRole,
+          modelLabel: modelConfig.label,
         },
       };
     } catch (e) {
       throw new BackendError(
         this.backend,
         'inference_failed',
-        `Gemma 2B inference failed: ${e instanceof Error ? e.message : String(e)}`,
+        `${modelConfig.label} inference failed: ${e instanceof Error ? e.message : String(e)}`,
         e,
       );
     }
@@ -274,12 +358,28 @@ export class GemmaBackend implements BackendExecutor {
       }
     }
     this.loadedModel = null;
+    this.loadedRole = null;
   }
 
   async shutdown(): Promise<void> {
     await this.unload();
     this.bridge = null;
     this.initialized = false;
-    this.config = null;
+  }
+
+  /**
+   * Map a Constellation routing modelId to a GemmaModelRole.
+   *
+   * Recognized modelIds:
+   *   - 'gemma-2-2b', 'gemma-2b', 'gemma2b', 'primary' → 'primary'
+   *   - 'gemma-4-12b', 'gemma-4', 'gemma4', 'fable' → 'fable'
+   *   - Anything else → defaults to 'primary' (safe fallback)
+   */
+  private roleFromModelId(modelId: string): GemmaModelRole {
+    const lower = modelId.toLowerCase();
+    if (lower.includes('fable') || lower.includes('gemma-4') || lower.includes('gemma4') || lower.includes('12b')) {
+      return 'fable';
+    }
+    return 'primary';
   }
 }

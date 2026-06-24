@@ -200,11 +200,27 @@ default.
 
 ### 5.4 Real model options
 
-**Primary (already on device):**
+**Primary — REV.IKE reflex path (always-on, hot path):**
 - `gemma-2-2b-it-Q4_K_M.gguf` (~1.5 GB) — Gemma 2 2B Instruct, Q4_K_M quantization
+  - Already on device (installed via Ubuntu proot per architect)
+  - Fast: 50-150ms first-token on Adreno Vulkan
+  - Used for: REV.IKE reflex, simple intent routing, quick responses
 
-**Optional (download if needed):**
-- `gemma-2-9b-it-Q4_K_M.gguf` (~5.5 GB) — Gemma 2 9B Instruct, Q4_K_M quantization
+**FABLE — Planning path (on-demand, multi-step):**
+- `gemma4-v2-Q4_K_M.gguf` (~7 GB) — Gemma 4 12B agentic fine-tune
+  - Source: https://huggingface.co/yuxinlu1/gemma-4-12B-agentic-fable5-composer2.5-v2-3.5x-tau2-GGUF
+  - Base: google/gemma-4-12B-it
+  - Fine-tuned for: coding, agentic, terminal, tool-use, reasoning
+  - Trained on Fable 5 traces (rebuilt with Opus 4.8)
+  - 3.5× improvement over base on tau2-bench telecom (agentic tool use)
+  - License: Apache 2.0 (sovereign-friendly)
+  - Loaded on-demand by FABLE pillar when task complexity exceeds REV.IKE threshold
+  - Unloaded after task completes (frees ~7 GB RAM)
+  - Use Q3_K_M (~5.5 GB) on S25 Ultra 12 GB for more headroom
+  - Download: `bash scripts/build-and-deploy.sh --with-fable`
+
+**Optional (other models that work on Adreno):**
+- `gemma-2-9b-it-Q4_K_M.gguf` (~5.5 GB) — Gemma 2 9B Instruct
 - `Llama-3.2-3B-Instruct-Q4_K_M.gguf` (~2 GB)
 - `Qwen2.5-7B-Instruct-Q4_K_M.gguf` (~4.5 GB)
 
@@ -213,7 +229,22 @@ default.
 - ~~Mercury-2~~ — doesn't exist
 - ~~217GB+ models~~ — physically impossible on 12-24 GB RAM
 
-### 5.5 Constellation routing algorithm
+### 5.5 Multi-model RAM budget on S25 Ultra (12 GB)
+
+| Component | RAM used |
+|-----------|----------|
+| Android OS + system services | ~2 GB |
+| AVA007 runtime (Capacitor + Rust + Arrow buffers) | ~1 GB |
+| Gemma 2B Q4_K_M (primary, always loaded) | ~1.5 GB |
+| **Total with primary only** | **~4.5 GB** (7.5 GB free) |
+| Gemma 4 12B Q4_K_M (FABLE, on-demand) | +~7 GB |
+| **Total with FABLE loaded** | **~11.5 GB** (0.5 GB free — TIGHT) |
+
+For S25 Ultra 12 GB: use FABLE Q3_K_M (~5.5 GB) to leave 2 GB headroom.
+For S26 Ultra 16 GB+: Q4_K_M is comfortable.
+For S26 Ultra 24 GB: Q4_K_M + Q8_0 MTP variant for maximum quality.
+
+### 5.6 Constellation routing algorithm
 
 Implemented in `src/constellation/Router.ts`. Decision flow:
 1. Filter backends by HealthChecker status

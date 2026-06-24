@@ -56,13 +56,17 @@ JNILIBS_DIR="$ANDROID_DIR/app/src/main/jniLibs/arm64-v8a"
 SKIP_LLAMA=false
 SKIP_RUST=false
 SKIP_APK=false
+SKIP_FABLE_DOWNLOAD=true  # opt-in via --with-fable
 RELEASE=false
+QUANT="${QUANT:-Q4_K_M}"  # Q4_K_M recommended, Q3_K_M for tight RAM
 for arg in "$@"; do
   case "$arg" in
     --skip-llama) SKIP_LLAMA=true ;;
     --skip-rust) SKIP_RUST=true ;;
     --skip-apk) SKIP_APK=true ;;
+    --with-fable) SKIP_FABLE_DOWNLOAD=false ;;
     --release) RELEASE=true ;;
+    --q3) QUANT="Q3_K_M" ;;
     --help|-h)
       grep '^#' "$0" | sed 's/^# \?//'
       exit 0
@@ -185,6 +189,51 @@ if ! $SKIP_RUST; then
   ls -lh "$JNILIBS_DIR/"
 else
   log "Skipping Rust build (--skip-rust)"
+fi
+
+# ============================================================================
+# Step 2.5: Download FABLE model (Gemma 4 12B agentic) — optional
+# ============================================================================
+if ! $SKIP_FABLE_DOWNLOAD; then
+  section "Step 2.5: Download FABLE model (Gemma 4 12B agentic $QUANT)"
+
+  FABLE_MODEL_URL="https://huggingface.co/yuxinlu1/gemma-4-12B-agentic-fable5-composer2.5-v2-3.5x-tau2-GGUF/resolve/main/gemma4-v2-${QUANT}.gguf"
+  FABLE_MODEL_PATH="${FABLE_MODEL_PATH:-/data/data/com.termux/files/usr/share/models/gemma4-v2-${QUANT}.gguf}"
+  FABLE_MODEL_DIR="$(dirname "$FABLE_MODEL_PATH")"
+
+  log "FABLE model URL: $FABLE_MODEL_URL"
+  log "FABLE model path: $FABLE_MODEL_PATH"
+
+  # Check if model already exists
+  if [ -f "$FABLE_MODEL_PATH" ]; then
+    log "FABLE model already exists ($(du -h "$FABLE_MODEL_PATH" | cut -f1)) — skipping download"
+  else
+    log "Creating model directory: $FABLE_MODEL_DIR"
+    mkdir -p "$FABLE_MODEL_DIR"
+
+    log "Downloading FABLE model ($QUANT) — this is large, may take 10-30 min..."
+    # Try wget first, fall back to curl
+    if command -v wget >/dev/null; then
+      wget -c -O "$FABLE_MODEL_PATH" "$FABLE_MODEL_URL" || \
+        err "Download failed. Check network + URL."
+    elif command -v curl >/dev/null; then
+      curl -L -C - -o "$FABLE_MODEL_PATH" "$FABLE_MODEL_URL" || \
+        err "Download failed. Check network + URL."
+    else
+      err "Neither wget nor curl available."
+    fi
+
+    log "FABLE model downloaded: $(du -h "$FABLE_MODEL_PATH" | cut -f1)"
+  fi
+
+  # Verify file size is plausible (Q4_K_M ~7 GB, Q3_K_M ~5.5 GB)
+  SIZE_GB=$(du -g "$FABLE_MODEL_PATH" | cut -f1)
+  if [ "$SIZE_GB" -lt 4 ]; then
+    err "FABLE model file is only ${SIZE_GB} GB — likely corrupted. Delete and re-run."
+  fi
+  log "FABLE model verified: ${SIZE_GB} GB"
+else
+  log "Skipping FABLE model download (use --with-fable to enable)"
 fi
 
 # ============================================================================
