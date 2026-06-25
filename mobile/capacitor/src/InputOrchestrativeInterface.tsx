@@ -16,6 +16,7 @@ import React, { useState, useCallback } from 'react';
 import { useAva } from './AvaContext.js';
 import { metaHarness } from '../../../src/meta/index.js';
 import type { InterceptionResult } from '../../../src/meta/Interceptor.js';
+import { WebLLMEngine } from './services/WebLLMEngine.js';
 
 export function InputOrchestrativeInterface() {
   const ava = useAva();
@@ -44,11 +45,32 @@ export function InputOrchestrativeInterface() {
           deadlineMs: 30_000,  // 30s budget (first model load takes time)
         },
         execute: async (payload) => {
-          // This is where AVA007's actual executive loop would run.
-          // For now we just echo the input back — the real AVA007 orchestrator
-          // gets wired in here in a later phase.
+          // Route through Constellation to local llama-server (Gemma 2B)
           const p = payload as { userInput: string };
-          return { acknowledged: true, echoed: p.userInput };
+          try {
+            const engine = new WebLLMEngine();
+            await engine.init({
+              modelId: 'gemma-2b',
+              contextLength: 8192,
+              quantization: 'q4f16_1',
+              requireLocal: false,
+            });
+            const result = await engine.generate(p.userInput);
+            await engine.shutdown();
+            return {
+              acknowledged: true,
+              response: result.text,
+              backend: result.backend,
+              modelId: result.modelId,
+              latencyMs: result.latencyMs,
+              tokenCount: result.tokenCount,
+            };
+          } catch (e) {
+            return {
+              acknowledged: false,
+              error: e instanceof Error ? e.message : String(e),
+            };
+          }
         },
       });
 
@@ -117,11 +139,27 @@ export function InputOrchestrativeInterface() {
           background: '#103a10', color: '#80ff80',
           borderRadius: '4px', fontFamily: 'monospace'
         }}>
-          <div><strong>Allowed:</strong> yes</div>
-          <div><strong>Duration:</strong> {lastResult.durationMs}ms</div>
-          <div><strong>Policy:</strong> {lastResult.policyDecision.reason}</div>
-          {lastResult.result !== undefined && (
-            <div><strong>Result:</strong> {JSON.stringify(lastResult.result)}</div>
+          {lastResult.result && typeof lastResult.result === 'object' && 'response' in lastResult.result ? (
+            <>
+              <div style={{ marginBottom: '8px', fontSize: '14px', color: '#a0ffa0' }}>
+                <strong>AVA007:</strong> {(lastResult.result as { response: string }).response}
+              </div>
+              <div style={{ fontSize: '11px', color: '#60a060' }}>
+                Backend: {(lastResult.result as { backend?: string }).backend ?? 'unknown'} |
+                Model: {(lastResult.result as { modelId?: string }).modelId ?? 'unknown'} |
+                Latency: {(lastResult.result as { latencyMs?: number }).latencyMs ?? 0}ms |
+                Tokens: {(lastResult.result as { tokenCount?: number }).tokenCount ?? 0}
+              </div>
+            </>
+          ) : (
+            <>
+              <div><strong>Allowed:</strong> yes</div>
+              <div><strong>Duration:</strong> {lastResult.durationMs}ms</div>
+              <div><strong>Policy:</strong> {lastResult.policyDecision.reason}</div>
+              {lastResult.result !== undefined && (
+                <div><strong>Result:</strong> {JSON.stringify(lastResult.result)}</div>
+              )}
+            </>
           )}
         </div>
       )}
