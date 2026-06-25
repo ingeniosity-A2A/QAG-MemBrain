@@ -17,11 +17,7 @@ export {
   type BackendResponse,
   BackendError,
 } from './BackendExecutor.js';
-export { MlcLlmBackend } from './MlcLlmBackend.js';
-export { WebLlmBackend } from './WebLlmBackend.js';
-export { LlamdropBackend } from './LlamdropBackend.js';
-export { CloudBackend, type CloudBackendConfig } from './CloudBackend.js';
-export { GemmaBackend, type GemmaBackendConfig } from './GemmaBackend.js';
+export { LlamaServerBackend, type LlamaServerConfig } from './LlamaServerBackend.js';
 
 import type { BackendExecutor } from './BackendExecutor.js';
 import type { Backend } from '../BackendRegistry.js';
@@ -30,6 +26,7 @@ import { WebLlmBackend } from './WebLlmBackend.js';
 import { LlamdropBackend } from './LlamdropBackend.js';
 import { CloudBackend } from './CloudBackend.js';
 import { GemmaBackend } from './GemmaBackend.js';
+import { LlamaServerBackend } from './LlamaServerBackend.js';
 
 /**
  * Registry of backend executor instances, keyed by Backend type.
@@ -79,24 +76,27 @@ export class BackendExecutorRegistry {
   }
 
   /**
-   * Convenience: register the AMOS v2.8 default backends.
+   * Register the AMOS v2.9 default backends.
    *
-   * Per architect's directive (v2.8):
-   *   - GemmaBackend (PRIMARY — Gemma 2B via llama.cpp Vulkan, already on device)
-   *   - MlcLlmBackend (secondary — @mlc-ai/web-llm for sandbox path)
-   *   - WebLlmBackend (tertiary — WebGPU for ArrowJS Sandbox + EPOCH)
-   *   - LlamdropBackend (CPU fallback — stub)
-   *   - CloudBackend (optional — caller must init() with config before use)
+   * AMOS v2.9 (verified live on S25 Ultra):
+   *   - LlamaServerBackend (PRIMARY — local llama-server at localhost:8080, already running)
+   *   - GemmaBackend (secondary — native llama.cpp Vulkan, when built)
+   *   - MlcLlmBackend (tertiary — @mlc-ai/web-llm for sandbox path)
+   *   - WebLlmBackend (quaternary — WebGPU for ArrowJS Sandbox + EPOCH)
+   *   - LlamdropBackend (fallback — CPU)
+   *   - CloudBackend (optional — remote cloud APIs)
    *
-   * QNN NPU is NOT registered (deferred per Phase 4.3).
-   * Registered in priority order: Gemma first (highest priority).
+   * LlamaServerBackend is PRIMARY because the user already has llama-server
+   * running on the S25 Ultra with Gemma 2B loaded.
+   * Verified: 27 tokens/second, 36.8ms/token, fully local.
    */
   registerDefaults(): void {
-    this.register(new GemmaBackend());    // PRIMARY
-    this.register(new MlcLlmBackend());   // secondary (sandbox)
-    this.register(new WebLlmBackend());   // tertiary (browser)
-    this.register(new LlamdropBackend()); // fallback
-    this.register(new CloudBackend());    // optional
+    this.register(new LlamaServerBackend()); // PRIMARY — localhost:8080
+    this.register(new GemmaBackend());       // secondary (native, when built)
+    this.register(new MlcLlmBackend());      // tertiary (browser sandbox)
+    this.register(new WebLlmBackend());      // quaternary (browser)
+    this.register(new LlamdropBackend());    // fallback
+    this.register(new CloudBackend());       // optional
   }
 }
 

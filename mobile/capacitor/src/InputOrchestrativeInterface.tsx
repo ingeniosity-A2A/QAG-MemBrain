@@ -40,8 +40,8 @@ export function InputOrchestrativeInterface() {
         payload: { userInput: input },
         metadata: {
           sessionId: ava.sessionId ?? undefined,
-          requireLocal: true,  // AMOS hot path is always local-first
-          deadlineMs: 5_000,   // 5s budget for the intercept + execution
+          requireLocal: false,  // llama-server is local but uses 'cloud' backend type
+          deadlineMs: 30_000,  // 30s budget (first model load takes time)
         },
         execute: async (payload) => {
           // This is where AVA007's actual executive loop would run.

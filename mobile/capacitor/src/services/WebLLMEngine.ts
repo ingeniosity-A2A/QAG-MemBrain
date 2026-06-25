@@ -126,11 +126,6 @@ export class WebLLMEngine {
     // 4. Initialize the backend if needed (lazy)
     if (!executor.isInitialized()) {
       try {
-        // CloudBackend needs config — skip if not provided
-        if (decision.backend === 'cloud') {
-          throw new BackendError(decision.backend, 'not_initialized',
-            'CloudBackend requires config — call init(config) on it directly');
-        }
         await executor.init();
       } catch (e) {
         throw new Error(`Backend '${decision.backend}' init failed: ${e instanceof Error ? e.message : String(e)}`);

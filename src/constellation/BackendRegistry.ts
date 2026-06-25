@@ -112,12 +112,12 @@ export class BackendRegistry {
     });
     this.register({
       backend: 'cloud',
-      defaultModelId: 'glm-5',
-      defaultQuantization: 'q0f32',
+      defaultModelId: 'gemma-2b',
+      defaultQuantization: 'q4f16',
       quality: 0.95,
-      tasks: ['planning', 'code', 'math', 'reasoning', 'general'],
+      tasks: ['reflex', 'planning', 'code', 'math', 'reasoning', 'general'],
       capabilities: {
-        maxContextLength: 128_000,
+        maxContextLength: 8192,
         supportsStreaming: true,
         supportsTools: true,
         supportsJsonMode: true,
