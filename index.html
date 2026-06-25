@@ -1,1182 +1,512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Help Assembly Appless · Ava007 — AI-Powered A2A Service Dispatch Platform">
-  <meta name="theme-color" content="#0a0a0f">
-  <title>Help Assembly Appless · Ava007</title>
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <style>
-    /* ===== RESET & BASE ===== */
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --bg: #0a0a0f;
-      --bg-elevated: rgba(255, 255, 255, 0.04);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-light: rgba(255, 255, 255, 0.12);
-      --gold: #e6b87e;
-      --gold-dim: rgba(230, 184, 126, 0.15);
-      --gold-glow: rgba(230, 184, 126, 0.3);
-      --green: #29c676;
-      --green-dim: rgba(41, 198, 118, 0.15);
-      --red: #e64545;
-      --red-dim: rgba(230, 69, 69, 0.15);
-      --text: #e8e4df;
-      --text-dim: rgba(232, 228, 223, 0.55);
-      --text-muted: rgba(232, 228, 223, 0.35);
-      --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Menlo', 'Consolas', monospace;
-      --radius: 12px;
-      --radius-sm: 8px;
-      --radius-pill: 999px;
-      --blur: blur(2rem);
-    }
-
-    html {
-      scroll-behavior: smooth;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 14px;
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    /* ===== CONNECTION STATUS BAR ===== */
-    .status-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 6px 16px;
-      background: rgba(10, 10, 15, 0.92);
-      backdrop-filter: var(--blur);
-      -webkit-backdrop-filter: var(--blur);
-      border-bottom: 1px solid var(--border);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-
-    .status-dot.connected {
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-    }
-
-    .status-dot.disconnected {
-      background: var(--red);
-      box-shadow: 0 0 6px var(--red);
-    }
-
-    .status-text {
-      transition: color 0.3s;
-    }
-
-    .status-text.connected {
-      color: var(--green);
-    }
-
-    .status-text.disconnected {
-      color: var(--red);
-    }
-
-    /* ===== MAIN WRAPPER ===== */
-    .page-wrapper {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 36px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 520px;
-      padding: 0 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    /* ===== GLASS CARD ===== */
-    .glass-card {
-      background: var(--bg-elevated);
-      backdrop-filter: var(--blur);
-      -webkit-backdrop-filter: var(--blur);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(230, 184, 126, 0.15), transparent);
-    }
-
-    /* ===== ANIMATIONS ===== */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        box-shadow: 0 0 8px var(--gold-glow);
-      }
-      50% {
-        box-shadow: 0 0 20px var(--gold-glow), 0 0 40px rgba(230, 184, 126, 0.1);
-      }
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes orbGlow {
-      0%, 100% {
-        box-shadow: 0 0 10px var(--gold-glow), 0 0 30px rgba(230, 184, 126, 0.1);
-      }
-      50% {
-        box-shadow: 0 0 20px var(--gold-glow), 0 0 50px rgba(230, 184, 126, 0.2);
-      }
-    }
-
-    @keyframes ctaPulse {
-      0%, 100% {
-        box-shadow: 0 0 0 0 rgba(41, 198, 118, 0.4);
-      }
-      50% {
-        box-shadow: 0 0 0 8px rgba(41, 198, 118, 0);
-      }
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(40px) scale(0.96);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    @keyframes messageIn {
-      from {
-        opacity: 0;
-        transform: translateX(-8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .fade-in {
-      animation: fadeInUp 0.6s ease-out both;
-    }
-
-    .fade-in-1 { animation-delay: 0.1s; }
-    .fade-in-2 { animation-delay: 0.25s; }
-    .fade-in-3 { animation-delay: 0.4s; }
-    .fade-in-4 { animation-delay: 0.55s; }
-    .fade-in-5 { animation-delay: 0.7s; }
-
-    /* ===== HERO ===== */
-    .hero {
-      text-align: center;
-      padding: 48px 0 16px;
-    }
-
-    .hero-brand {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: 0.02em;
-      margin-bottom: 8px;
-    }
-
-    .hero-brand .gold {
-      color: var(--gold);
-    }
-
-    .hero-tagline {
-      font-size: 13px;
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--gold-dim);
-      border: 1px solid rgba(230, 184, 126, 0.2);
-      border-radius: var(--radius-pill);
-      padding: 5px 14px;
-      font-size: 11px;
-      color: var(--gold);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 24px;
-    }
-
-    .orb-indicator {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #f5d9a8, var(--gold), #c49a52);
-      animation: spin 4s linear infinite, orbGlow 2s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-
-    /* ===== PRODUCT SHOWCASE ===== */
-    .product-card {
-      padding: 0;
-      overflow: hidden;
-    }
-
-    .product-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .product-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-    }
-
-    .product-price {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--gold);
-    }
-
-    .product-viewer {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      background: linear-gradient(
-        135deg,
-        rgba(230, 184, 126, 0.06) 0%,
-        rgba(10, 10, 15, 0.8) 40%,
-        rgba(230, 184, 126, 0.03) 70%,
-        rgba(10, 10, 15, 0.9) 100%
-      );
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    .product-viewer::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(
-        ellipse at center,
-        rgba(230, 184, 126, 0.08) 0%,
-        transparent 70%
-      );
-      pointer-events: none;
-    }
-
-    .product-model-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      z-index: 1;
-    }
-
-    .product-model-icon {
-      width: 64px;
-      height: 64px;
-      border: 2px solid var(--border-light);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      font-size: 24px;
-    }
-
-    .product-model-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .product-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 24px;
-      border-top: 1px solid var(--border);
-    }
-
-    .product-counter {
-      font-size: 12px;
-      color: var(--text-dim);
-      letter-spacing: 0.05em;
-    }
-
-    .product-nav {
-      display: flex;
-      gap: 6px;
-    }
-
-    .product-nav-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--text-muted);
-      transition: background 0.2s;
-      cursor: pointer;
-    }
-
-    .product-nav-dot.active {
-      background: var(--gold);
-    }
-
-    /* ===== QUOTE CARD ===== */
-    .quote-card {
-      text-align: center;
-    }
-
-    .quote-amount {
-      font-size: 48px;
-      font-weight: 700;
-      color: var(--gold);
-      line-height: 1.1;
-      margin-bottom: 8px;
-      letter-spacing: -0.02em;
-    }
-
-    .quote-label {
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      margin-bottom: 24px;
-    }
-
-    .quote-cta {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: var(--green);
-      color: #0a0a0f;
-      border: none;
-      border-radius: var(--radius-pill);
-      padding: 12px 36px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
-      animation: ctaPulse 2.5s ease-in-out infinite;
-    }
-
-    .quote-cta:hover {
-      transform: scale(1.03);
-      background: #33d483;
-    }
-
-    .quote-cta:active {
-      transform: scale(0.98);
-    }
-
-    .quote-cta:focus-visible {
-      outline: 2px solid var(--green);
-      outline-offset: 3px;
-    }
-
-    .quote-cta .cta-arrow {
-      transition: transform 0.15s;
-    }
-
-    .quote-cta:hover .cta-arrow {
-      transform: translateX(2px);
-    }
-
-    .quote-disclaimer {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 14px;
-      letter-spacing: 0.04em;
-    }
-
-    /* ===== DISPATCH MODAL ===== */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .modal-overlay.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-content {
-      width: 100%;
-      max-width: 420px;
-      background: linear-gradient(
-        180deg,
-        rgba(20, 20, 30, 0.98) 0%,
-        rgba(14, 14, 22, 0.98) 100%
-      );
-      border: 1px solid var(--border-light);
-      border-radius: 16px;
-      padding: 32px 24px;
-      text-align: center;
-      transform: translateY(40px) scale(0.96);
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative;
-    }
-
-    .modal-overlay.visible .modal-content {
-      transform: translateY(0) scale(1);
-    }
-
-    .modal-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--green-dim);
-      border: 2px solid rgba(41, 198, 118, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 24px;
-      color: var(--green);
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 12px;
-    }
-
-    .modal-detail {
-      font-size: 12px;
-      color: var(--text-dim);
-      letter-spacing: 0.04em;
-      line-height: 1.7;
-      margin-bottom: 8px;
-    }
-
-    .modal-detail .highlight {
-      color: var(--gold);
-      font-weight: 600;
-    }
-
-    .modal-note {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-style: italic;
-      margin-bottom: 24px;
-    }
-
-    .modal-close {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-pill);
-      color: var(--text-dim);
-      font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 10px 28px;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .modal-close:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text);
-    }
-
-    .modal-close:focus-visible {
-      outline: 2px solid var(--gold);
-      outline-offset: 2px;
-    }
-
-    /* ===== CHAT SECTION ===== */
-    .chat-section {
-      margin-bottom: 0;
-    }
-
-    .chat-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .chat-header-title {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-
-    .chat-connection {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .chat-connection-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-
-    .chat-connection-dot.connected {
-      background: var(--green);
-      box-shadow: 0 0 4px var(--green);
-    }
-
-    .chat-connection-dot.disconnected {
-      background: var(--red);
-      box-shadow: 0 0 4px var(--red);
-    }
-
-    .chat-connection-text {
-      color: var(--text-muted);
-      transition: color 0.3s;
-    }
-
-    .chat-connection-text.connected {
-      color: var(--green);
-    }
-
-    .chat-connection-text.disconnected {
-      color: var(--red);
-    }
-
-    .chat-messages {
-      max-height: 200px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-right: 4px;
-      margin-bottom: 12px;
-    }
-
-    /* Custom scrollbar */
-    .chat-messages::-webkit-scrollbar {
-      width: 3px;
-    }
-    .chat-messages::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .chat-messages::-webkit-scrollbar-thumb {
-      background: var(--text-muted);
-      border-radius: 3px;
-    }
-
-    .chat-message {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border);
-      border-radius: 10px 10px 10px 2px;
-      padding: 8px 12px;
-      font-size: 12px;
-      color: var(--text);
-      line-height: 1.5;
-      animation: messageIn 0.25s ease-out both;
-      max-width: 85%;
-      word-wrap: break-word;
-    }
-
-    .chat-message .msg-time {
-      font-size: 9px;
-      color: var(--text-muted);
-      margin-top: 4px;
-      letter-spacing: 0.05em;
-    }
-
-    .chat-empty {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 16px 0;
-      letter-spacing: 0.04em;
-    }
-
-    .chat-input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .chat-input {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .chat-input::placeholder {
-      color: var(--text-muted);
-    }
-
-    .chat-input:focus {
-      border-color: rgba(230, 184, 126, 0.3);
-    }
-
-    .chat-send-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-sm);
-      background: var(--gold-dim);
-      border: 1px solid rgba(230, 184, 126, 0.2);
-      color: var(--gold);
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      flex-shrink: 0;
-    }
-
-    .chat-send-btn:hover {
-      background: rgba(230, 184, 126, 0.22);
-    }
-
-    .chat-send-btn:active {
-      transform: scale(0.93);
-    }
-
-    .chat-send-btn:focus-visible {
-      outline: 2px solid var(--gold);
-      outline-offset: 2px;
-    }
-
-    /* ===== FOOTER ===== */
-    .site-footer {
-      padding: 32px 0 40px;
-      text-align: center;
-    }
-
-    .vcard-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-pill);
-      padding: 10px 20px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-dim);
-      text-decoration: none;
-      letter-spacing: 0.06em;
-      transition: border-color 0.2s, color 0.2s, background 0.2s;
-      cursor: pointer;
-    }
-
-    .vcard-link:hover {
-      border-color: rgba(230, 184, 126, 0.3);
-      color: var(--gold);
-      background: var(--gold-dim);
-    }
-
-    .vcard-link:focus-visible {
-      outline: 2px solid var(--gold);
-      outline-offset: 2px;
-    }
-
-    .footer-tagline {
-      margin-top: 16px;
-      font-size: 10px;
-      color: var(--text-muted);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    /* ===== UTILITY ===== */
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 360px) {
-      .container {
-        padding: 0 14px;
-      }
-
-      .glass-card {
-        padding: 18px;
-      }
-
-      .quote-amount {
-        font-size: 38px;
-      }
-
-      .hero-brand {
-        font-size: 16px;
-      }
-    }
-
-    @media (min-width: 768px) {
-      .container {
-        padding: 0 32px;
-      }
-
-      .hero {
-        padding-top: 64px;
-      }
-
-      .quote-amount {
-        font-size: 56px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AVA007</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #e8eaf0;
+    --surface: #eef0f5;
+    --surface-raised: #ffffff;
+    --text: #3a3a4a;
+    --text-dim: #8a8a9a;
+    --yellow: #d4a72c;
+    --yellow-soft: rgba(212, 167, 44, 0.12);
+    --yellow-sunken: rgba(212, 167, 44, 0.5);
+    --green: #4caf50;
+    --red: #e64545;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow-dark: rgba(163, 177, 198, 0.5);
+    --shadow-light: rgba(255, 255, 255, 0.8);
+    --neu-raised: -6px -6px 16px var(--shadow-light), 6px 6px 16px var(--shadow-dark);
+    --neu-sunken: inset -4px -4px 10px var(--shadow-light), inset 4px 4px 10px var(--shadow-dark);
+    --neu-yellow-sunken: inset -2px -2px 6px rgba(255,255,255,0.6), inset 3px 3px 8px var(--yellow-sunken);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    padding: 14px 20px;
+    background: var(--surface);
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--neu-raised);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .header-status {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--green);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    box-shadow: var(--neu-sunken);
+  }
+
+  .header-mode-toggle {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    box-shadow: var(--neu-sunken);
+  }
+
+  .mode-btn {
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mode-btn.active {
+    background: var(--surface-raised);
+    color: var(--yellow);
+    box-shadow: -2px -2px 6px var(--shadow-light), 2px 2px 6px var(--shadow-dark);
+  }
+
+  /* ===== CHAT AREA ===== */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+
+  .chat-area::-webkit-scrollbar { width: 4px; }
+  .chat-area::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 2px; }
+
+  /* ===== CHAT BUBBLES ===== */
+  .chat-bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.5;
+    animation: bubbleIn 0.3s ease;
+  }
+
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .chat-bubble.ava {
+    align-self: flex-start;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--neu-raised);
+    border-bottom-left-radius: 4px;
+  }
+
+  .chat-bubble.user {
+    align-self: flex-end;
+    background: var(--yellow-soft);
+    color: var(--text);
+    box-shadow: var(--neu-yellow-sunken);
+    border-bottom-right-radius: 4px;
+  }
+
+  .chat-bubble.thinking {
+    align-self: flex-start;
+    background: var(--surface);
+    color: var(--text-dim);
+    font-style: italic;
+    box-shadow: var(--neu-sunken);
+  }
+
+  .chat-bubble.error {
+    align-self: flex-start;
+    background: rgba(230, 69, 69, 0.1);
+    color: var(--red);
+    box-shadow: var(--neu-sunken);
+  }
+
+  .chat-time {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ===== QUOTE CARD (Customer Mode) ===== */
+  .quote-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--neu-raised);
+    margin: 8px 0;
+    display: none;
+  }
+
+  .quote-card.visible { display: block; }
+
+  .quote-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .quote-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+  }
+
+  .quote-price {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--yellow);
+  }
+
+  .quote-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .quote-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--neu-sunken);
+    font-size: 13px;
+  }
+
+  .quote-item-name { color: var(--text); }
+  .quote-item-price { color: var(--yellow); font-weight: 600; }
+
+  .quote-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .quote-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .quote-btn.accept {
+    background: var(--yellow-soft);
+    color: var(--yellow);
+    box-shadow: var(--neu-yellow-sunken);
+  }
+
+  .quote-btn.accept:active {
+    box-shadow: var(--neu-sunken);
+  }
+
+  .quote-btn.decline {
+    background: var(--surface);
+    color: var(--text-dim);
+    box-shadow: var(--neu-raised);
+  }
+
+  .quote-btn.decline:active {
+    box-shadow: var(--neu-sunken);
+  }
+
+  /* ===== INPUT BAR ===== */
+  .input-bar {
+    padding: 12px 16px;
+    background: var(--surface);
+    box-shadow: var(--neu-raised);
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .input-field {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    box-shadow: var(--neu-sunken);
+    transition: box-shadow 0.2s;
+  }
+
+  .input-field::placeholder { color: var(--text-dim); }
+  .input-field:focus { box-shadow: var(--neu-yellow-sunken); }
+
+  .send-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--yellow);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--neu-raised);
+    transition: all 0.15s;
+  }
+
+  .send-btn:active {
+    box-shadow: var(--neu-sunken);
+    transform: scale(0.95);
+  }
+
+  .send-btn:disabled {
+    color: var(--text-dim);
+    opacity: 0.5;
+  }
+
+  /* ===== ADMIN INFO BAR ===== */
+  .admin-info {
+    display: none;
+    padding: 6px 16px;
+    background: var(--surface);
+    box-shadow: var(--neu-sunken);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .admin-info.visible { display: block; }
+</style>
 </head>
 <body>
 
-  <!-- Connection Status Bar -->
-  <div class="status-bar" role="status" aria-live="polite">
-    <span class="status-dot connected" id="statusDot"></span>
-    <span class="status-text connected" id="statusText">LIVE</span>
-  </div>
-
-  <div class="page-wrapper">
-    <main class="container">
-
-      <!-- Hero / Header -->
-      <header class="hero fade-in fade-in-1">
-        <h1 class="hero-brand">
-          Help Assembly <span class="gold">Appless</span> · <span class="gold">Ava007</span>
-        </h1>
-        <p class="hero-tagline">AI-Powered A2A Service Dispatch</p>
-        <div class="hero-badge">
-          <span class="orb-indicator" aria-hidden="true"></span>
-          <span>Model: 7Ki-Q03</span>
-        </div>
-      </header>
-
-      <!-- Product Showcase -->
-      <section class="glass-card product-card fade-in fade-in-2" aria-label="Product showcase">
-        <div class="product-header">
-          <span class="product-title">Modern Accent Chair</span>
-          <span class="product-price">$249.00</span>
-        </div>
-        <div class="product-viewer" aria-label="3D product viewer placeholder">
-          <div class="product-model-placeholder">
-            <div class="product-model-icon" aria-hidden="true">
-              &#9670;
-            </div>
-            <span class="product-model-label">3D Model Viewer</span>
-          </div>
-        </div>
-        <div class="product-footer">
-          <span class="product-counter" id="productCounter">1 / 3</span>
-          <nav class="product-nav" aria-label="Product images">
-            <span class="product-nav-dot active" data-index="0" tabindex="0" role="button" aria-label="Image 1"></span>
-            <span class="product-nav-dot" data-index="1" tabindex="0" role="button" aria-label="Image 2"></span>
-            <span class="product-nav-dot" data-index="2" tabindex="0" role="button" aria-label="Image 3"></span>
-          </nav>
-        </div>
-      </section>
-
-      <!-- Quote Card -->
-      <section class="glass-card quote-card fade-in fade-in-3" aria-label="Service quote">
-        <div class="quote-amount">$2,480</div>
-        <p class="quote-label">Free White-Glove Delivery</p>
-        <button class="quote-cta" id="acceptQuoteBtn" aria-label="Accept service quote">
-          Accept Quote <span class="cta-arrow" aria-hidden="true">&rarr;</span>
-        </button>
-        <p class="quote-disclaimer">A2A handshake · No app required</p>
-      </section>
-
-      <!-- Chat Console -->
-      <section class="glass-card chat-section fade-in fade-in-4" aria-label="Chat console">
-        <div class="chat-header">
-          <span class="chat-header-title">Console</span>
-          <div class="chat-connection">
-            <span class="chat-connection-dot connected" id="chatConnDot"></span>
-            <span class="chat-connection-text connected" id="chatConnText">Connected</span>
-          </div>
-        </div>
-        <div class="chat-messages" id="chatMessages" aria-live="polite" aria-label="Chat messages">
-          <div class="chat-empty" id="chatEmpty">Type a message below</div>
-        </div>
-        <form class="chat-input-row" id="chatForm" autocomplete="off">
-          <label for="chatInput" class="sr-only">Message input</label>
-          <input
-            type="text"
-            class="chat-input"
-            id="chatInput"
-            placeholder="Message Ava007…"
-            maxlength="500"
-            aria-label="Type a message"
-          >
-          <button type="submit" class="chat-send-btn" aria-label="Send message">
-            &#8594;
-          </button>
-        </form>
-      </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="site-footer fade-in fade-in-5">
-      <a class="vcard-link" id="vcardBtn" role="button" tabindex="0" aria-label="Save A2A contact as vCard">
-        &#9733; Save A2A Contact (vCard)
-      </a>
-      <p class="footer-tagline">Help Assembly &middot; Appless Dispatch &middot; Ava007</p>
-    </footer>
-  </div>
-
-  <!-- Dispatch Modal -->
-  <div class="modal-overlay" id="dispatchModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-content">
-      <div class="modal-icon" aria-hidden="true">&#10003;</div>
-      <h2 class="modal-title" id="modalTitle">Service Dispatched</h2>
-      <p class="modal-detail">
-        Technician <span class="highlight">Brian</span> (DOH &rarr; TUN)<br>
-        ETA <span class="highlight">17 min</span> &middot; A2A handshake active
-      </p>
-      <p class="modal-note">Ava007 has sent the service card (temporary, not saved).</p>
-      <button class="modal-close" id="modalCloseBtn" aria-label="Close dispatch confirmation">Close</button>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo">AVA007</div>
+      <div class="header-status" id="statusBadge">LIVE</div>
+    </div>
+    <div class="header-mode-toggle">
+      <button class="mode-btn active" onclick="setMode('admin')" id="modeAdmin">Admin</button>
+      <button class="mode-btn" onclick="setMode('customer')" id="modeCustomer">Customer</button>
     </div>
   </div>
 
-  <script>
-    (function() {
-      'use strict';
+  <!-- CHAT AREA -->
+  <div class="chat-area" id="chatArea">
+    <div class="chat-bubble ava">
+      AVA007 online. Sovereign inference active via Gemma 2B. How can I help?
+      <div class="chat-time" id="initTime"></div>
+    </div>
+  </div>
 
-      // ===== CONNECTION STATUS SIMULATION =====
-      var statusDot = document.getElementById('statusDot');
-      var statusText = document.getElementById('statusText');
-      var chatConnDot = document.getElementById('chatConnDot');
-      var chatConnText = document.getElementById('chatConnText');
-      var isConnected = true;
+  <!-- QUOTE CARD (visible only in customer mode) -->
+  <div class="quote-card" id="quoteCard">
+    <div class="quote-header">
+      <div class="quote-title">Service Quote</div>
+      <div class="quote-price" id="quotePrice">$0</div>
+    </div>
+    <div class="quote-items" id="quoteItems"></div>
+    <div class="quote-actions">
+      <button class="quote-btn accept" onclick="acceptQuote()">Accept</button>
+      <button class="quote-btn decline" onclick="declineQuote()">Decline</button>
+    </div>
+  </div>
 
-      function setConnectionStatus(connected) {
-        isConnected = connected;
-        var cls = connected ? 'connected' : 'disconnected';
-        var label = connected ? 'LIVE' : 'OFFLINE';
-        var chatLabel = connected ? 'Connected' : 'Disconnected';
+  <!-- ADMIN INFO BAR -->
+  <div class="admin-info visible" id="adminInfo">
+    Model: Gemma 2B | Endpoint: localhost:8080 | Mode: Admin
+  </div>
 
-        statusDot.className = 'status-dot ' + cls;
-        statusText.className = 'status-text ' + cls;
-        statusText.textContent = label;
+  <!-- INPUT BAR -->
+  <div class="input-bar">
+    <input
+      type="text"
+      class="input-field"
+      id="chatInput"
+      placeholder="Message AVA007..."
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter')sendMessage()"
+    >
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+  </div>
 
-        chatConnDot.className = 'chat-connection-dot ' + cls;
-        chatConnText.className = 'chat-connection-text ' + cls;
-        chatConnText.textContent = chatLabel;
+<script>
+  var LLAMA_SERVER = 'http://localhost:8080';
+  var currentMode = 'admin';
+  var chatArea = document.getElementById('chatArea');
+  var chatInput = document.getElementById('chatInput');
+  var quoteCard = document.getElementById('quoteCard');
+  var adminInfo = document.getElementById('adminInfo');
+
+  // Set initial time
+  document.getElementById('initTime').textContent = getTime();
+
+  function getTime() {
+    var d = new Date();
+    return d.getHours().toString().padStart(2,'0') + ':' +
+           d.getMinutes().toString().padStart(2,'0');
+  }
+
+  function addBubble(text, type) {
+    var bubble = document.createElement('div');
+    bubble.className = 'chat-bubble ' + type;
+    bubble.innerHTML = text + '<div class="chat-time">' + getTime() + '</div>';
+    chatArea.appendChild(bubble);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('modeAdmin').classList.toggle('active', mode === 'admin');
+    document.getElementById('modeCustomer').classList.toggle('active', mode === 'customer');
+
+    if (mode === 'customer') {
+      quoteCard.classList.add('visible');
+      adminInfo.classList.remove('visible');
+    } else {
+      quoteCard.classList.remove('visible');
+      adminInfo.classList.add('visible');
+    }
+  }
+
+  function sendMessage() {
+    var text = chatInput.value.trim();
+    if (!text) return;
+
+    // Add user bubble
+    addBubble(text, 'user');
+    chatInput.value = '';
+
+    // Add thinking indicator
+    var thinking = document.createElement('div');
+    thinking.className = 'chat-bubble thinking';
+    thinking.id = 'thinkingBubble';
+    thinking.innerHTML = 'AVA007 is thinking...';
+    chatArea.appendChild(thinking);
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    // Build system prompt based on mode
+    var systemPrompt = currentMode === 'customer'
+      ? 'You are AVA007, an AI assistant for Help Assembly, a furniture assembly service. You help customers get quotes and schedule service. Be friendly and concise. If the customer asks for a quote, provide pricing information.'
+      : 'You are AVA007, a sovereign AI assistant running on-device on a Samsung S25 Ultra via llama-server with Gemma 2B. You assist with system administration, coding, architecture, and analysis. Be direct and technical.';
+
+    // Call llama-server
+    fetch(LLAMA_SERVER + '/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: text }
+        ],
+        max_tokens: 512,
+        temperature: 0.7
+      })
+    })
+    .then(function(resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function(data) {
+      document.getElementById('thinkingBubble').remove();
+      var reply = data.choices[0].message.content;
+      addBubble(reply, 'ava');
+
+      // Update admin info with timing
+      if (currentMode === 'admin' && data.timings) {
+        var tps = data.timings.predicted_per_second || 0;
+        var ms = data.timings.predicted_ms || 0;
+        adminInfo.textContent = 'Model: Gemma 2B | ' + tps.toFixed(1) + ' tok/s | ' + Math.round(ms) + 'ms | Endpoint: localhost:8080';
       }
 
-      // Simulate occasional disconnections
-      setInterval(function() {
-        if (Math.random() < 0.08) {
-          setConnectionStatus(false);
-          setTimeout(function() {
-            setConnectionStatus(true);
-          }, 2000 + Math.random() * 3000);
-        }
-      }, 8000);
-
-
-      // ===== PRODUCT NAVIGATION =====
-      var productNavDots = document.querySelectorAll('.product-nav-dot');
-      var productCounter = document.getElementById('productCounter');
-      var currentProduct = 0;
-      var productNames = [
-        'Modern Accent Chair',
-        'Walnut Side Table',
-        'Linen Floor Lamp'
-      ];
-
-      function setProduct(index) {
-        currentProduct = index;
-        productCounter.textContent = (index + 1) + ' / 3';
-        document.querySelector('.product-title').textContent = productNames[index];
-
-        productNavDots.forEach(function(dot, i) {
-          if (i === index) {
-            dot.classList.add('active');
-          } else {
-            dot.classList.remove('active');
-          }
-        });
+      // In customer mode, if response looks like a quote, show the quote card
+      if (currentMode === 'customer') {
+        tryShowQuote(reply);
       }
+    })
+    .catch(function(err) {
+      var t = document.getElementById('thinkingBubble');
+      if (t) t.remove();
+      addBubble('Error: ' + err.message + '<br><br>Is llama-server running?<br>Run: <code>llama-server -m ~/gemma-2b.gguf --port 8080</code>', 'error');
+    });
+  }
 
-      productNavDots.forEach(function(dot) {
-        dot.addEventListener('click', function() {
-          setProduct(parseInt(dot.getAttribute('data-index'), 10));
-        });
-        dot.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setProduct(parseInt(dot.getAttribute('data-index'), 10));
-          }
-        });
-      });
+  function tryShowQuote(response) {
+    // Simple heuristic: if response contains $ amount, show quote card
+    var priceMatch = response.match(/\$(\d+)/);
+    if (priceMatch) {
+      document.getElementById('quotePrice').textContent = '$' + priceMatch[1];
+      var items = document.getElementById('quoteItems');
+      items.innerHTML = '';
+      var item = document.createElement('div');
+      item.className = 'quote-item';
+      item.innerHTML = '<span class="quote-item-name">Assembly Service</span><span class="quote-item-price">$' + priceMatch[1] + '</span>';
+      items.appendChild(item);
+      quoteCard.classList.add('visible');
+    }
+  }
 
+  function acceptQuote() {
+    addBubble('Quote accepted! We will dispatch a technician shortly.', 'ava');
+    quoteCard.classList.remove('visible');
+  }
 
-      // ===== DISPATCH MODAL =====
-      var modal = document.getElementById('dispatchModal');
-      var acceptBtn = document.getElementById('acceptQuoteBtn');
-      var closeBtn = document.getElementById('modalCloseBtn');
+  function declineQuote() {
+    quoteCard.classList.remove('visible');
+  }
 
-      function showModal() {
-        modal.classList.add('visible');
-        closeBtn.focus();
-        document.body.style.overflow = 'hidden';
-      }
-
-      function hideModal() {
-        modal.classList.remove('visible');
-        document.body.style.overflow = '';
-        acceptBtn.focus();
-      }
-
-      acceptBtn.addEventListener('click', showModal);
-
-      closeBtn.addEventListener('click', hideModal);
-
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          hideModal();
-        }
-      });
-
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.classList.contains('visible')) {
-          hideModal();
-        }
-      });
-
-
-      // ===== CHAT =====
-      var chatForm = document.getElementById('chatForm');
-      var chatInput = document.getElementById('chatInput');
-      var chatMessages = document.getElementById('chatMessages');
-      var chatEmpty = document.getElementById('chatEmpty');
-
-      function getTimestamp() {
-        var now = new Date();
-        var h = now.getHours().toString().padStart(2, '0');
-        var m = now.getMinutes().toString().padStart(2, '0');
-        var s = now.getSeconds().toString().padStart(2, '0');
-        return h + ':' + m + ':' + s;
-      }
-
-      function addMessage(text) {
-        if (chatEmpty) {
-          chatEmpty.remove();
-          chatEmpty = null;
-        }
-
-        var msgDiv = document.createElement('div');
-        msgDiv.className = 'chat-message';
-
-        var msgText = document.createElement('div');
-        msgText.textContent = text;
-
-        var msgTime = document.createElement('div');
-        msgTime.className = 'msg-time';
-        msgTime.textContent = getTimestamp();
-
-        msgDiv.appendChild(msgText);
-        msgDiv.appendChild(msgTime);
-        chatMessages.appendChild(msgDiv);
-
-        // Auto-scroll
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
-
-      var avaResponses = [
-        'A2A handshake confirmed. Standing by.',
-        'Service route optimized. ETA updated.',
-        'Agent Brian is en route. No action required.',
-        'BLECON beacon acquired. Proximity check passed.',
-        'Dispatch node synchronized. Channel open.',
-        'NAN-SERVICE activated for this session.',
-        'Temporary service card issued. Not persisted.',
-        'Ava007 is monitoring this dispatch.',
-      ];
-
-      chatForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        var text = chatInput.value.trim();
-        if (!text) return;
-
-        addMessage(text);
-        chatInput.value = '';
-
-        // Real Ava007 response via local llama-server (Gemma 2B)
-        var avaLoading = document.createElement('div');
-        avaLoading.className = 'chat-message';
-        avaLoading.style.opacity = '0.5';
-        avaLoading.innerHTML = '<div>[Ava007] Thinking...</div><div class="msg-time">' + getTimestamp() + '</div>';
-        chatMessages.appendChild(avaLoading);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        fetch('http://localhost:8080/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [
-              { role: 'system', content: 'You are AVA007, a sovereign AI assistant running on-device on a Samsung S25 Ultra. You help with assembly services, dispatch, and A2A communication. Keep responses concise.' },
-              { role: 'user', content: text }
-            ],
-            max_tokens: 512,
-            temperature: 0.7
-          })
-        })
-        .then(function(resp) { return resp.json(); })
-        .then(function(data) {
-          avaLoading.remove();
-          var reply = data.choices[0].message.content;
-          addMessage('[Ava007] ' + reply);
-        })
-        .catch(function(err) {
-          avaLoading.remove();
-          addMessage('[Ava007] Error: ' + err.message + ' (Is llama-server running on port 8080?)');
-        });
-      });
-
-
-      // ===== VCARD DOWNLOAD =====
-      var vcardBtn = document.getElementById('vcardBtn');
-
-      function generateVCard() {
-        var lines = [
-          'BEGIN:VCARD',
-          'VERSION:3.0',
-          'FN:Help Assembly Appless',
-          'ORG:Help Assembly',
-          'TEL;TYPE=WORK,VOICE:+14044391350',
-          'URL:https://www.helpassembly.com',
-          'X-A2A-BEEP:ava007-7ki-q03',
-          'X-NAN-SERVICE:dispatch-active',
-          'X-BLECON-ID:ha-blecon-001',
-          'X-AVA-MODEL:7Ki-Q03',
-          'X-A2A-HANDSHAKE:enabled',
-          'X-DISPATCH-PROTO:appless',
-          'END:VCARD'
-        ];
-        return lines.join('\r\n');
-      }
-
-      function downloadVCard() {
-        var vcf = generateVCard();
-        var blob = new Blob([vcf], { type: 'text/vcard;charset=utf-8' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'help-assembly-appless.vcf';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-
-      vcardBtn.addEventListener('click', downloadVCard);
-      vcardBtn.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          downloadVCard();
-        }
-      });
-
-    })();
-  </script>
-
+  // Focus input on load
+  chatInput.focus();
+</script>
 </body>
 </html>
