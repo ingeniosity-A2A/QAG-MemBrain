@@ -45,9 +45,11 @@ if [[ "$VERIFY_ONLY" == "true" ]]; then
 fi
 ARCH="$(uname -m)"
 log "Detected architecture: $ARCH"
-DISK_FREE_GB=$(df -BG "$HOME" | awk 'NR==2 {print $4}' | tr -d 'G')
+# Termux's df doesn't support -BG, so use a portable approach
+DISK_FREE_KB=$(df "$HOME" 2>/dev/null | awk 'NR==2 {print $4}')
+DISK_FREE_GB=$((DISK_FREE_KB / 1024 / 1024))
 log "Free disk space: ${DISK_FREE_GB} GB"
-if [[ "$DISK_FREE_GB" -lt 5 ]]; then
+if [ "$DISK_FREE_GB" -lt 5 ]; then
   err "Need at least 5 GB free. Have: ${DISK_FREE_GB} GB"
 fi
 
