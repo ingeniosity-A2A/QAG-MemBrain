@@ -65,7 +65,13 @@ if ! $PHASE2_ONLY; then
       pkg update -y && pkg upgrade -y
 
       log "Installing base packages..."
-      pkg install -y python rustup git wget curl unzip zip openjdk-17 proot-distro termux-api
+      # Termux package names differ from Debian:
+      #   rustup -> not in termux; install via rustup.rs script instead (done in Phase 2)
+      #   openjdk-17 -> 'openjdk-17' exists in Termux but only on some arches; use 'default-jdk' as fallback
+      #   proot-distro -> 'proot-distro'
+      pkg install -y python git wget curl unzip zip proot-distro termux-api
+      # Try openjdk-17, fallback to openjdk-21, fallback to default-jdk
+      pkg install -y openjdk-17 2>/dev/null || pkg install -y openjdk-21 2>/dev/null || pkg install -y default-jdk 2>/dev/null || true
 
       log "Installing Ubuntu proot-distro..."
       if ! proot-distro list 2>/dev/null | grep -q "ubuntu.*installed"; then
