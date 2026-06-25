@@ -6,3 +6,25 @@ coverage/
 authority/signing/*.private.pem
 authority/signing/generatedAuthorityPrivateKeys.json
 data/
+
+# Rust build artifacts
+rust/target/
+
+# Node.js
+node_modules/
+
+# Mobile capacitor build
+mobile/capacitor/android/app/build/
+mobile/capacitor/dist/
+mobile/capacitor/.vite/
+
+# Native libraries (built by scripts/build-and-deploy.sh)
+mobile/capacitor/android/app/src/main/jniLibs/arm64-v8a/*.so
+
+# Model files (downloaded separately)
+*.gguf
+
+# IDE
+.vscode/
+.idea/
+*.swp
