@@ -12,6 +12,8 @@ export default defineConfig({
         '@arrow-js/sandbox',
         'three',
         'gsap',
+        '@duckdb/duckdb-wasm',
+        'apache-arrow',
       ],
     },
   },
