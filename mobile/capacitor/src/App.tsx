@@ -7,8 +7,10 @@ import SplitFlapBoard from './components/flagship/SplitFlapBoard';
 import AtlantaWeather from './components/flagship/AtlantaWeather';
 import { metaHarness } from '../../../src/meta/index.js';
 import { getTemporalEngine } from '../../../src/temporal/index.js';
-import { getContextLake } from '../../../src/context_lake/index.js';
 import { getPhoneIntegration, type PhoneState } from '../../../src/telecom/PhoneIntegration.js';
+
+// Context Lake loaded lazily inside useEffect to prevent top-level await
+let getContextLake: any = () => null;
 
 const LLAMA_SERVER = 'http://localhost:8080';
 
@@ -54,8 +56,10 @@ export function App() {
         }
       });
 
-      // Phase 5: Context Lake (DuckDB)
+      // Phase 5: Context Lake (DuckDB) — lazy load to prevent crash
       try {
+        const mod = await import('../../../src/context_lake/index.js');
+        getContextLake = mod.getContextLake;
         const lake = getContextLake();
         await lake.init();
         lakeInitialized.current = true;
