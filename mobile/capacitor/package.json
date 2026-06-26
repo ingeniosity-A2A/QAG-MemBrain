@@ -16,6 +16,8 @@
     "@capacitor/core": "^5.7.0",
     "@arrow-js/sandbox": "^1.0.6",
     "@mlc-ai/web-llm": "^0.2.0",
+    "@duckdb/duckdb-wasm": "^1.29.0",
+    "apache-arrow": "^17.0.0",
     "gsap": "^3.12.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
