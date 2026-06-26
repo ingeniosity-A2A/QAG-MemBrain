@@ -17,7 +17,7 @@
  *   - Can be backed by IndexedDB for persistence across sessions (future)
  */
 
-import duckdb from '@duckdb/duckdb-wasm';
+import * as duckdb from '@duckdb/duckdb-wasm';
 // @ts-ignore — duckdb-wasm types are incomplete
 import * as arrow from 'apache-arrow';
 

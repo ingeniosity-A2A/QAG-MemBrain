@@ -13,18 +13,13 @@
  */
 
 import {
-  Table as ArrowTable,
-  RecordBatchStreamReader,
-  RecordBatchStreamWriter,
+  tableFromArrays,
   tableFromIPC,
   tableToIPC,
   vectorFromArray,
   Utf8,
   Int32,
   Float64,
-  TimestampMillisecond,
-  Field,
-  Schema,
   type Table,
 } from 'apache-arrow';
 
