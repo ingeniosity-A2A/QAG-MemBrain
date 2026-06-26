@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Furniture Card · 3D Viewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:     #0d0d0d;
+      --paper:   #f5f0eb;
+      --warm:    #c8a882;
+      --accent:  #b07d4f;
+      --muted:   rgba(13,13,13,0.35);
+      --glass:   rgba(245,240,235,0.08);
+      --border:  rgba(200,168,130,0.18);
+      --glow:    rgba(200,168,130,0.25);
+      --status:  #7ec8a0;
+      --anim:    cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { background: #0d0d0d; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse 60% 50% at 30% 20%, rgba(176,125,79,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 70% 80%, rgba(200,168,130,0.08) 0%, transparent 60%),
+        #0d0d0d;
+      font-family: 'DM Sans', sans-serif;
+      color: #f5f0eb;
+      padding: 2rem 1rem;
+      cursor: crosshair;
+    }
+
+    /* ── eyebrow label ─────────────────────────── */
+    .eyebrow {
+      font-size: 0.55rem;
+      letter-spacing: 0.3rem;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.6s var(--anim) 0.1s forwards;
+    }
+
+    /* ── card wrap (tilt target) ───────────────── */
+    .card-wrap {
+      position: relative;
+      transform-style: preserve-3d;
+    }
+
+    /* ── main card ─────────────────────────────── */
+    .card {
+      background: rgba(18,15,12,0.85);
+      backdrop-filter: blur(2rem) saturate(1.4);
+      -webkit-backdrop-filter: blur(2rem) saturate(1.4);
+      border: 1px solid var(--border);
+      border-radius: 2rem;
+      padding: 1.75rem;
+      width: 19rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(200,168,130,0.06),
+        0 32px 80px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(200,168,130,0.15);
+      opacity: 0;
+      animation: fadeUp 0.7s var(--anim) 0.25s forwards;
+    }
+
+    /* top shimmer border */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200,168,130,0.5), transparent);
+    }
+
+    /* ambient blob */
+    .blob {
+      position: absolute;
+      width: 12rem; height: 12rem;
+      background: radial-gradient(circle, rgba(176,125,79,0.18) 0%, transparent 70%);
+      top: -3rem; right: -3rem;
+      pointer-events: none;
+      border-radius: 50%;
+    }
+
+    /* ── header row ────────────────────────────── */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.25rem;
+    }
+
+    .brand-badge {
+      font-size: 0.5rem;
+      letter-spacing: 0.18rem;
+      text-transform: uppercase;
+      color: var(--warm);
+      opacity: 0.7;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: linear-gradient(135deg, rgba(126,200,160,0.15), rgba(126,200,160,0.08));
+      border: 1px solid rgba(126,200,160,0.3);
+      border-radius: 3rem;
+      padding: 0.18rem 0.55rem;
+      font-size: 0.5rem;
+      font-weight: 600;
+      color: var(--status);
+      letter-spacing: 0.08rem;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 0.35rem; height: 0.35rem;
+      background: var(--status);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--status);
+      animation: pulse 1.4s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(1.5); }
+    }
+
+    /* ── product name ──────────────────────────── */
+    .product-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.55rem;
+      line-height: 1.15;
+      margin: 0.6rem 0 0.15rem;
+      letter-spacing: -0.02rem;
+    }
+
+    .product-name em {
+      font-style: italic;
+      color: var(--warm);
+    }
+
+    .product-sub {
+      font-size: 0.62rem;
+      color: var(--muted);
+      color: rgba(245,240,235,0.35);
+      letter-spacing: 0.04rem;
+      text-transform: uppercase;
+    }
+
+    /* ── 3D canvas zone ────────────────────────── */
+    .model-zone {
+      position: relative;
+      margin: 1.25rem -0.5rem 0.5rem;
+      height: 11rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #furniture-model {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      display: block;
+      /* same filter recipe as airline #plane */
+      filter: brightness(1.05) contrast(1.1) saturate(0.9);
+    }
+
+    .model-shadow {
+      position: absolute;
+      bottom: 0.25rem; left: 50%;
+      transform: translateX(-50%);
+      width: 7rem; height: 1.2rem;
+      background: radial-gradient(ellipse, rgba(176,125,79,0.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── divider ───────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 1rem 0;
+    }
+
+    /* ── spec grid ─────────────────────────────── */
+    .specs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .spec {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0.6rem 0.5rem;
+      text-align: center;
+      transition: background 0.3s var(--anim), border-color 0.3s var(--anim);
+    }
+
+    .spec:hover {
+      background: rgba(200,168,130,0.1);
+      border-color: rgba(200,168,130,0.35);
+    }
+
+    .spec-label {
+      font-size: 0.5rem;
+      letter-spacing: 0.1rem;
+      text-transform: uppercase;
+      color: rgba(245,240,235,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2rem;
+      margin-bottom: 0.35rem;
+    }
+
+    /* ── barrel drum ──────────────────────────────── */
+    .barrel-wrap {
+      perspective: 88px;
+      perspective-origin: 50% 50%;
+      height: 30px;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0.3rem 0 0.2rem;
+      border-radius: 4px;
+      /* inner shadow to accentuate the curved opening */
+      box-shadow: inset 0 6px 8px -4px rgba(0,0,0,0.55),
+                  inset 0 -6px 8px -4px rgba(0,0,0,0.55);
+    }
+
+    .barrel-drum {
+      position: relative;
+      width: 100%;
+      height: 30px;
+      transform-style: preserve-3d;
+      animation: drumSpin var(--drum-speed, 5s) linear infinite;
+    }
+
+    .barrel-face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* white barrel stave — slightly warmer at edges */
+      background: linear-gradient(
+        90deg,
+        rgba(205,200,190,0.92) 0%,
+        rgba(255,253,248,1)    20%,
+        rgba(255,253,248,1)    80%,
+        rgba(205,200,190,0.92) 100%
+      );
+      /* metal hoop lines top + bottom */
+      border-top:    2px solid rgba(90,70,40,0.28);
+      border-bottom: 2px solid rgba(90,70,40,0.28);
+      backface-visibility: hidden;
+    }
+
+    /* hoop ring insets (inner glow line) */
+    .barrel-face::before,
+    .barrel-face::after {
+      content: '';
+      position: absolute;
+      left: 4px; right: 4px;
+      height: 1px;
+      background: linear-gradient(
+        90deg, transparent, rgba(90,70,40,0.2) 30%, rgba(90,70,40,0.2) 70%, transparent
+      );
+    }
+    .barrel-face::before { top: 4px; }
+    .barrel-face::after  { bottom: 4px; }
+
+    /* vertical stave lines */
+    .stave {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: rgba(90,70,40,0.09);
+    }
+
+    /* value text on front face */
+    .barrel-val {
+      font-family: 'DM Serif Display', serif;
+      font-size: 0.88rem;
+      font-weight: 400;
+      color: #1a1208;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* decorative tick marks on rear faces */
+    .barrel-mark {
+      font-size: 0.45rem;
+      color: rgba(90,70,40,0.3);
+      letter-spacing: 0.12em;
+    }
+
+    .spec-unit {
+      font-size: 0.48rem;
+      color: var(--accent);
+      font-weight: 400;
+      font-family: 'DM Sans', sans-serif;
+      margin-left: 0.06em;
+    }
+
+    @keyframes drumSpin {
+      from { transform: rotateX(0deg); }
+      to   { transform: rotateX(-360deg); }
+    }
+
+    /* ── color swatches ────────────────────────── */
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .color-label {
+      font-size: 0.55rem;
+      letter-spacing: 0.1rem;
+      text-transform: uppercase;
+      color: rgba(245,240,235,0.35);
+      flex-shrink: 0;
+    }
+
+    .swatches {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .swatch {
+      width: 1.1rem; height: 1.1rem;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s var(--anim), border-color 0.2s;
+    }
+
+    .swatch.active,
+    .swatch:hover {
+      transform: scale(1.2);
+      border-color: rgba(245,240,235,0.5);
+    }
+
+    /* ── price + CTA row ───────────────────────── */
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .price-block {}
+
+    .price-tag {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      letter-spacing: -0.04rem;
+      line-height: 1;
+    }
+
+    .price-tag sup {
+      font-size: 0.8rem;
+      vertical-align: super;
+      opacity: 0.6;
+    }
+
+    .price-note {
+      font-size: 0.52rem;
+      color: rgba(245,240,235,0.3);
+      letter-spacing: 0.06rem;
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+
+    .cta-btn {
+      background: linear-gradient(135deg, var(--accent), var(--warm));
+      color: #0d0d0d;
+      border: none;
+      border-radius: 3rem;
+      padding: 0.6rem 1.2rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.08rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.2s var(--anim), box-shadow 0.2s var(--anim);
+      box-shadow: 0 4px 20px rgba(176,125,79,0.3);
+    }
+
+    .cta-btn:hover {
+      transform: scale(1.04) translateY(-1px);
+      box-shadow: 0 8px 30px rgba(176,125,79,0.45);
+    }
+
+    /* ── model loading state ───────────────────── */
+    .model-loader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      pointer-events: none;
+      transition: opacity 0.4s var(--anim);
+    }
+
+    .loader-ring {
+      width: 2rem; height: 2rem;
+      border: 2px solid var(--border);
+      border-top-color: var(--warm);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    .loader-text {
+      font-size: 0.5rem;
+      letter-spacing: 0.15rem;
+      text-transform: uppercase;
+      color: rgba(245,240,235,0.3);
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── swap hint below card ──────────────────── */
+    .swap-hint {
+      margin-top: 1.5rem;
+      font-size: 0.55rem;
+      letter-spacing: 0.12rem;
+      text-transform: uppercase;
+      color: rgba(245,240,235,0.2);
+      text-align: center;
+      opacity: 0;
+      animation: fadeUp 0.5s var(--anim) 0.8s forwards;
+    }
+
+    .swap-hint code {
+      color: var(--warm);
+      font-size: 0.52rem;
+    }
+
+    /* ── keyframes ─────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<p class="eyebrow">Object · 01 of 12</p>
+
+<div class="card-wrap" id="card-wrap">
+  <div class="card" id="card">
+    <div class="blob"></div>
+
+    <!-- header -->
+    <div class="card-header">
+      <span class="brand-badge">Atelier&nbsp;Forme</span>
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        In Stock
+      </div>
+    </div>
+
+    <!-- product name -->
+    <h1 class="product-name">Shell <em>Lounge</em><br>Chair</h1>
+    <p class="product-sub">Model SLC-04 &nbsp;·&nbsp; Walnut / Boucle</p>
+
+    <!-- 3D model zone -->
+    <div class="model-zone">
+      <div class="model-loader" id="loader">
+        <div class="loader-ring"></div>
+        <p class="loader-text">Loading model…</p>
+      </div>
+      <canvas id="furniture-model"></canvas>
+      <div class="model-shadow"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- specs -->
+    <div class="specs">
+      <div class="spec">
+        <div class="spec-label">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+          Width
+        </div>
+        <div class="barrel-anchor" data-value="76" data-unit=" cm" data-speed="7"></div>
+      </div>
+      <div class="spec">
+        <div class="spec-label">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1v6M1 4h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Height
+        </div>
+        <div class="barrel-anchor" data-value="81" data-unit=" cm" data-speed="5.5"></div>
+      </div>
+      <div class="spec">
+        <div class="spec-label">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><circle cx="4" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          Weight
+        </div>
+        <div class="barrel-anchor" data-value="14" data-unit=" kg" data-speed="9"></div>
+      </div>
+    </div>
+
+    <!-- color swatches -->
+    <div class="color-row">
+      <span class="color-label">Finish</span>
+      <div class="swatches">
+        <div class="swatch active" style="background:#d4b896;" title="Natural Boucle"></div>
+        <div class="swatch" style="background:#3d2b1f;" title="Chocolate Leather"></div>
+        <div class="swatch" style="background:#8a9baa;" title="Slate Tweed"></div>
+        <div class="swatch" style="background:#2a2a2a;" title="Noir Velvet"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- price + CTA -->
+    <div class="price-row">
+      <div class="price-block">
+        <div class="price-tag"><sup>$</sup>2,480</div>
+        <div class="price-note">Free white-glove delivery</div>
+      </div>
+      <button class="cta-btn">Add to Room</button>
+    </div>
+  </div>
+</div>
+
+<p class="swap-hint">Swap model → <code>loader.load("your-item.glb")</code></p>
+
+<!-- Three.js -->
+<script src="https://unpkg.com/three@0.152.0/build/three.min.js"></script>
+
+<script type="module">
+import { GLTFLoader }  from 'https://esm.sh/three@0.152.0/examples/jsm/loaders/GLTFLoader';
+import { DRACOLoader } from 'https://esm.sh/three@0.152.0/examples/jsm/loaders/DRACOLoader';
+import { RGBELoader }  from 'https://esm.sh/three@0.152.0/examples/jsm/loaders/RGBELoader';
+import { OrbitControls } from 'https://esm.sh/three@0.152.0/examples/jsm/controls/OrbitControls';
+
+// ─── Vanilla-tilt on card-wrap ──────────────────────────
+const cardWrap = document.getElementById('card-wrap');
+(function tiltInit() {
+  // Lightweight inline tilt (no external dep)
+  let bounds;
+  function getCenter(e) {
+    const t = e.type.startsWith('touch') ? e.touches[0] : e;
+    return { x: t.clientX, y: t.clientY };
+  }
+  cardWrap.addEventListener('mousemove', e => {
+    bounds = bounds || cardWrap.getBoundingClientRect();
+    const { x, y } = getCenter(e);
+    const rx = ((y - bounds.top  - bounds.height/2) / bounds.height) * -8;
+    const ry = ((x - bounds.left - bounds.width/2)  / bounds.width)  *  8;
+    cardWrap.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+  });
+  cardWrap.addEventListener('mouseleave', () => {
+    bounds = null;
+    cardWrap.style.transform = 'perspective(900px) rotateX(0) rotateY(0)';
+  });
+})();
+
+// ─── Swatch switcher ───────────────────────────────────
+document.querySelectorAll('.swatch').forEach(s => {
+  s.addEventListener('click', () => {
+    document.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
+    s.classList.add('active');
+  });
+});
+
+// ─── Three.js setup ────────────────────────────────────
+const canvas   = document.getElementById('furniture-model');
+const loader   = document.getElementById('loader');
+const zone     = canvas.parentElement;
+
+function resize() {
+  const w = zone.clientWidth;
+  const h = zone.clientHeight;
+  canvas.width  = w  * devicePixelRatio;
+  canvas.height = h  * devicePixelRatio;
+  canvas.style.width  = w + 'px';
+  canvas.style.height = h + 'px';
+  if (camera) {
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h, false);
+  }
+}
+
+let camera, renderer, scene, controls, modelGroup, rafId;
+let t0 = performance.now();
+
+function initScene() {
+  const w = zone.clientWidth;
+  const h = zone.clientHeight;
+
+  scene = new THREE.Scene();
+
+  // ── Camera: slight isometric angle ──────────────────
+  camera = new THREE.PerspectiveCamera(32, w/h, 0.01, 200);
+  camera.position.set(3.2, 2.4, 3.8);
+  camera.lookAt(0, 0.4, 0);
+
+  // ── Renderer: alpha=true → frameless/transparent ────
+  renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha: true,           // ← this is the "frameless" secret
+  });
+  renderer.setClearColor(0x000000, 0);   // fully transparent bg
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(w, h, false);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping      = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.95;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+
+  // ── Soft orbit controls (auto-rotate) ───────────────
+  controls = new OrbitControls(camera, canvas);
+  controls.enableZoom    = false;
+  controls.enablePan     = false;
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.autoRotate    = true;
+  controls.autoRotateSpeed = 1.2;
+  controls.minPolarAngle = Math.PI / 5;
+  controls.maxPolarAngle = Math.PI / 2.1;
+
+  // ── Lights ───────────────────────────────────────────
+  const ambient = new THREE.AmbientLight(0xfff5e8, 0.4);
+  scene.add(ambient);
+
+  const key = new THREE.DirectionalLight(0xfff5e8, 2.2);
+  key.position.set(4, 8, 5);
+  key.castShadow = true;
+  key.shadow.mapSize.setScalar(1024);
+  key.shadow.bias = -0.001;
+  scene.add(key);
+
+  const fill = new THREE.DirectionalLight(0xc8a882, 0.6);
+  fill.position.set(-4, 2, -3);
+  scene.add(fill);
+
+  const rim = new THREE.DirectionalLight(0x4888cc, 0.3);
+  rim.position.set(0, -2, -5);
+  scene.add(rim);
+
+  // Ground plane (shadow receiver, invisible)
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(20, 20),
+    new THREE.ShadowMaterial({ opacity: 0.12 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.01;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  modelGroup = new THREE.Group();
+  scene.add(modelGroup);
+
+  // ── HDR environment (Poly Haven via CDN) ─────────────
+  new RGBELoader()
+    .setPath('https://cdn.jsdelivr.net/gh/ouyahama/cdn@main/')
+    .load('light3.hdr', hdr => {
+      const pmrem  = new THREE.PMREMGenerator(renderer);
+      pmrem.compileEquirectangularShader();
+      const envMap = pmrem.fromEquirectangular(hdr).texture;
+      scene.environment    = envMap;
+      scene.environmentIntensity = 0.6;
+      hdr.dispose();
+      pmrem.dispose();
+    }, undefined, () => {
+      // HDR failed → fallback hemisphere
+      scene.add(new THREE.HemisphereLight(0xfff5e8, 0x2a1a0e, 0.8));
+    });
+
+  // ── GLTF loader + Draco ──────────────────────────────
+  const draco = new DRACOLoader();
+  draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+
+  const gltf = new GLTFLoader();
+  gltf.setDRACOLoader(draco);
+
+  /*
+   * ┌──────────────────────────────────────────────────┐
+   * │  SWAP YOUR FURNITURE MODEL HERE                  │
+   * │                                                  │
+   * │  Free furniture GLBs:                            │
+   * │  • Sketchfab → download as .glb                  │
+   * │  • polyhaven.com/models                          │
+   * │  • github.com/KhronosGroup/glTF-Sample-Models    │
+   * │                                                  │
+   * │  Host on: jsDelivr, Cloudflare R2, Supabase      │
+   * │  Storage, or GitHub CDN                          │
+   * └──────────────────────────────────────────────────┘
+   */
+  const MODEL_URL = 'https://threejs.org/examples/models/gltf/SheenChair.glb';
+
+  gltf.load(
+    MODEL_URL,
+    gltf => {
+      // Material polish
+      gltf.scene.traverse(child => {
+        if (!child.isMesh) return;
+        child.castShadow    = true;
+        child.receiveShadow = true;
+        const m = child.material;
+        if (m) {
+          if (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial) {
+            m.envMapIntensity = 0.8;
+            m.roughness = Math.min(m.roughness ?? 0.6, 0.75);
+            m.metalness = m.metalness ?? 0.05;
+          }
+          m.needsUpdate = true;
+        }
+      });
+
+      // Auto-center + scale to fill the canvas nicely
+      const box    = new THREE.Box3().setFromObject(gltf.scene);
+      const size   = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const scale  = 2.2 / maxDim;
+
+      gltf.scene.position.sub(center.multiplyScalar(scale));
+      gltf.scene.scale.setScalar(scale);
+      gltf.scene.position.y += size.y * scale * 0.1; // lift slightly
+
+      modelGroup.add(gltf.scene);
+
+      // Fade out loader
+      loader.style.opacity = '0';
+      setTimeout(() => loader.style.display = 'none', 400);
+
+      // Hover: scale pulse on card
+      document.getElementById('card').addEventListener('mouseenter', () => {
+        modelGroup.scale.set(1.04, 1.04, 1.04);
+      });
+      document.getElementById('card').addEventListener('mouseleave', () => {
+        modelGroup.scale.set(1, 1, 1);
+      });
+
+      tick();
+    },
+    undefined,
+    err => {
+      console.warn('GLB load failed:', err);
+      // Fallback: build a chair from primitives
+      buildFallbackChair();
+      loader.style.opacity = '0';
+      setTimeout(() => loader.style.display = 'none', 400);
+      tick();
+    }
+  );
+}
+
+/* ── Fallback chair (pure Three.js geometry) ──────────── */
+function buildFallbackChair() {
+  const warm   = new THREE.MeshStandardMaterial({ color: 0xc8a882, roughness: 0.65, metalness: 0.05 });
+  const dark   = new THREE.MeshStandardMaterial({ color: 0x2a1a0e, roughness: 0.4,  metalness: 0.15 });
+
+  // Seat
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.18, 1.5), warm);
+  seat.position.set(0, 1.0, 0);
+  seat.castShadow = true;
+
+  // Back
+  const back = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.14), warm);
+  back.position.set(0, 1.8, -0.68);
+  back.castShadow = true;
+
+  // Legs (4)
+  const legGeo = new THREE.CylinderGeometry(0.045, 0.055, 1.0, 8);
+  [[-0.65, -0.6], [0.65, -0.6], [-0.65, 0.6], [0.65, 0.6]].forEach(([x, z]) => {
+    const leg = new THREE.Mesh(legGeo, dark);
+    leg.position.set(x, 0.5, z);
+    leg.castShadow = true;
+    modelGroup.add(leg);
+  });
+
+  // Armrests
+  const armGeo = new THREE.BoxGeometry(0.1, 0.1, 1.2);
+  [-0.8, 0.8].forEach(x => {
+    const arm = new THREE.Mesh(armGeo, dark);
+    arm.position.set(x, 1.38, 0);
+    arm.castShadow = true;
+    modelGroup.add(arm);
+  });
+
+  // Cushion
+  const cushion = new THREE.Mesh(
+    new THREE.BoxGeometry(1.4, 0.2, 1.3),
+    new THREE.MeshStandardMaterial({ color: 0xd4b896, roughness: 0.9, metalness: 0 })
+  );
+  cushion.position.set(0, 1.18, 0.05);
+  cushion.castShadow = true;
+
+  modelGroup.add(seat, back, cushion);
+
+  // Auto-center
+  const box = new THREE.Box3().setFromObject(modelGroup);
+  const center = box.getCenter(new THREE.Vector3());
+  const size   = box.getSize(new THREE.Vector3());
+  modelGroup.position.sub(center);
+  modelGroup.position.y += size.y * 0.5;
+  modelGroup.scale.setScalar(1.1);
+}
+
+/* ── Render loop ───────────────────────────────────────── */
+function tick() {
+  rafId = requestAnimationFrame(tick);
+  controls.update();
+
+  // Gentle float
+  if (modelGroup) {
+    const t = (performance.now() - t0) / 1000;
+    modelGroup.position.y = Math.sin(t * 0.6) * 0.04;
+  }
+
+  renderer.render(scene, camera);
+}
+
+// ─── Init ──────────────────────────────────────────────
+resize();
+initScene();
+new ResizeObserver(resize).observe(zone);
+
+// ─── Barrel drums ──────────────────────────────────────
+(function buildBarrels() {
+  const N      = 10;   // faces in cylinder
+  const FACE_H = 30;   // px — must match CSS .barrel-wrap height
+  // radius: inner circle of N-gon with face height = FACE_H
+  const R = (FACE_H / 2) / Math.tan(Math.PI / N); // ≈ 46px
+
+  // Stave column positions (fraction of face width)
+  const STAVE_POS = [0.22, 0.5, 0.78];
+
+  document.querySelectorAll('.barrel-anchor').forEach(anchor => {
+    const value = anchor.dataset.value;
+    const unit  = anchor.dataset.unit;
+    const speed = parseFloat(anchor.dataset.speed) || 6;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'barrel-wrap';
+
+    const drum = document.createElement('div');
+    drum.className = 'barrel-drum';
+    drum.style.setProperty('--drum-speed', speed + 's');
+
+    for (let i = 0; i < N; i++) {
+      const angle = i * (360 / N);
+      const face  = document.createElement('div');
+      face.className = 'barrel-face';
+      face.style.transform = `rotateX(${angle}deg) translateZ(${R}px)`;
+
+      // Vertical stave lines
+      STAVE_POS.forEach(pos => {
+        const stave = document.createElement('span');
+        stave.className = 'stave';
+        stave.style.left = (pos * 100) + '%';
+        face.appendChild(stave);
+      });
+
+      if (i === 0) {
+        // Front face — show the value
+        const val = document.createElement('span');
+        val.className = 'barrel-val';
+        val.innerHTML = value + '<span class="spec-unit">' + unit + '</span>';
+        face.appendChild(val);
+      } else {
+        // Rear faces — subtle decorative tick marks
+        const mark = document.createElement('span');
+        mark.className = 'barrel-mark';
+        mark.textContent = '· · ·';
+        face.appendChild(mark);
+      }
+
+      drum.appendChild(face);
+    }
+
+    wrap.appendChild(drum);
+    anchor.appendChild(wrap);
+  });
+})();
+</script>
+
+<!-- AVA007 Chat + Camera Upload -->
+<div style="position:fixed;bottom:0;left:0;right:0;background:rgba(13,13,13,0.95);backdrop-filter:blur(1rem);padding:12px 16px;border-top:1px solid rgba(200,168,130,0.18);z-index:100;">
+  <div id="avaChat" style="max-height:120px;overflow-y:auto;margin-bottom:8px;font-family:'DM Sans',sans-serif;font-size:0.7rem;color:#f5f0eb;">
+    <div style="color:rgba(200,168,130,0.7);margin-bottom:4px;">[AVA007] Online. Take a photo of furniture to get a quote.</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <label style="width:36px;height:36px;border-radius:8px;background:rgba(200,168,130,0.12);border:1px solid rgba(200,168,130,0.2);color:#c8a882;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0;" aria-label="Camera">
+      &#128247;
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+    </label>
+    <input type="text" id="chatInput" placeholder="Ask AVA007..." style="flex:1;padding:10px 14px;border:none;border-radius:8px;background:rgba(245,240,235,0.06);color:#f5f0eb;font-family:'DM Sans',sans-serif;font-size:0.75rem;outline:none;">
+    <button id="sendBtn" style="width:36px;height:36px;border:none;border-radius:8px;background:linear-gradient(135deg,#b07d4f,#c8a882);color:#0d0d0d;font-size:14px;cursor:pointer;flex-shrink:0;">&#8593;</button>
+  </div>
+</div>
+
+<script>
+// AVA007 Integration: Camera -> 3D Texture + Gemma 2B Quote
+(function() {
+  var cameraInput = document.getElementById('cameraInput');
+  var chatInput = document.getElementById('chatInput');
+  var sendBtn = document.getElementById('sendBtn');
+  var avaChat = document.getElementById('avaChat');
+  var LLAMA = 'http://localhost:8080';
+
+  function addChat(text, isAva) {
+    var div = document.createElement('div');
+    div.style.color = isAva ? 'rgba(200,168,130,0.8)' : 'rgba(245,240,235,0.6)';
+    div.style.marginBottom = '4px';
+    div.textContent = (isAva ? '[AVA007] ' : '[You] ') + text;
+    avaChat.appendChild(div);
+    avaChat.scrollTop = avaChat.scrollHeight;
+  }
+
+  function callGemma(messages, callback) {
+    addChat('Analyzing...', true);
+    fetch(LLAMA + '/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: messages,
+        max_tokens: 256,
+        temperature: 0.5
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      // Remove "Analyzing..." 
+      var msgs = avaChat.children;
+      if (msgs.length > 0 && msgs[msgs.length-1].textContent.includes('Analyzing')) {
+        msgs[msgs.length-1].remove();
+      }
+      var reply = data.choices[0].message.content;
+      callback(reply, data);
+    })
+    .catch(function(err) {
+      var msgs = avaChat.children;
+      if (msgs.length > 0 && msgs[msgs.length-1].textContent.includes('Analyzing')) {
+        msgs[msgs.length-1].remove();
+      }
+      addChat('Error: ' + err.message + ' - Is llama-server running?', true);
+    });
+  }
+
+  // Camera upload -> display on 3D model + get quote from Gemma
+  cameraInput.addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    cameraInput.value = '';
+    addChat('Photo uploaded: ' + file.name, false);
+
+    // 1. Display the image as a texture on the 3D model
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      var imgUrl = event.target.result;
+      
+      // Apply as texture to the 3D model
+      if (typeof THREE !== 'undefined' && modelGroup) {
+        var loader = new THREE.TextureLoader();
+        loader.load(imgUrl, function(texture) {
+          modelGroup.traverse(function(child) {
+            if (child.isMesh && child.material) {
+              child.material.map = texture;
+              child.material.needsUpdate = true;
+            }
+          });
+          addChat('Photo applied to 3D model', true);
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // 2. Ask Gemma to analyze and generate a quote
+    callGemma([
+      { role: 'system', content: 'You are AVA007, a furniture assembly AI. A customer uploaded a photo of furniture. Generate a service quote with a specific dollar amount for assembly. Format: Price: $XXX. Brief description of what needs assembly.' },
+      { role: 'user', content: 'Customer uploaded a photo of furniture (filename: ' + file.name + ', size: ' + (file.size/1024).toFixed(0) + 'KB). Please provide an assembly quote.' }
+    ], function(reply, data) {
+      addChat(reply, true);
+
+      // Update the price on the card
+      var priceMatch = reply.match(/\$(\d+[\d,]*)/);
+      if (priceMatch) {
+        var priceEl = document.querySelector('.price-tag');
+        if (priceEl) {
+          priceEl.innerHTML = '<sup>$</sup>' + priceMatch[1].replace(/,/g, '');
+        }
+        var noteEl = document.querySelector('.price-note');
+        if (noteEl) {
+          noteEl.textContent = 'AVA007 Generated Quote';
+        }
+      }
+    });
+  });
+
+  // Chat input -> Gemma 2B
+  function sendChat() {
+    var text = chatInput.value.trim();
+    if (!text) return;
+    chatInput.value = '';
+    addChat(text, false);
+
+    callGemma([
+      { role: 'system', content: 'You are AVA007, a sovereign AI assistant for furniture assembly service. Be concise and helpful.' },
+      { role: 'user', content: text }
+    ], function(reply, data) {
+      addChat(reply, true);
+
+      // Update price if mentioned
+      var priceMatch = reply.match(/\$(\d+[\d,]*)/);
+      if (priceMatch) {
+        var priceEl = document.querySelector('.price-tag');
+        if (priceEl) {
+          priceEl.innerHTML = '<sup>$</sup>' + priceMatch[1].replace(/,/g, '');
+        }
+      }
+    });
+  }
+
+  sendBtn.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendChat();
+  });
+})();
+</script>
+
+</body>
+</html>
