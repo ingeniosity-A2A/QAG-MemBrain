@@ -1,4 +1,4 @@
-import { CognitiveGraphRepository, InMemoryCognitiveGraphRepository } from "../neo4j/repositories/cognitiveGraphRepository.js";
+import { CognitiveGraphRepository, InMemoryCognitiveGraphRepository } from "./repositories/cognitiveGraphRepository.js";
 import { projectJsonlLedgerToGraphHash } from "./jsonlGraphProjection.js";
 import { GraphEqualityResult, GraphSnapshot, verifyGraphEquality } from "./graphHash.js";
 

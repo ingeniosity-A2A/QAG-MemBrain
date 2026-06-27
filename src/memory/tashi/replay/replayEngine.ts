@@ -1,7 +1,6 @@
-import { computeRecordHash } from "../jsonl/hash.js";
-import { query } from "../jsonl/jsonlStore.js";
-import { MemoryRecord } from "../jsonl/memoryRecord.js";
-import { verify, verifySignature } from "../jsonl/signatureVerification.js";
+import { computeRecordHash } from "../../jsonl/hash.js";
+import { query, MemoryRecord } from "../../jsonl/index.js";
+import { verify as verifySig, verifySignature } from "../../jsonl/signatureVerification.js";
 
 export interface ReplayResult<TState> {
   state: TState;
@@ -40,7 +39,7 @@ export async function verifyLedger(filePath: string, options: VerifyLedgerOption
     }
     ids.add(record.id);
 
-    if (!verify(record)) {
+    if (!verifySig(record)) {
       failures.push(`invalid record or signature metadata: ${record.id}`);
       continue;
     }
@@ -53,13 +52,13 @@ export async function verifyLedger(filePath: string, options: VerifyLedgerOption
       failures.push(`signature verification failed: ${record.id}`);
     }
 
-    if (!previous && typeof record.metadata.previous_hash !== "undefined") {
+    if (!previous && typeof record.metadata?.previous_hash !== "undefined") {
       failures.push(`genesis record has previous_hash: ${record.id}`);
     }
 
     if (previous) {
       const expected = computeRecordHash(previous);
-      if (!record.metadata.previous_hash) {
+      if (!record.metadata?.previous_hash) {
         failures.push(`missing previous_hash: ${record.id}`);
       } else if (record.metadata.previous_hash !== expected) {
         failures.push(`previous_hash mismatch: ${record.id}`);
@@ -105,7 +104,7 @@ export async function replayToTimestamp<TState>(
   }
 
   const records = await readLedger(filePath);
-  const appliedRecords = records.filter((record) => Date.parse(record.timestamp) <= target);
+  const appliedRecords = records.filter((record) => record.timestamp <= target);
 
   let state = initialState;
   for (const record of appliedRecords) {

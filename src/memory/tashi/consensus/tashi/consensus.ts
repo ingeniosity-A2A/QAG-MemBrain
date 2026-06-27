@@ -1,6 +1,6 @@
-import { LedgerEntry } from "../../memory/ledger/jsonlLedger.js";
+import { LedgerEntry } from "../../ledger/jsonlLedger.js";
 import { createHash } from "node:crypto";
-import { DagPathProvenance } from "../../memory/jsonl/provenance.js";
+import { DagPathProvenance } from "../../../jsonl/provenance.js";
 
 export interface TashiVertex {
   hash: string;

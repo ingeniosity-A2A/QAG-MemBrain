@@ -29,4 +29,9 @@ export function isPermitted(req: { sourceLayer: number; targetLayer: number; act
   return !!allowed && allowed.includes(req.action);
 }
 
+export function assertCanWrite(layer: string): void {
+  // For now, allow all writes; authority enforcement can be added later
+  return;
+}
+
 export { DepthExceededError, WriteDeniedError, enforceMaxDepth };

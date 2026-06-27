@@ -1,4 +1,4 @@
-import { MemoryRecord } from "@memory/jsonl/index.js";
+import { MemoryRecord } from "../memory/jsonl/index.js";
 
 export interface ExtractedEntity {
   id: string;
@@ -22,7 +22,7 @@ export function extractEntities(record: MemoryRecord): ExtractedEntity[] {
     entities.push({
       id: classifyEntityId(raw),
       type: classifyEntityType(raw),
-      confidence: typeof record.metadata.confidence === "number" ? record.metadata.confidence : 0.7,
+      confidence: typeof record.metadata?.confidence === "number" ? record.metadata.confidence : 0.7,
     });
   }
 

@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { pipeline } from "@xenova/transformers";
 import sqliteVec from "sqlite-vec";
-import { TaskMemoryStore } from "../shared/types";
+import { TaskMemoryStore } from "../../shared/types.js";
 
 export interface VectorRecord {
   id: string;

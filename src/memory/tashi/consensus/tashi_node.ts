@@ -5,8 +5,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { createHash }      from "crypto";
-import { appendAtom }      from "../memory/atomic_memory";
-import { AtomicMemory, TashiVertex } from "../shared/types";
+import { appendAtom }      from "../atomic_memory.js";
+import { AtomicMemory, TashiVertex } from "../../../shared/types.js";
 import WebSocket           from "ws";
 
 function hashVertex(atom: AtomicMemory, parents: string[], creator: string): string {

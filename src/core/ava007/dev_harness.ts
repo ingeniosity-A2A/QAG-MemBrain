@@ -21,8 +21,8 @@ import * as path from 'path';
 import { DynamicPromptEngine } from './dynamic_prompt_engine.js';
 import { defaultCognitiveState, type CognitiveState, type AtmosphereMood } from './cognitive_state.js';
 import type { Atom } from './coordination_types.js';
-import { JsonLStore } from '@memory/jsonl/index.js';
 import type { MemoryStore } from '@memory/jsonl/index.js';
+import { MemoryStore as MemoryStoreImpl } from '@memory/jsonl/index.js';
 import type { OrchestratorConstraints, CapabilityManifest } from './capability_manifest.js';
 import { DEFAULT_ORCHESTRATOR_CONSTRAINTS, GRIPTAPE_TOOL_MANIFESTS } from './capability_manifest.js';
 
@@ -62,7 +62,7 @@ const THERMAL_RAMP: CognitiveState['sensors']['thermalState'][] = [
   'nominal', 'nominal', 'warm', 'warm', 'hot', 'hot', 'critical', 'critical',
 ];
 
-function simulateThermalScenario(engine: DynamicPromptEngine, memory: JsonLStore): HarnessStep[] {
+function simulateThermalScenario(engine: DynamicPromptEngine, memory: MemoryStoreImpl): HarnessStep[] {
   const steps: HarnessStep[] = [];
 
   for (let i = 0; i < THERMAL_RAMP.length; i++) {
@@ -96,7 +96,7 @@ function simulateThermalScenario(engine: DynamicPromptEngine, memory: JsonLStore
 
 const BATTERY_LEVELS = [100, 80, 60, 40, 25, 20, 15, 10, 5];
 
-function simulateBatteryScenario(engine: DynamicPromptEngine, memory: JsonLStore): HarnessStep[] {
+function simulateBatteryScenario(engine: DynamicPromptEngine, memory: MemoryStoreImpl): HarnessStep[] {
   const steps: HarnessStep[] = [];
 
   for (const level of BATTERY_LEVELS) {
@@ -134,7 +134,7 @@ function simulateBatteryScenario(engine: DynamicPromptEngine, memory: JsonLStore
 
 // ─── Network Failover Simulator ──────────────────────────────────────
 
-function simulateNetworkFailover(engine: DynamicPromptEngine, memory: JsonLStore): HarnessStep[] {
+function simulateNetworkFailover(engine: DynamicPromptEngine, memory: MemoryStoreImpl): HarnessStep[] {
   const steps: HarnessStep[] = [];
   const networkStates: CognitiveState['sensors']['networkType'][] = ['wifi', 'cellular', 'offline', 'wifi'];
 
@@ -164,7 +164,7 @@ function simulateNetworkFailover(engine: DynamicPromptEngine, memory: JsonLStore
 
 // ─── OOM Simulator ───────────────────────────────────────────────────
 
-function simulateOOM(engine: DynamicPromptEngine, memory: JsonLStore): HarnessStep[] {
+function simulateOOM(engine: DynamicPromptEngine, memory: MemoryStoreImpl): HarnessStep[] {
   const steps: HarnessStep[] = [];
   // Simulate increasing token budget pressure
   const tokenBudgets = [4096, 2048, 1024, 512, 128, 0];
@@ -201,7 +201,7 @@ function simulateOOM(engine: DynamicPromptEngine, memory: JsonLStore): HarnessSt
 
 // ─── Deterministic Degradation ───────────────────────────────────────
 
-function simulateDeterministicDegradation(engine: DynamicPromptEngine, memory: JsonLStore): HarnessStep[] {
+function simulateDeterministicDegradation(engine: DynamicPromptEngine, memory: MemoryStoreImpl): HarnessStep[] {
   const steps: HarnessStep[] = [];
 
   // Phase 1: Normal operation
@@ -263,7 +263,7 @@ function simulateDeterministicDegradation(engine: DynamicPromptEngine, memory: J
 
 // ─── Form Factor Simulator ───────────────────────────────────────────
 
-function simulateFormFactor(engine: DynamicPromptEngine, memory: JsonLStore): HarnessStep[] {
+function simulateFormFactor(engine: DynamicPromptEngine, memory: MemoryStoreImpl): HarnessStep[] {
   const steps: HarnessStep[] = [];
   const formFactors: CognitiveState['sensors']['formFactor'][] = ['phone', 'tablet', 'foldable', 'desktop', 'dex'];
 
@@ -287,7 +287,7 @@ function simulateFormFactor(engine: DynamicPromptEngine, memory: JsonLStore): Ha
 
 // ─── Coordination Coherence ──────────────────────────────────────────
 
-function simulateCoordinationCoherence(engine: DynamicPromptEngine, memory: JsonLStore): HarnessStep[] {
+function simulateCoordinationCoherence(engine: DynamicPromptEngine, memory: MemoryStoreImpl): HarnessStep[] {
   const steps: HarnessStep[] = [];
 
   // Send contradictory atoms and verify the engine doesn't oscillate wildly
@@ -346,7 +346,7 @@ export function runHarness(scenario: HarnessScenario, dataDir?: string): Harness
     : [scenario];
 
   for (const s of scenarios) {
-    const memory = new JsonLStore(dir, `harness_${s}.jsonl`);
+    const memory = new MemoryStoreImpl(dir, `harness_${s}.jsonl`);
     const engine = new DynamicPromptEngine(memory);
     const start = Date.now();
 

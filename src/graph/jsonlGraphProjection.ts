@@ -1,9 +1,8 @@
-import { CognitiveGraphRepository } from "@graph/repositories/cognitiveGraphRepository.js";
-import { CognitiveNode } from "../schema/nodeTypes.js";
-import { CognitiveRelationship } from "../schema/relationshipTypes.js";
-import { query } from "@memory/jsonl/index.js";
-import { computeRecordHash } from "@memory/jsonl/hash.js";
-import { MemoryRecord } from "@memory/jsonl/index.js";
+import { CognitiveGraphRepository } from "./repositories/cognitiveGraphRepository.js";
+import { CognitiveNode } from "./schema/nodeTypes.js";
+import { CognitiveRelationship } from "./schema/relationshipTypes.js";
+import { query, MemoryRecord } from "../memory/jsonl/index.js";
+import { computeRecordHash } from "../memory/jsonl/hash.js";
 import { extractEntities } from "./entityExtraction.js";
 import { computeGraphHash, GraphSnapshot } from "./graphHash.js";
 
@@ -44,26 +43,27 @@ export async function projectMemoryRecordsToGraph(
   const relationships = new Map<string, CognitiveRelationship>();
 
   for (const record of records) {
+    const recordSource = (record.metadata?.source as string) ?? "unknown";
     const memoryNode: CognitiveNode = {
       id: record.id,
       type: "Memory",
       properties: {
         type: record.type,
-        source: record.source,
+        source: recordSource,
         timestamp: record.timestamp,
         content: record.content,
-        confidence: record.metadata.confidence,
-        importance: record.metadata.importance,
+        confidence: record.metadata?.confidence,
+        importance: record.metadata?.importance,
       },
     };
     nodes.set(memoryNode.id, memoryNode);
 
-    const agentId = `agent:${record.source}`;
+    const agentId = `agent:${recordSource}`;
     nodes.set(agentId, {
       id: agentId,
       type: "Agent",
       properties: {
-        source: record.source,
+        source: recordSource,
       },
     });
 
@@ -76,8 +76,8 @@ export async function projectMemoryRecordsToGraph(
       },
     });
 
-    if (record.metadata.previous_hash) {
-      const previousId = hashToRecordId.get(record.metadata.previous_hash);
+    if (record.metadata?.previous_hash) {
+      const previousId = hashToRecordId.get(record.metadata.previous_hash as string);
       if (previousId) {
         relationships.set(`${previousId}->${record.id}:RELATED_TO`, {
           fromId: previousId,

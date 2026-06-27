@@ -3,7 +3,7 @@ export interface AuditEvent {
   timestamp: number;
   authority: string;
   action: string;
-  outcome: 'allowed' | 'denied' | 'blocked' | 'passed' | 'failed' | 'error';
+  outcome: 'allowed' | 'denied' | 'blocked' | 'passed' | 'failed' | 'error' | 'completed' | 'compressed' | 'success';
   details: Record<string, unknown>;
   severity: 'critical' | 'warning' | 'info' | 'debug';
   correlationId?: string;

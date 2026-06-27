@@ -1,3 +1,39 @@
+export interface AuditEvent {
+  id: string;
+  timestamp: number;
+  authority: string;
+  action: string;
+  outcome: 'allowed' | 'denied' | 'blocked' | 'passed' | 'failed' | 'error';
+  details: Record<string, unknown>;
+  severity: 'critical' | 'warning' | 'info' | 'debug';
+  correlationId?: string;
+  causationId?: string;
+}
+
+export interface ContextNode {
+  id: string;
+  type: string;
+  name?: string;
+  attributes?: Record<string, unknown>;
+  parentId?: string;
+  children?: ContextNode[];
+  state?: Record<string, unknown>;
+  dependencies?: string[];
+  authority?: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  timestamp: number;
+  type: 'created' | 'activated' | 'modified' | 'consolidated' | 'archived' | 'replayed' | 'reconstructed';
+  entityId: string;
+  entityType: string;
+  previousState?: Record<string, unknown>;
+  newState: Record<string, unknown>;
+  authority: string;
+  correlationId?: string;
+}
+
 export interface GovernancePolicy {
   id: string;
   name: string;
@@ -98,8 +134,11 @@ export class GovernanceContract {
       authority: context.authorityState.activeAuthority,
       action: 'governance_evaluation',
       outcome: allowed ? 'allowed' : 'denied',
-      violations: violations.map(v => v.policyId),
-      contextHash: this.hashContext(context),
+      details: {
+        violations: violations.map(v => v.policyId),
+        contextHash: this.hashContext(context),
+      },
+      severity: allowed ? 'info' : 'warning',
     };
 
     this.auditLog.push(auditEvent);

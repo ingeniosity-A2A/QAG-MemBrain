@@ -1,6 +1,6 @@
-import { appendAtom, readAtoms } from "./atomic_memory";
-import { assertCanWrite } from "../contract/enforcement";
-import { AtomicMemory } from "../shared/types";
+import { appendAtom, readAtoms } from "./atomic_memory.js";
+import { assertCanWrite } from "../../contract/enforcement.js";
+import { AtomicMemory } from "../../shared/types.js";
 
 export interface EdgeCustomer {
   id: string;

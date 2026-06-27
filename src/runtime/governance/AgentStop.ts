@@ -1,4 +1,4 @@
-import { GovernanceContract, GovernanceContext, GovernanceResult } from './GovernanceContract.js';
+import { GovernanceContract, GovernanceContext, GovernanceResult, AuditEvent } from './GovernanceContract.js';
 
 export interface SubAgentOutput {
   agentId: string;
@@ -21,15 +21,6 @@ export interface PolicyViolation {
   severity: 'critical' | 'warning' | 'info';
   message: string;
   agentId: string;
-}
-
-export interface AuditEvent {
-  id: string;
-  timestamp: number;
-  authority: string;
-  action: string;
-  outcome: string;
-  details: Record<string, unknown>;
 }
 
 export class AgentStop {
@@ -77,6 +68,7 @@ export class AgentStop {
         violations: violations.map(v => v.policyId),
         confidence: agentOutput.confidence,
       },
+      severity: hasCriticalViolations ? 'critical' : 'warning',
     };
 
     return {
@@ -126,4 +118,4 @@ export class AgentStop {
   }
 }
 
-export const agentStop = new AgentStop(governanceContract);
+export const agentStop = new AgentStop(new GovernanceContract());

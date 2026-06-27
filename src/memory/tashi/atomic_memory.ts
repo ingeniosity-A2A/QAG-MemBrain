@@ -7,7 +7,7 @@ import { createHash, createSign, createVerify } from "crypto";
 import { createWriteStream, createReadStream }  from "fs";
 import { createInterface }                       from "readline";
 import { v4 as uuid }                            from "uuid";
-import { AtomicMemory, AtomType, AtomSource, Importance, CFGLResult, BrainTier } from "../shared/types";
+import { AtomicMemory, AtomType, AtomSource, Importance, CFGLResult, BrainTier } from "../../shared/types.js";
 
 // ─── CFGL — Cognitive Filing and Governance Layer ────────────────────
 // The Rev.Ike subconscious boundary.

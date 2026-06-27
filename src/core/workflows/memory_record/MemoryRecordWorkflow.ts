@@ -31,7 +31,7 @@ export interface MemoryRecord {
 
 export interface MemoryEntity {
   id: string;
-  type: 'customer' | 'technician' | 'product' | 'location' | 'tool';
+  type: 'customer' | 'technician' | 'product' | 'location' | 'tool' | 'job';
   name: string;
   attributes: Record<string, unknown>;
 }
@@ -109,11 +109,11 @@ Return as JSON`;
       id: crypto.randomUUID(),
       jobId: outcome.bookingId,
       type: 'customer_interaction',
-      summary: `Customer rated job ${outcome.customerRating}/5`,
+      summary: `Customer rated job ${outcome.customerRating!}/5`,
       entities: [
         { id: outcome.customerId, type: 'customer', name: 'Customer', attributes: { rating: outcome.customerRating } },
       ],
-      insights: outcome.customerRating >= 4 
+      insights: outcome.customerRating! >= 4 
         ? ['Customer satisfied, replicate approach'] 
         : ['Customer dissatisfied, review process'],
       confidence: 1.0,

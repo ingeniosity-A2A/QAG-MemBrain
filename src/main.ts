@@ -22,7 +22,7 @@ import { Brain } from './brain/index.js';
 import { MemBrainWSServer } from './ws/index.js';
 import { LoRaBridge } from './hal/index.js';
 import { routeProximityEvent } from './proximity/index.js';
-import type { Atom } from './ava007/coordination_types.js';
+import type { Atom } from './core/ava007/coordination_types.js';
 import { runHarness } from './cognition/index.js';
 import { TelnyxBridge } from './telnyx/index.js';
 import { exec } from 'child_process';
@@ -190,11 +190,10 @@ lora.onPacket((packet: any) => {
 // ── Proximity event handling (NFC, NAN, Blecon, UWB) ──
 async function handleProximityInput() {
   // Example: simulate an NFC tap → atom → coordination loop + router
-  const nfcResult = await routeProximityEvent(
+  const nfcResult = routeProximityEvent(
     { type: 'NFC', payload: { type: 'handshake', data: 'customer_did_abc123', handshakeId: 'hs_001' } },
-    'nfc_reader_1',
   );
-  console.log(`[Proximity] NFC atom created: ${nfcResult?.id || 'unknown'}`);
+  console.log(`[Proximity] NFC atom created: ${(nfcResult as any)?.id || 'unknown'}`);
 
   // Feed the proximity atom into the full coordination pipeline
   const proximityAtom: Atom = {
@@ -229,7 +228,7 @@ brain.cavern.on('profileUpdate', (profile: any) => {
 // Any sensor update flows through: Perception → Interpretation → Assembly → Routing
 brain.cognition.updateAgentStatus(
   Array.from(brain.router.getCapabilityStatus())
-    .map(s => `${s.agentId}:${s.healthy ? 'ok' : 'down'}`)
+    .map((s: any) => `${s.agentId}:${s.healthy ? 'ok' : 'down'}`)
     .join(', '),
 );
 

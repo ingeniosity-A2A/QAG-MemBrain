@@ -1,4 +1,4 @@
-import { TaskMemoryStore } from "../shared/types";
+import { TaskMemoryStore } from "../../shared/types.js";
 import { createHash } from "crypto";
 
 export interface VectorRecord {

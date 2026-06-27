@@ -8,7 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import neo4j, { Driver, Session } from "neo4j-driver";
-import { AtomicMemory, TashiVertex, TimelineDefinition, Neo4jMemoryNode } from "../shared/types";
+import { AtomicMemory, TashiVertex, TimelineDefinition, Neo4jMemoryNode } from "../shared/types.js";
 
 // ─── Schema (run once on first start) ────────────────────────────────
 export const SCHEMA_CYPHER = `

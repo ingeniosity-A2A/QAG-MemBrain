@@ -1,9 +1,11 @@
-import { ContextNode, TimelineEvent, AuthorityState, ToolDefinition } from './schemas.js';
+import { ContextNode, TimelineEvent, AuthorityState } from './schemas.js';
+import { ToolDefinition } from './GovernanceContract.js';
 
 export interface AssemblyConfig {
   maxTokens: number;
-  objective: string;
+  objective?: string;
   priorityOrder: AssemblyPriority[];
+  reserved?: number;
 }
 
 export type AssemblyPriority = 
