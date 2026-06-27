@@ -70,9 +70,16 @@ pub struct CloudflareConfig {
 impl Default for CloudflareConfig {
     fn default() -> Self {
         Self {
-            worker_url: "https://ava007-proxy.example.workers.dev".into(),
+            // Default Worker URL pattern — replace <your-subdomain> with
+            // your actual Worker name from `wrangler deploy` output.
+            // Or override via the AVA007_WORKER_URL env var at startup.
+            worker_url: std::env::var("AVA007_WORKER_URL")
+                .unwrap_or_else(|_| "https://ava007-telnyx-proxy.example.workers.dev".into())
+                .into(),
             tunnel_ingress_url: None,
-            webhook_secret: "change-me-in-production".into(),
+            webhook_secret: std::env::var("AVA007_WEBHOOK_SECRET")
+                .unwrap_or_else(|_| "change-me-in-production".into())
+                .into(),
             local_port: 8787,
             timeout: Duration::from_secs(15),
             webhook_queue_capacity: 64,

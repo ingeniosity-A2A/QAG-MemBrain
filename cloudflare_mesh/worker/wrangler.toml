@@ -1,0 +1,54 @@
+name = "ava007-telnyx-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+account_id = ""  # ← set with: wrangler whoami, paste the account_id here
+
+# Production route: https://ava007-proxy.<your-subdomain>.workers.dev
+# Override with: wrangler deploy --name <your-name>
+
+# ── KV Namespaces ──────────────────────────────────────────────────────────
+# Create these first with:
+#   wrangler kv:namespace create DEVICE_TOKENS
+#   wrangler kv:namespace create DEVICE_TUNNELS
+#   wrangler kv:namespace create RATE_LIMITS
+#
+# Then paste the IDs below.
+
+[[kv_namespaces]]
+binding = "DEVICE_TOKENS"
+id = ""  # ← paste from `wrangler kv:namespace create DEVICE_TOKENS` output
+
+[[kv_namespaces]]
+binding = "DEVICE_TUNNELS"
+id = ""  # ← paste from `wrangler kv:namespace create DEVICE_TUNNELS` output
+
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = ""  # ← paste from `wrangler kv:namespace create RATE_LIMITS` output
+
+# ── Secrets ────────────────────────────────────────────────────────────────
+# Set these with `wrangler secret put` (NEVER commit them):
+#
+#   wrangler secret put TELNYX_API_KEY
+#     → paste your Telnyx API key (from https://portal.telnyx.com/#/app/api-keys)
+#
+#   wrangler secret put WEBHOOK_SECRET
+#     → generate with: openssl rand -hex 32
+#     → this is the shared secret between Worker and AVA007 device
+#
+#   wrangler secret put TELNYX_WEBHOOK_SECRET
+#     → from Telnyx portal: WhatsApp → Settings → Webhook signing secret
+
+# ── Observability ──────────────────────────────────────────────────────────
+[observability]
+enabled = true
+
+# ── Limits ─────────────────────────────────────────────────────────────────
+# Free plan: 100k requests/day, 10ms CPU per request
+# Paid plan ($5/mo): 10M requests/month, 50ms CPU per request
+[limits]
+cpu_ms = 50
+
+# ── Vars (non-secret) ──────────────────────────────────────────────────────
+[vars]
+ENVIRONMENT = "production"

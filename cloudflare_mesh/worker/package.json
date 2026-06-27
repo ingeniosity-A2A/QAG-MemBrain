@@ -1,0 +1,20 @@
+{
+  "name": "ava007-telnyx-proxy-worker",
+  "version": "0.1.0",
+  "description": "Cloudflare Worker — Telnyx API proxy + WhatsApp webhook ingress for AVA007",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "kv:create": "node scripts/kv-create.js",
+    "secret:put": "wrangler secret put",
+    "setup": "node scripts/setup.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.4.0",
+    "wrangler": "^3.50.0"
+  }
+}

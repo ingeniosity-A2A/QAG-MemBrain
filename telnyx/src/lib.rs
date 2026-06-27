@@ -56,11 +56,31 @@ pub struct TelnyxConfig {
 
 impl Default for TelnyxConfig {
     fn default() -> Self {
+        // If AVA007_WORKER_URL is set, route through the Cloudflare Worker
+        // proxy (recommended — keeps API key off the device).
+        // Otherwise, hit api.telnyx.com directly (requires TELNYX_API_KEY env var).
+        let (base_url, proxy_url) = match std::env::var("AVA007_WORKER_URL") {
+            Ok(worker) => (
+                // When using proxy, base_url is the Worker URL.
+                // The TelnyxClient::request_url() prepends /v2 path segments
+                // to whatever base_url is set, so the Worker URL should NOT
+                // include /v2 — it's added by the path passed in.
+                worker.trim_end_matches("/v2").to_string(),
+                Some(worker.clone()),
+            ),
+            Err(_) => (
+                "https://api.telnyx.com".to_string(),
+                None,
+            ),
+        };
+
         Self {
-            base_url: "https://api.telnyx.com".into(),
+            base_url: base_url.into(),
             timeout: Duration::from_secs(30),
-            cloudflare_proxy_url: None,
-            default_whatsapp_phone_id: None,
+            cloudflare_proxy_url: proxy_url.map(|p| p.into()),
+            default_whatsapp_phone_id: std::env::var("AVA007_WHATSAPP_PHONE_ID")
+                .ok()
+                .map(|s| s.into()),
         }
     }
 }
@@ -103,18 +123,27 @@ impl TelnyxClient {
         WhatsAppClient::new(self.clone())
     }
 
-    /// Build the actual request URL — uses Cloudflare proxy if configured.
+    /// Build the actual request URL.
+    ///
+    /// - In **direct mode** (no proxy): `{base_url}{path}` where base_url
+    ///   is `https://api.telnyx.com` and path is like `/v2/whatsapp_messages`.
+    ///
+    /// - In **proxy mode** (AVA007_WORKER_URL set): same `{base_url}{path}`
+    ///   pattern, but base_url is the Worker URL. The Worker forwards to
+    ///   `https://api.telnyx.com/v2{path}` internally.
     pub(crate) fn request_url(&self, path: &str) -> String {
-        if let Some(proxy) = &self.config.cloudflare_proxy_url {
-            format!("{}{}", proxy, path)
-        } else {
-            format!("{}{}", self.config.base_url, path)
-        }
+        format!("{}{}", self.config.base_url, path)
     }
 
-    /// Inject the auth header. If using Cloudflare proxy, the proxy
-    /// injects the actual Telnyx key from its secret store — we send
-    /// a device-bound token instead.
+    /// Inject the auth header.
+    ///
+    /// - In **proxy mode** (`cloudflare_proxy_url` is Some): send
+    ///   `X-Device-Token: <token>` — the Worker swaps this for the
+    ///   real Telnyx API key from its secret store.
+    ///
+    /// - In **direct mode**: send `Authorization: Bearer <api_key>`
+    ///   using the Telnyx key from env var (dev only — not recommended
+    ///   for production because the key lives on the device).
     pub(crate) fn auth_header(&self) -> anyhow::Result<(String, String)> {
         if self.config.cloudflare_proxy_url.is_some() {
             // Cloudflare Worker path: send device token, Worker swaps for real key
