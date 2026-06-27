@@ -1,0 +1,63 @@
+[package]
+name = "meta_harness"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+authors = ["AVA007 Project"]
+description = "Meta Harness — the AVA007 orchestration layer between user input and Constellation agents"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "meta_harness"
+path = "src/lib.rs"
+crate-type = ["lib", "cdylib"]
+
+[features]
+default = []
+# Enable in-process DuckDB for direct Context Lake queries
+duckdb-embedded = ["dep:duckdb"]
+
+[dependencies]
+# ── Internal crate ────────────────────────────────────────────────
+lite_notebook = { path = "../lite_notebook" }
+
+# ── Async runtime ─────────────────────────────────────────────────
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+
+# ── Sync primitives ───────────────────────────────────────────────
+parking_lot = "0.12"
+
+# ── HTTP client (for llama-server + FABLE backends) ───────────────
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# ── LRU cache (for embedding cache in Injector) ───────────────────
+lru = "0.12"
+
+# ── Serialization ─────────────────────────────────────────────────
+serde       = { version = "1", features = ["derive", "rc"] }
+serde_json  = "1"
+
+# ── IDs ───────────────────────────────────────────────────────────
+uuid = { version = "1", features = ["v7", "serde"] }
+
+# ── Errors + logging ──────────────────────────────────────────────
+anyhow     = "1"
+thiserror  = "1"
+tracing    = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# ── Optional: in-process DuckDB ───────────────────────────────────
+duckdb = { version = "1.1", features = ["bundled"], optional = true }
+
+[dev-dependencies]
+tempfile = "3"
+tokio-test = "0.4"
+wiremock = "0.6"
+
+[profile.bench]
+inherits = "release"
+debug = true
+
+# ── NDK cross-compilation ─────────────────────────────────────────
+# Build with: cargo build --release --target aarch64-linux-android

@@ -1,0 +1,30 @@
+[package]
+name = "goose"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+authors = ["AVA007 Project"]
+description = "Goose dispatcher — headless expansion services (AgentZero, Griptape, Bastani)"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "goose"
+path = "src/lib.rs"
+
+[dependencies]
+meta_harness = { path = "../meta_harness" }
+telnyx = { path = "../telnyx" }
+
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+parking_lot = "0.12"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+anyhow = "1"
+tracing = "0.1"
+regex = "1"
+
+[dev-dependencies]
+tempfile = "3"
