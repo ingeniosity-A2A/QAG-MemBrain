@@ -8,6 +8,8 @@ members = [
     "mobile_runtime",
     "telnyx",
     "cloudflare_mesh",
+    "harness_evolution",
+    "constellation",
 ]
 
 [workspace.package]

@@ -1,0 +1,21 @@
+[package]
+name = "constellation"
+version = "0.1.0"
+edition = "2021"
+description = "Model router — never reasons, only routes. Picks model/quant/endpoint per request."
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+parking_lot = "0.12"
+
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = "1"
+
+anyhow = "1"
+tracing = "0.1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+
+[dev-dependencies]
+tokio-test = "0.4"

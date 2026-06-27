@@ -1,8 +1,2 @@
-node_modules/
-dist/
-coverage/
-*.log
-.DS_Store
-authority/signing/*.private.pem
-authority/signing/generatedAuthorityPrivateKeys.json
-data/
+target/
+*.lock
