@@ -1,0 +1,130 @@
+{
+  "_comment": "QAG_MemBrain — srsRAN Configuration for Samsung S26 Ultra Sovereign Mesh",
+  "_hardware": "Samsung S26 Ultra (Snapdragon 8 Elite, Adreno 830, X80 modem)",
+  "_plmn": "Private PLMN 901/70 — invisible to commercial carrier tracking",
+  "_band": "30 MHz – 11 GHz (sSDR/xSDR range, X-Band stealth)",
+
+  "enb": {
+    "device_name": "srs_sdr",
+    "device_args": "driver=uhd,type=b200",
+    "rf": {
+      "device_name": "srs_sdr",
+      "device_args": "driver=uhd,type=b200",
+      "clock": "internal",
+      "sync": "internal",
+      "bandwidth_hz": 20000000,
+      "sampling_rate_hz": 23040000,
+      "center_frequency_hz": 2600000000,
+      "tx_gain_db": 80,
+      "rx_gain_db": 40
+    },
+    "mcc": "901",
+    "mnc": "70",
+    "mme_addr": "127.0.0.1",
+    "gtp_addr": "127.0.0.1",
+    "n_prb": 50,
+    "nof_phy_threads": 2,
+    "expert": {
+      "perf_executor": "dedicated",
+      "cpu_affinity": "0,1,2,3"
+    }
+  },
+
+  "ue": {
+    "device_name": "srs_sdr",
+    "device_args": "driver=uhd,type=b200",
+    "rf": {
+      "device_name": "srs_sdr",
+      "device_args": "driver=uhd,type=b200",
+      "clock": "internal",
+      "sync": "internal",
+      "bandwidth_hz": 20000000,
+      "sampling_rate_hz": 23040000,
+      "center_frequency_hz": 2600000000,
+      "tx_gain_db": 80,
+      "rx_gain_db": 40
+    },
+    "nas": {
+      "mcc": "901",
+      "mnc": "70",
+      "apn": "qag.sovereign.mesh",
+      "user": "s26ultra",
+      "pass": "rotating_identity"
+    },
+    "rrc": {
+      "release": 15,
+      "ue_category": 12
+    },
+    "expert": {
+      "perf_executor": "dedicated",
+      "cpu_affinity": "4,5,6,7"
+    }
+  },
+
+  "s26ultra_specific": {
+    "_comment": "Samsung S26 Ultra hardware integration",
+    "modem_interface": "/dev/ttyUSB0",
+    "pty_path": "/tmp/vmodem",
+    "identity_export_path": "/tmp/current_identity.json",
+    "rotation_state_path": "/tmp/modem_sim_state.json",
+    "secure_heap": {
+      "path": "/dev/dma_heap/system-secure-sif",
+      "enabled": true,
+      "zero_on_free": true
+    },
+    "npu_acceleration": {
+      "enabled": true,
+      "backend": "qnn",
+      "chipset": "snapdragon_8_elite",
+      "dsp_threads": 4
+    },
+    "gpu_dsp": {
+      "enabled": true,
+      "backend": "opencl",
+      "chipset": "adreno_830",
+      "imu_fusion": true
+    },
+    "cluster": {
+      "role": "primary",
+      "peer_discovery_port": 4567,
+      "sync_interval_ms": 5000,
+      "d_mimo_enabled": true
+    }
+  },
+
+  "privacy_shield": {
+    "enabled": true,
+    "rotation": {
+      "periodic_interval_ms": 14400000,
+      "max_sessions_per_identity": 100,
+      "trigger_on_threat": true,
+      "cluster_sync_window_ms": 5000,
+      "pool_size": 50
+    },
+    "mac_randomization": {
+      "wifi": true,
+      "bluetooth": true,
+      "sync_with_imsi": true
+    },
+    "imsi_catcher_detection": {
+      "enabled": true,
+      "sdr_backend": "gr-gsm",
+      "scan_interval_ms": 10000,
+      "threat_threshold": 0.7,
+      "auto_rotate": true
+    },
+    "memory_sanitization": {
+      "dma_buf_heap": "/dev/dma_heap/system",
+      "secure_heap": "/dev/dma_heap/system-secure-sif",
+      "zero_copy_sdr": true,
+      "isolate_identities": true
+    }
+  },
+
+  "logging": {
+    "filename": "/var/log/srsran_s26ultra.log",
+    "file_max_size_mb": 100,
+    "console_level": "info",
+    "file_level": "debug"
+  }
+}
