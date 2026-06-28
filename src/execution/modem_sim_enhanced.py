@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Enhanced Virtual LTE/NR Modem — SIF Edition
-============================================
+Enhanced Virtual LTE/NR Modem — SIF Termux Edition
+====================================================
 Knox-safe pseudo-terminal modem with full 6G readiness.
-Supports VoNR, WiFi 7 MLO, eSIM, beamforming, and network extender.
+Termux-compatible: No PPP, no root, no kernel modules.
+
+Supports: VoNR, WiFi 7 MLO, eSIM, beamforming, network extender,
+          SOCAT tunnels, SOCKS5 proxy, TCP relay.
 
 License: MIT
 Target: Samsung S25/S26 Ultra (Termux, ARM64)
@@ -19,12 +22,15 @@ import signal
 import sys
 import hashlib
 import socket
+import select
+import struct
 import asyncio
 import numpy as np
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any, Callable
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import socketserver
 
 # ═══════════════════════════════════════════════════════════════
 # DATA CLASSES
@@ -32,6 +38,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 @dataclass
 class VirtualIdentity:
+    """Represents a single virtual subscriber identity."""
     imsi: str = "310260000000001"
     imei: str = "490154203237518"
     msisdn: str = "15551234567"
@@ -42,176 +49,419 @@ class VirtualIdentity:
 
 @dataclass
 class AntennaElement:
-    x: float; y: float; z: float
+    """Single antenna element for beamforming simulation."""
+    x: float
+    y: float
+    z: float
     gain_dbi: float = 3.0
     polarization: str = "vertical"
     phase_offset: float = 0.0
 
 @dataclass
 class CallSession:
+    """VoNR call session."""
     call_id: str
-    caller: str; callee: str
+    caller: str
+    callee: str
     state: str = "active"
     codec: str = "EVS"
     rtp_port: int = 16384
 
 @dataclass
 class ESimProfile:
-    iccid: str; name: str
+    """GSMA SGP.22 eSIM profile."""
+    iccid: str
+    name: str
     mcc_mnc: str = "310260"
     state: str = "disabled"
+
+@dataclass
+class TunnelSession:
+    """Active data tunnel session."""
+    port: int
+    tunnel_type: str  # "socat", "socks5", "tcp_relay"
+    process: Optional[subprocess.Popen] = None
+    data_pty: Optional[str] = None
 
 # ═══════════════════════════════════════════════════════════════
 # SUBSYSTEMS
 # ═══════════════════════════════════════════════════════════════
 
 class VirtualAntennaArray:
-    """8-element phased array simulation for beamforming."""
+    """
+    8-element phased array simulation for beamforming.
+    Models realistic RF propagation without hardware.
+    """
     
     def __init__(self, freq_hz: float = 3.5e9):
         self.freq = freq_hz
         self.wavelength = 3e8 / freq_hz
         self.elements = [
-            AntennaElement(x=0, y=0, z=0),
-            AntennaElement(x=0.04, y=0, z=0),
-            AntennaElement(x=0.08, y=0, z=0),
-            AntennaElement(x=0.12, y=0, z=0),
-            AntennaElement(x=0, y=0.04, z=0),
+            AntennaElement(x=0.00, y=0.00, z=0),
+            AntennaElement(x=0.04, y=0.00, z=0),
+            AntennaElement(x=0.08, y=0.00, z=0),
+            AntennaElement(x=0.12, y=0.00, z=0),
+            AntennaElement(x=0.00, y=0.04, z=0),
             AntennaElement(x=0.04, y=0.04, z=0),
             AntennaElement(x=0.08, y=0.04, z=0),
             AntennaElement(x=0.12, y=0.04, z=0),
         ]
+        self.current_beam = (0.0, 0.0)  # azimuth, elevation
     
     def beamform(self, az_deg: float, el_deg: float) -> np.ndarray:
-        az, el = np.radians(az_deg), np.radians(el_deg)
-        w = np.zeros(len(self.elements), dtype=complex)
-        for i, e in enumerate(self.elements):
-            phase = -2*np.pi/self.wavelength * (
-                e.x*np.sin(el)*np.cos(az) + e.y*np.sin(el)*np.sin(az))
-            w[i] = np.exp(1j*phase)
-        return w
+        """Calculate complex beamforming weights for target angle."""
+        az = np.radians(az_deg)
+        el = np.radians(el_deg)
+        weights = np.zeros(len(self.elements), dtype=complex)
+        
+        for i, elem in enumerate(self.elements):
+            phase = -2 * np.pi / self.wavelength * (
+                elem.x * np.sin(el) * np.cos(az) +
+                elem.y * np.sin(el) * np.sin(az)
+            )
+            weights[i] = np.exp(1j * phase)
+        
+        self.current_beam = (az_deg, el_deg)
+        return weights
     
-    def rssi(self, distance_m: float) -> int:
-        fspl = 20*np.log10(distance_m) + 20*np.log10(self.freq) - 147.55
-        rx = 23.0 - fspl + 10*np.log10(len(self.elements))
-        if rx >= -51: return 31
-        if rx <= -113: return 0
-        return int((rx + 113) * 31 / 62)
+    def rssi(self, distance_m: float, tx_power_dbm: float = 23.0) -> int:
+        """Calculate RSSI using Friis transmission equation with shadowing."""
+        fspl = 20 * np.log10(distance_m) + 20 * np.log10(self.freq) - 147.55
+        shadowing = np.random.normal(0, 4.0)
+        array_gain = 10 * np.log10(len(self.elements))
+        rx_power = tx_power_dbm - fspl - shadowing + array_gain
+        
+        if rx_power >= -51:
+            return 31
+        elif rx_power <= -113:
+            return 0
+        return int((rx_power + 113) * 31 / 62)
+    
+    def get_status(self) -> dict:
+        """Return current antenna array status."""
+        return {
+            "elements": len(self.elements),
+            "frequency_ghz": self.freq / 1e9,
+            "wavelength_mm": self.wavelength * 1000,
+            "beam_azimuth": self.current_beam[0],
+            "beam_elevation": self.current_beam[1],
+        }
+
 
 class VonrStack:
-    """5G Voice over NR with IMS/SIP."""
+    """5G Voice over New Radio with IMS/SIP signaling."""
     
     def __init__(self):
         self.calls: Dict[str, CallSession] = {}
+        self.registered = False
+        self.sip_proxy = "sip.sif-sovereign.local"
     
-    async def dial(self, caller: str, callee: str) -> CallSession:
+    async def register(self, msisdn: str) -> bool:
+        """Register with IMS core."""
+        print(f"[VoNR] IMS Registration for {msisdn} via {self.sip_proxy}")
+        self.registered = True
+        return True
+    
+    async def dial(self, caller: str, callee: str, codec: str = "EVS") -> CallSession:
+        """Initiate VoNR call with codec negotiation."""
         cid = f"call-{len(self.calls):04d}"
-        session = CallSession(call_id=cid, caller=caller, callee=callee)
+        session = CallSession(
+            call_id=cid,
+            caller=caller,
+            callee=callee,
+            codec=codec,
+            rtp_port=16384 + len(self.calls) * 2
+        )
         self.calls[cid] = session
-        print(f"[VoNR] Call {cid}: {caller} → {callee} [{session.codec}]")
+        print(f"[VoNR] Call established: {cid}")
+        print(f"[VoNR]   {caller} → {callee}")
+        print(f"[VoNR]   Codec: {codec}, RTP: {session.rtp_port}")
         return session
     
     def hangup(self, cid: str) -> bool:
+        """Terminate VoNR call."""
         if cid in self.calls:
             del self.calls[cid]
+            print(f"[VoNR] Call terminated: {cid}")
             return True
         return False
+    
+    def get_status(self) -> dict:
+        """Return VoNR stack status."""
+        return {
+            "registered": self.registered,
+            "active_calls": len(self.calls),
+            "calls": [
+                {"id": c.call_id, "caller": c.caller, "callee": c.callee,
+                 "codec": c.codec, "state": c.state}
+                for c in self.calls.values()
+            ]
+        }
+
 
 class VirtualEuicc:
-    """GSMA SGP.22 eSIM profile manager."""
+    """Virtual embedded UICC implementing GSMA SGP.22 RSP."""
     
     def __init__(self):
-        self.eid = hashlib.sha256(b"SIF-eUICC").hexdigest()[:32].upper()
+        self.eid = hashlib.sha256(b"SIF-Sovereign-eUICC-v2").hexdigest()[:32].upper()
         self.profiles: Dict[str, ESimProfile] = {}
-        self.active: Optional[str] = None
+        self.active_iccid: Optional[str] = None
+        print(f"[eUICC] Initialized with EID: {self.eid}")
     
-    def download(self, code: str) -> ESimProfile:
-        iccid = "89" + hashlib.sha256(code.encode()).hexdigest()[:18]
-        profile = ESimProfile(iccid=iccid, name=f"SIF-{code[:8]}")
+    def download(self, activation_code: str) -> Optional[ESimProfile]:
+        """Download eSIM profile from SM-DP+ (simulated)."""
+        parts = activation_code.split('$')
+        matching_id = parts[-1] if len(parts) >= 3 else activation_code
+        
+        iccid = "89" + hashlib.sha256(matching_id.encode()).hexdigest()[:18]
+        
+        # Check for duplicate
+        if iccid in self.profiles:
+            print(f"[eUICC] Profile {iccid} already exists")
+            return self.profiles[iccid]
+        
+        profile = ESimProfile(
+            iccid=iccid,
+            name=f"SIF-Profile-{matching_id[:8]}",
+            mcc_mnc="310260"
+        )
         self.profiles[iccid] = profile
+        print(f"[eUICC] Profile downloaded: {profile.name}")
+        print(f"[eUICC]   ICCID: {iccid}")
         return profile
     
     def enable(self, iccid: str) -> bool:
-        if iccid not in self.profiles: return False
-        if self.active in self.profiles:
-            self.profiles[self.active].state = "disabled"
+        """Enable an eSIM profile (disables current active)."""
+        if iccid not in self.profiles:
+            print(f"[eUICC] Profile {iccid} not found")
+            return False
+        
+        # Disable current active
+        if self.active_iccid and self.active_iccid in self.profiles:
+            self.profiles[self.active_iccid].state = "disabled"
+        
+        # Enable requested
         self.profiles[iccid].state = "enabled"
-        self.active = iccid
+        self.active_iccid = iccid
+        print(f"[eUICC] Profile enabled: {iccid}")
+        return True
+    
+    def disable(self, iccid: str) -> bool:
+        """Disable an eSIM profile."""
+        if iccid not in self.profiles:
+            return False
+        self.profiles[iccid].state = "disabled"
+        if self.active_iccid == iccid:
+            self.active_iccid = None
+        return True
+    
+    def delete(self, iccid: str) -> bool:
+        """Delete an eSIM profile."""
+        if iccid not in self.profiles:
+            return False
+        if self.active_iccid == iccid:
+            self.disable(iccid)
+        del self.profiles[iccid]
+        print(f"[eUICC] Profile deleted: {iccid}")
         return True
     
     def list_all(self) -> list:
-        return [{"iccid": p.iccid, "name": p.name, "state": p.state}
-                for p in self.profiles.values()]
+        """List all installed profiles."""
+        return [
+            {
+                "iccid": p.iccid,
+                "name": p.name,
+                "mcc_mnc": p.mcc_mnc,
+                "state": p.state,
+                "active": p.iccid == self.active_iccid
+            }
+            for p in self.profiles.values()
+        ]
+    
+    def get_active(self) -> Optional[dict]:
+        """Get currently active profile."""
+        if self.active_iccid and self.active_iccid in self.profiles:
+            p = self.profiles[self.active_iccid]
+            return {"iccid": p.iccid, "name": p.name, "mcc_mnc": p.mcc_mnc}
+        return None
+
 
 class VirtualWifiMLO:
-    """WiFi 7 Multi-Link Operation (2.4+5+6 GHz)."""
+    """WiFi 7 Multi-Link Operation controller (2.4 + 5 + 6 GHz)."""
     
     def __init__(self):
-        self.links = {}
-        self.mode = "MLO"
+        self.links: Dict[int, dict] = {}
+        self.mode = "MLO"  # MLO, EMLSR, MLMR
+        self.configured = False
     
     def configure(self, bands: List[str] = None) -> dict:
+        """Configure MLO across specified bands."""
         if bands is None:
             bands = ["2.4GHz", "5GHz", "6GHz"]
-        cfg = {
-            "2.4GHz": {"ch": 6, "bw": 40},
-            "5GHz": {"ch": 36, "bw": 160},
-            "6GHz": {"ch": 69, "bw": 320},
+        
+        configs = {
+            "2.4GHz": {"ch": 6,  "bw": 40,  "mcs": 11, "ss": 2},
+            "5GHz":   {"ch": 36, "bw": 160, "mcs": 13, "ss": 4},
+            "6GHz":   {"ch": 69, "bw": 320, "mcs": 15, "ss": 4},
         }
+        
+        self.links.clear()
         for i, band in enumerate(bands[:3]):
-            c = cfg.get(band, cfg["5GHz"])
-            self.links[i+1] = {"band": band, "channel": c["ch"],
-                               "bw_mhz": c["bw"], "bssid": f"02:00:00:00:00:{i+1:02x}"}
-        return {"links": len(self.links), "mode": self.mode, "links_detail": self.links}
-
-class VirtualHeNB:
-    """Virtual Home eNodeB / Network Extender."""
+            cfg = configs.get(band, configs["5GHz"])
+            self.links[i + 1] = {
+                "link_id": i + 1,
+                "band": band,
+                "channel": cfg["ch"],
+                "bandwidth_mhz": cfg["bw"],
+                "mcs_index": cfg["mcs"],
+                "spatial_streams": cfg["ss"],
+                "bssid": f"02:00:00:00:00:{i+1:02x}",
+                "state": "active"
+            }
+        
+        self.configured = True
+        total_bw = sum(l["bandwidth_mhz"] for l in self.links.values())
+        
+        print(f"[WiFi7] MLO configured: {len(self.links)} links")
+        for link in self.links.values():
+            print(f"[WiFi7]   Link {link['link_id']}: {link['band']} @ {link['bandwidth_mhz']}MHz")
+        print(f"[WiFi7]   Total bandwidth: {total_bw}MHz")
+        
+        return {
+            "links": len(self.links),
+            "mode": self.mode,
+            "total_bandwidth_mhz": total_bw,
+            "links_detail": list(self.links.values())
+        }
     
-    def __init__(self, henb_id: str = "SIF-HENB-001"):
-        self.henb_id = henb_id
-        self.ues: Dict[str, dict] = {}
-        self.tunnel = False
-    
-    def establish_tunnel(self) -> bool:
-        self.tunnel = True
-        print(f"[HeNB] IPSec tunnel established for {self.henb_id}")
+    def set_mode(self, mode: str) -> bool:
+        """Switch between MLO, EMLSR, and MLMR modes."""
+        valid_modes = ["MLO", "EMLSR", "MLMR"]
+        if mode not in valid_modes:
+            return False
+        self.mode = mode
+        print(f"[WiFi7] Mode switched to {mode}")
         return True
     
-    def attach(self, imsi: str) -> dict:
+    def get_status(self) -> dict:
+        """Return WiFi MLO status."""
+        return {
+            "configured": self.configured,
+            "mode": self.mode,
+            "links": len(self.links),
+            "links_detail": list(self.links.values())
+        }
+
+
+class VirtualHeNB:
+    """Virtual Home eNodeB / Network Extender with IPSec tunneling."""
+    
+    def __init__(self, henb_id: str = "SIF-HENB-001", csg_id: str = "SIF-CSG-01"):
+        self.henb_id = henb_id
+        self.csg_id = csg_id
+        self.plmn = "00101"
+        self.ues: Dict[str, dict] = {}
+        self.tunnel_active = False
+        self.ike_spi: Optional[str] = None
+    
+    def establish_tunnel(self, se_gw: str = "192.168.42.1") -> bool:
+        """Establish IKEv2/IPsec tunnel to Security Gateway."""
+        self.ike_spi = hashlib.sha256(
+            f"{self.henb_id}-{time.time()}".encode()
+        ).hexdigest()[:16]
+        self.tunnel_active = True
+        print(f"[HeNB] IPSec tunnel established")
+        print(f"[HeNB]   HeNB: {self.henb_id}")
+        print(f"[HeNB]   SeGW: {se_gw}")
+        print(f"[HeNB]   SPI:  {self.ike_spi}")
+        return True
+    
+    def attach_ue(self, imsi: str) -> dict:
+        """Attach UE to virtual femtocell."""
+        if imsi in self.ues:
+            return self.ues[imsi]
+        
         import ipaddress
-        ip = str(ipaddress.IPv4Address(f"192.168.43.{len(self.ues)+10}"))
-        ctx = {"imsi": imsi, "ip": ip, "guti": f"guti-{hashlib.md5(imsi.encode()).hexdigest()[:8]}",
-               "state": "attached"}
+        ip = str(ipaddress.IPv4Address(f"192.168.43.{len(self.ues) + 10}"))
+        guti = f"guti-{hashlib.md5(imsi.encode()).hexdigest()[:8]}"
+        
+        ctx = {
+            "imsi": imsi,
+            "ip_address": ip,
+            "guti": guti,
+            "csg_id": self.csg_id,
+            "tac": 7,
+            "bearer_id": len(self.ues) + 5,
+            "state": "attached",
+            "attached_at": time.time()
+        }
         self.ues[imsi] = ctx
+        print(f"[HeNB] UE attached: IMSI {imsi[:6]}*** → {ip}")
         return ctx
+    
+    def detach_ue(self, imsi: str) -> bool:
+        """Detach UE from femtocell."""
+        if imsi in self.ues:
+            del self.ues[imsi]
+            print(f"[HeNB] UE detached: IMSI {imsi[:6]}***")
+            return True
+        return False
+    
+    def get_status(self) -> dict:
+        """Return HeNB status."""
+        return {
+            "henb_id": self.henb_id,
+            "csg_id": self.csg_id,
+            "plmn": self.plmn,
+            "tunnel_active": self.tunnel_active,
+            "attached_ues": len(self.ues),
+            "ues": [
+                {"imsi": u["imsi"][:6] + "***", "ip": u["ip_address"],
+                 "guti": u["guti"], "state": u["state"]}
+                for u in self.ues.values()
+            ]
+        }
 
 # ═══════════════════════════════════════════════════════════════
-# ENHANCED VIRTUAL MODEM
+# ENHANCED VIRTUAL MODEM — TERMUX COMPATIBLE
 # ═══════════════════════════════════════════════════════════════
 
 class EnhancedVirtualModem:
-    """Complete 6G-ready virtual modem with AT command interface."""
+    """
+    Complete 6G-ready virtual modem.
+    No PPP required — uses SOCAT tunnels, SOCKS5 proxy, and TCP relay.
+    Fully Termux-compatible.
+    """
     
     def __init__(self, pty_path: str = "/tmp/vmodem", identity_file: str = None):
+        # PTY paths
         self.pty_path = pty_path
         self.master_fd = None
         self.slave_fd = None
         self.running = False
         
-        # Core identity
+        # Identity management
         self.id = VirtualIdentity()
         self.pool: List[VirtualIdentity] = [self.id]
         if identity_file and os.path.exists(identity_file):
-            with open(identity_file) as f:
-                data = json.load(f)
-                self.pool = [VirtualIdentity(**d) for d in data]
-                if self.pool: self.id = self.pool[0]
+            try:
+                with open(identity_file) as f:
+                    data = json.load(f)
+                    self.pool = [VirtualIdentity(**d) for d in data]
+                    if self.pool:
+                        self.id = self.pool[0]
+                print(f"[Modem] Loaded {len(self.pool)} identities from {identity_file}")
+            except Exception as e:
+                print(f"[Modem] Failed to load identities: {e}")
         
-        # State
+        # Network state
         self.registered = True
         self.signal = 31
         self.data_active = False
-        self.ppp = None
+        
+        # Termux-compatible tunnels (NO PPP)
+        self.active_tunnels: List[TunnelSession] = []
+        self.socks_server: Optional[socketserver.TCPServer] = None
         
         # Subsystems
         self.vonr = VonrStack()
@@ -220,258 +470,130 @@ class EnhancedVirtualModem:
         self.antenna = VirtualAntennaArray()
         self.henb = VirtualHeNB()
         
-        # AT command dispatch
+        # AT command dispatch table
         self.commands: Dict[str, Callable] = {
+            # Basic AT
             "AT": lambda c: "OK",
+            "ATE0": lambda c: "OK",
+            "ATE1": lambda c: "OK",
+            "ATZ": lambda c: "OK",
+            "AT&F": lambda c: "OK",
+            
+            # Manufacturer info
             "AT+CGMI": lambda c: "Sovereign Intelligence Fabric",
-            "AT+CGMM": lambda c: "SIF-LTE-VMODEM-v4",
-            "AT+CGMR": lambda c: "AVA007_RUNTIME_R2",
+            "AT+CGMM": lambda c: "SIF-LTE-NR-VMODEM-v4",
+            "AT+CGMR": lambda c: "AVA007_RUNTIME_TERMUX_R1",
             "AT+CGSN": lambda c: self.id.imei,
             "AT+CIMI": lambda c: self.id.imsi,
             "AT+CCID": lambda c: self.id.iccid,
+            
+            # Network
             "AT+CREG": self._cmd_creg,
             "AT+COPS": self._cmd_cops,
             "AT+CSQ": self._cmd_csq,
             "AT+CGDCONT": lambda c: "OK",
-            "ATD*99#": self._cmd_dial,
             "AT+CMEE": lambda c: "OK",
+            
+            # Data connection (Termux-compatible)
+            "ATD*99#": self._cmd_dial_socat,
+            "ATD*99***1#": self._cmd_dial_socks,
+            "ATD*99***2#": self._cmd_dial_relay,
+            "ATH": self._cmd_hangup,
+            
+            # eSIM management
             "AT+ESIM": self._cmd_esim,
+            
+            # WiFi 7 MLO
             "AT+WIFI": self._cmd_wifi,
+            
+            # Beamforming
             "AT+BEAM": self._cmd_beam,
+            
+            # Network Extender
             "AT+HENB": self._cmd_henb,
+            
+            # Antenna status
             "AT+ANTENNA": self._cmd_antenna,
+            
+            # VoNR voice
             "AT+VONR": self._cmd_vonr,
+            
+            # System
+            "AT+STATUS": self._cmd_status,
+            "AT+HELP": self._cmd_help,
         }
+        
+        # Stats
+        self.rotation_count = 0
+        self.start_time = time.time()
     
     # ── AT Command Handlers ──────────────────────────────────
     
     def _cmd_creg(self, cmd: str) -> str:
-        if "=2" in cmd: self.registered = True
+        if "=2" in cmd:
+            self.registered = True
         stat = 1 if self.registered else 0
         return f"+CREG: {stat},1"
     
     def _cmd_cops(self, cmd: str) -> str:
+        if "=?" in cmd:
+            return f'+COPS: (2,"{self.id.operator}","{self.id.operator}","00101",7)'
         return f'+COPS: 0,0,"{self.id.operator}",7'
     
     def _cmd_csq(self, cmd: str) -> str:
         return f"+CSQ: {self.signal},99"
     
-    def _cmd_dial(self, cmd: str) -> str:
+    # ── Termux-Compatible Data Connections ──────────────────
+    
+    def _cmd_dial_socat(self, cmd: str) -> str:
+        """
+        ATD*99# — Dial using SOCAT PTY-to-TCP tunnel.
+        Termux-compatible: No PPP, no kernel modules.
+        """
         if self.data_active:
             return "BUSY"
-        print("[Modem] Dial request — launching PPP daemon...")
-        self.ppp = subprocess.Popen([
-            "pppd", "nodetach", "notty", "noauth", "passive", "local",
-            "pty", f"socat -,raw,echo=0 {self.pty_path}",
-            "192.168.42.1:192.168.42.2",
-            "ms-dns", "8.8.8.8", "ms-dns", "1.1.1.1"
-        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self.data_active = True
-        time.sleep(1)
-        return "CONNECT 150000000"
-    
-    def _cmd_esim(self, cmd: str) -> str:
-        if "=LIST" in cmd:
-            profiles = self.esim.list_all()
-            lines = [f'+ESIM: {p["iccid"]},{p["name"]},{p["state"]}' for p in profiles]
-            return "\r\n".join(lines) if lines else "+ESIM: No profiles"
-        if "=DOWNLOAD=" in cmd:
-            code = cmd.split("=", 2)[2]
-            p = self.esim.download(code)
-            return f'+ESIM: Downloaded {p.iccid}'
-        if "=ENABLE=" in cmd:
-            iccid = cmd.split("=", 2)[2]
-            ok = self.esim.enable(iccid)
-            return f'+ESIM: {"Enabled" if ok else "Failed"} {iccid}'
-        return "ERROR"
-    
-    def _cmd_wifi(self, cmd: str) -> str:
-        if "=CONFIG" in cmd:
-            result = self.wifi.configure()
-            return f'+WIFI: {result["links"]} links in {result["mode"]} mode'
-        if "=STATUS" in cmd:
-            return f'+WIFI: {self.wifi.mode},{len(self.wifi.links)} links'
-        return "+WIFI: OK"
-    
-    def _cmd_beam(self, cmd: str) -> str:
+        
+        print("[Modem] ═══ Dial Request (SOCAT Tunnel) ═══")
+        
+        port = 1080 + len(self.active_tunnels)
+        data_pty = f"/tmp/vmodem_data_{len(self.active_tunnels)}"
+        
         try:
-            parts = cmd.replace("AT+BEAM=", "").split(",")
-            az, el = float(parts[0]), float(parts[1])
-            weights = self.antenna.beamform(az, el)
-            return f"+BEAM: Steered to az={az}°, el={el}°"
-        except:
-            return "ERROR"
-    
-    def _cmd_henb(self, cmd: str) -> str:
-        if "=ATTACH" in cmd:
-            self.henb.establish_tunnel()
-            ctx = self.henb.attach(self.id.imsi)
-            return f'+HENB: {ctx["ip"]},{ctx["guti"]}'
-        return "ERROR"
-    
-    def _cmd_antenna(self, cmd: str) -> str:
-        rssi = self.antenna.rssi(100)
-        return f"+ANTENNA: 8 elements, RSSI {rssi}/31"
-    
-    def _cmd_vonr(self, cmd: str) -> str:
-        if "=DIAL=" in cmd:
-            number = cmd.split("=", 2)[2]
-            session = asyncio.run(self.vonr.dial(
-                f"tel:{self.id.msisdn}", f"tel:{number}"))
-            return f'+VONR: {session.call_id},{session.codec}'
-        if "=HANGUP=" in cmd:
-            cid = cmd.split("=", 2)[2]
-            ok = self.vonr.hangup(cid)
-            return f'+VONR: {"Terminated" if ok else "Not found"}'
-        return "ERROR"
-    
-    # ── Core Engine ──────────────────────────────────────────
-    
-    def _process_at(self, line: str) -> str:
-        """Parse and dispatch AT commands."""
-        line = line.strip().upper()
-        if not line: return ""
-        
-        # Find matching handler
-        base = line.split("?")[0].split("=")[0]
-        if base in self.commands:
-            try:
-                result = self.commands[base](line)
-                return f"\r\n{result}\r\n\r\nOK\r\n"
-            except Exception as e:
-                return f"\r\nERROR: {e}\r\n"
-        
-        # Prefix matching for sub-commands
-        for cmd_key in sorted(self.commands.keys(), key=len, reverse=True):
-            if line.startswith(cmd_key):
-                try:
-                    result = self.commands[cmd_key](line)
-                    return f"\r\n{result}\r\n\r\nOK\r\n"
-                except:
-                    pass
-        return "\r\nERROR\r\n"
-    
-    def _at_loop(self):
-        """Main processing loop reading from pseudo-terminal."""
-        buffer = ""
-        while self.running:
-            try:
-                data = os.read(self.master_fd, 1024).decode('utf-8', errors='ignore')
-                buffer += data
-                while '\r' in buffer or '\n' in buffer:
-                    # Extract complete line
-                    end = buffer.find('\r')
-                    if end == -1: end = buffer.find('\n')
-                    if end == -1: break
-                    line = buffer[:end].strip()
-                    buffer = buffer[end+1:].lstrip('\n').lstrip('\r')
-                    if line:
-                        response = self._process_at(line)
-                        os.write(self.master_fd, response.encode('utf-8'))
-            except OSError:
-                time.sleep(0.01)
-    
-    def _rest_api(self):
-        """HTTP API for identity rotation and status."""
-        modem = self
-        
-        class API(BaseHTTPRequestHandler):
-            def do_GET(self):
-                if self.path == "/status":
-                    self._json({"imsi": modem.id.imsi[:6]+"***",
-                                "imei": modem.id.imei[:8]+"***",
-                                "registered": modem.registered,
-                                "signal": modem.signal,
-                                "data": modem.data_active})
-                elif self.path == "/threat/status":
-                    self._json({"threat_detected": False})
-                else:
-                    self.send_error(404)
+            tunnel_proc = subprocess.Popen([
+                "socat",
+                f"PTY,raw,echo=0,link={data_pty}",
+                f"TCP4:localhost:{port}"
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
-            def do_POST(self):
-                cl = int(self.headers.get('Content-Length', 0))
-                body = json.loads(self.rfile.read(cl)) if cl > 0 else {}
-                
-                if self.path == "/rotate":
-                    for key in ["imsi", "imei", "msisdn", "ki", "opc"]:
-                        if key in body:
-                            setattr(modem.id, key, body[key])
-                    print(f"[Modem] Identity rotated: IMSI {modem.id.imsi[:6]}***")
-                    self._json({"status": "rotated", "imsi": modem.id.imsi[:6]+"***"})
-                elif self.path == "/threat":
-                    print("[Modem] ⚠️ Threat signal received!")
-                    self._json({"status": "acknowledged"})
-                elif self.path == "/disconnect":
-                    if modem.ppp:
-                        modem.ppp.terminate()
-                        modem.ppp = None
-                    modem.data_active = False
-                    self._json({"status": "disconnected"})
-                else:
-                    self.send_error(404)
+            tunnel = TunnelSession(
+                port=port,
+                tunnel_type="socat",
+                process=tunnel_proc,
+                data_pty=data_pty
+            )
+            self.active_tunnels.append(tunnel)
+            self.data_active = True
             
-            def _json(self, data):
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps(data).encode())
+            time.sleep(1)
             
-            def log_message(self, *args): pass
+            print(f"[Modem] Tunnel established: localhost:{port}")
+            print(f"[Modem] Data PTY: {data_pty}")
+            
+            return f"CONNECT 150000000\r\n+TUNNEL: localhost:{port}\r\n+PTY: {data_pty}"
+            
+        except FileNotFoundError:
+            # SOCAT not installed — fallback to Python relay
+            return self._cmd_dial_relay(cmd)
+        except Exception as e:
+            print(f"[Modem] Tunnel error: {e}")
+            return "NO CARRIER"
+    
+    def _cmd_dial_socks(self, cmd: str) -> str:
+        """
+        ATD*99***1# — Dial using built-in SOCKS5 proxy.
+        Fully self-contained, no external dependencies.
+        """
+        if self.data_active:
+            return "BUSY"
         
-        server = HTTPServer(('localhost', 9042), API)
-        print("[Modem] REST API on http://localhost:9042")
-        server.serve_forever()
-    
-    def start(self):
-        """Start the virtual modem."""
-        self.master_fd, self.slave_fd = pty.openpty()
-        
-        if os.path.exists(self.pty_path):
-            os.unlink(self.pty_path)
-        os.symlink(f"/dev/fd/{self.slave_fd}", self.pty_path)
-        
-        self.running = True
-        print(f"\n{'='*60}")
-        print(f"  SIF Enhanced Virtual Modem v4.0")
-        print(f"  PTY: {self.pty_path}")
-        print(f"  IMSI: {self.id.imsi}")
-        print(f"  IMEI: {self.id.imei}")
-        print(f"  eSIM EID: {self.esim.eid}")
-        print(f"{'='*60}\n")
-        
-        threading.Thread(target=self._at_loop, daemon=True).start()
-        threading.Thread(target=self._rest_api, daemon=True).start()
-    
-    def stop(self):
-        """Graceful shutdown."""
-        self.running = False
-        if self.ppp: self.ppp.terminate()
-        if self.master_fd: os.close(self.master_fd)
-        if self.slave_fd: os.close(self.slave_fd)
-        if os.path.exists(self.pty_path): os.unlink(self.pty_path)
-        print("[Modem] Shutdown complete.")
-
-# ═══════════════════════════════════════════════════════════════
-# MAIN
-# ═══════════════════════════════════════════════════════════════
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="SIF Enhanced Virtual Modem")
-    parser.add_argument("--pty", default="/tmp/vmodem")
-    parser.add_argument("--identities", default=None)
-    args = parser.parse_args()
-    
-    modem = EnhancedVirtualModem(pty_path=args.pty, identity_file=args.identities)
-    
-    def handler(sig, frame):
-        modem.stop()
-        sys.exit(0)
-    signal.signal(signal.SIGINT, handler)
-    signal.signal(signal.SIGTERM, handler)
-    
-    modem.start()
-    try:
-        while True: time.sleep(1)
-    except KeyboardInterrupt:
-        modem.stop()
+        print("[Modem] ═══ Dial Request (SOCKS5 Proxy) ═══")
