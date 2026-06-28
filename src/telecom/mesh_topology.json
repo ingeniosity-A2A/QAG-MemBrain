@@ -1,0 +1,48 @@
+{
+  "mesh_topology": {
+    "orchestrator": {
+      "device": "S25_Ultra",
+      "role": "gNodeB + JCAS Fusion Engine",
+      "wsdr_io_endpoint": "https://s25.local:9043",
+      "gpu_backend": "Adreno_750",
+      "attached_hardware": ["sSDR_v2"],
+      "compute_capability": {
+        "tflops_fp16": 34.0,
+        "ram_gb": 16,
+        "opencl_version": "3.0"
+      }
+    },
+    "sensing_node_1": {
+      "device": "S26_Ultra",
+      "role": "Distributed RF Sensor + Identity Relay",
+      "wsdr_io_endpoint": "https://s26.local:9043",
+      "gpu_backend": "Adreno_830",
+      "attached_hardware": ["xSDR_v1"],
+      "compute_capability": {
+        "tflops_fp16": 40.0,
+        "ram_gb": 16,
+        "opencl_version": "3.0"
+      }
+    },
+    "sensing_sync": {
+      "protocol": "JCAS_FUSION",
+      "latency_bound_us": 100,
+      "clock_source": "gpsdo_sdr",
+      "sync_interval_ms": 1,
+      "data_fusion": {
+        "s25_role": "Centralized World Model Update",
+        "s26_role": "Edge Sensing + Anomaly Detection"
+      }
+    },
+    "identity_relay": {
+      "enabled": true,
+      "rotation_cascade": true,
+      "comment": "S25 rotation triggers S26 rotation for mesh coherence"
+    },
+    "failover": {
+      "enabled": true,
+      "primary_to_secondary_ms": 50,
+      "heartbeat_interval_ms": 10
+    }
+  }
+}
