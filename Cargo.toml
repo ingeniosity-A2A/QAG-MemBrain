@@ -10,6 +10,9 @@ members = [
     "cloudflare_mesh",
     "harness_evolution",
     "constellation",
+    "graph_rag",
+    "fapo",
+    "capabilities",
 ]
 
 [workspace.package]

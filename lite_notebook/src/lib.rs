@@ -65,6 +65,8 @@ pub mod wal;
 pub mod notebook;
 pub mod iceberg_writer;
 pub mod ocean;
+pub mod tashi_consensus;
+pub mod interaction_quantum;
 
 pub use receipt::{Origin, Receipt, ReceiptKind, receipt_schema};
 pub use arrow_codec::ReceiptCodec;
@@ -73,3 +75,10 @@ pub use notebook::{LiteNotebook, NotebookStats, FlushBatch, run_flush_loop,
                    NOTEBOOK_CAPACITY, FLUSH_THRESHOLD, FLUSH_INTERVAL_MS};
 pub use iceberg_writer::{IcebergWriter, IcebergSnapshot, TableMetadata, DataFileManifest};
 pub use ocean::{ContextOcean, OceanConfig};
+pub use tashi_consensus::{TashiNode, TashiVertex, create_vertex, validate_vertex, VertexValidation};
+pub use interaction_quantum::{
+    InteractionQuantum, RFPhysical, CryptoRouting, TemporalIndex, TemporalTween,
+    Transceiver, Modulation, CodingRate, RegionalPlan,
+    AEAD, KeyExchange, FEC, MeshProtocol, TweenType,
+    rssi_to_confidence, snr_to_importance, doppler_to_time_scale, sf_to_cognitive_weight,
+};

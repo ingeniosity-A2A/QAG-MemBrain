@@ -52,7 +52,8 @@ mod router;
 mod signals;
 mod health;
 
+pub mod backends;
+pub mod registry;
+
 // Re-export for convenience
 pub use crate::registry::default_registry;
-
-pub mod registry;

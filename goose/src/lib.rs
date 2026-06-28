@@ -37,10 +37,14 @@ use meta_harness::router::{GooseRequest, GooseService};
 pub mod whatsapp;
 pub mod a2a;
 pub mod meshrabiya;
+pub mod proximity;
+pub mod binary_ninja;
 
 pub use whatsapp::{WhatsAppAction, WhatsAppService};
 pub use a2a::{A2AMessage, A2APayload, A2ARelay, Capability, CollaborationRole, DeviceId, DeviceStatus, ThermalState as A2AThermalState};
 pub use meshrabiya::{MeshRouter, MeshNode, TaskRoute, MeshError};
+pub use proximity::{ProximityMesh, ProximityEvent, ProximityTier, AIVCard};
+pub use binary_ninja::{BinaryNinjaAgent, AuditRequest, AuditType, AuditPreview, AuditResult};
 
 /// Configuration for the Goose dispatcher.
 #[derive(Clone, Debug)]

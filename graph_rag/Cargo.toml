@@ -1,33 +1,24 @@
 [package]
-name = "goose"
+name = "graph_rag"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.78"
-authors = ["AVA007 Project"]
-description = "Goose dispatcher — headless expansion services (AgentZero, Griptape, Bastani)"
+description = "L4 — Neo4j GraphRAG for deep context retrieval (white paper §3, L4 layer)"
 license = "MIT OR Apache-2.0"
 
-[lib]
-name = "goose"
-path = "src/lib.rs"
-
 [dependencies]
-meta_harness = { path = "../meta_harness" }
-telnyx = { path = "../telnyx" }
+lite_notebook = { path = "../lite_notebook" }
 
 tokio = { version = "1", features = ["full"] }
-tokio-util = { version = "0.7", features = ["rt"] }
+async-trait = "0.1"
 parking_lot = "0.12"
 
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
 
 anyhow = "1"
-thiserror = "1"
 tracing = "0.1"
-regex = "1"
-which = "7"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+uuid = { version = "1", features = ["v7", "serde"] }
 
 [dev-dependencies]
 tempfile = "3"
