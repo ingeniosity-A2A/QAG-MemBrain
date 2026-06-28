@@ -493,8 +493,7 @@ class EnhancedVirtualModem:
             "AT+CSQ": self._cmd_csq,
             "AT+CGDCONT": lambda c: "OK",
             "AT+CMEE": lambda c: "OK",
-            
-            # Data connection (Termux-compatible)
+# Data connection (Termux-compatible)
             "ATD*99#": self._cmd_dial_socat,
             "ATD*99***1#": self._cmd_dial_socks,
             "ATD*99***2#": self._cmd_dial_relay,
@@ -597,3 +596,683 @@ class EnhancedVirtualModem:
             return "BUSY"
         
         print("[Modem] ═══ Dial Request (SOCKS5 Proxy) ═══")
+        
+        port = 9050 + len(self.active_tunnels)
+        
+        try:
+            self._start_socks5_proxy(port)
+            
+            tunnel = TunnelSession(
+                port=port,
+                tunnel_type="socks5"
+            )
+            self.active_tunnels.append(tunnel)
+            self.data_active = True
+            
+            time.sleep(0.5)
+            
+            print(f"[Modem] SOCKS5 proxy: localhost:{port}")
+            
+            return f"CONNECT 150000000\r\n+SOCKS5: localhost:{port}"
+            
+        except Exception as e:
+            print(f"[Modem] SOCKS5 error: {e}")
+            return "NO CARRIER"
+    
+    def _cmd_dial_relay(self, cmd: str) -> str:
+        """
+        ATD*99***2# — Dial using Python TCP relay.
+        Zero external dependencies, pure Python.
+        """
+        if self.data_active:
+            return "BUSY"
+        
+        print("[Modem] ═══ Dial Request (TCP Relay) ═══")
+        
+        port = 8080 + len(self.active_tunnels)
+        
+        try:
+            self._start_tcp_relay(port)
+            
+            tunnel = TunnelSession(
+                port=port,
+                tunnel_type="tcp_relay"
+            )
+            self.active_tunnels.append(tunnel)
+            self.data_active = True
+            
+            time.sleep(0.5)
+            
+            print(f"[Modem] TCP relay: localhost:{port}")
+            
+            return f"CONNECT 150000000\r\n+RELAY: localhost:{port}"
+            
+        except Exception as e:
+            print(f"[Modem] Relay error: {e}")
+            return "NO CARRIER"
+    
+    def _cmd_hangup(self, cmd: str) -> str:
+        """ATH — Hang up data connection."""
+        self._disconnect_all_tunnels()
+        return "OK"
+    
+    # ── Subsystem Commands ──────────────────────────────────
+    
+    def _cmd_esim(self, cmd: str) -> str:
+        if "=LIST" in cmd:
+            profiles = self.esim.list_all()
+            if not profiles:
+                return "+ESIM: No profiles installed"
+            lines = []
+            for p in profiles:
+                active = "*" if p["active"] else " "
+                lines.append(f'+ESIM: [{active}] {p["iccid"]},{p["name"]},{p["state"]}')
+            return "\r\n".join(lines)
+        
+        if "=DOWNLOAD=" in cmd:
+            code = cmd.split("=", 2)[2].strip('"')
+            profile = self.esim.download(code)
+            if profile:
+                return f'+ESIM: Downloaded {profile.iccid}'
+            return "+ESIM: Download failed"
+        
+        if "=ENABLE=" in cmd:
+            iccid = cmd.split("=", 2)[2]
+            ok = self.esim.enable(iccid)
+            return f'+ESIM: {"Enabled" if ok else "Failed"} {iccid}'
+        
+        if "=DISABLE=" in cmd:
+            iccid = cmd.split("=", 2)[2]
+            ok = self.esim.disable(iccid)
+            return f'+ESIM: {"Disabled" if ok else "Failed"} {iccid}'
+        
+        if "=DELETE=" in cmd:
+            iccid = cmd.split("=", 2)[2]
+            ok = self.esim.delete(iccid)
+            return f'+ESIM: {"Deleted" if ok else "Failed"} {iccid}'
+        
+        if "=ACTIVE?" in cmd:
+            active = self.esim.get_active()
+            if active:
+                return f'+ESIM: Active={active["iccid"]},{active["name"]}'
+            return "+ESIM: No active profile"
+        
+        return "ERROR"
+    
+    def _cmd_wifi(self, cmd: str) -> str:
+        if "=CONFIG" in cmd:
+            result = self.wifi.configure()
+            return f'+WIFI: {result["links"]} links, {result["total_bandwidth_mhz"]}MHz total'
+        
+        if "=STATUS" in cmd:
+            status = self.wifi.get_status()
+            return f'+WIFI: Mode={status["mode"]}, Links={status["links"]}, Active={status["configured"]}'
+        
+        if "=MODE=" in cmd:
+            mode = cmd.split("=", 2)[2]
+            ok = self.wifi.set_mode(mode)
+            return f'+WIFI: Mode {"set" if ok else "failed"} to {mode}'
+        
+        return "+WIFI: OK"
+    
+    def _cmd_beam(self, cmd: str) -> str:
+        try:
+            parts = cmd.replace("AT+BEAM=", "").split(",")
+            if len(parts) >= 2:
+                az, el = float(parts[0]), float(parts[1])
+                self.antenna.beamform(az, el)
+                return f"+BEAM: Steered to az={az:.1f}°, el={el:.1f}°"
+        except (ValueError, IndexError):
+            pass
+        return "ERROR"
+    
+    def _cmd_henb(self, cmd: str) -> str:
+        if "=ATTACH" in cmd:
+            self.henb.establish_tunnel()
+            ctx = self.henb.attach_ue(self.id.imsi)
+            return f'+HENB: IP={ctx["ip_address"]}, GUTI={ctx["guti"]}'
+        
+        if "=DETACH" in cmd:
+            self.henb.detach_ue(self.id.imsi)
+            return "+HENB: Detached"
+        
+        if "=STATUS" in cmd:
+            status = self.henb.get_status()
+            return f'+HENB: UEs={status["attached_ues"]}, Tunnel={"UP" if status["tunnel_active"] else "DOWN"}'
+        
+        return "+HENB: OK"
+    
+    def _cmd_antenna(self, cmd: str) -> str:
+        status = self.antenna.get_status()
+        rssi = self.antenna.rssi(100)
+        return f'+ANTENNA: {status["elements"]} elements, {status["frequency_ghz"]:.1f}GHz, RSSI {rssi}/31'
+    
+    def _cmd_vonr(self, cmd: str) -> str:
+        if "=DIAL=" in cmd:
+            number = cmd.split("=", 2)[2]
+            loop = asyncio.new_event_loop()
+            session = loop.run_until_complete(
+                self.vonr.dial(f"tel:{self.id.msisdn}", f"tel:{number}")
+            )
+            loop.close()
+            return f'+VONR: Call={session.call_id}, Codec={session.codec}'
+        
+        if "=HANGUP=" in cmd:
+            cid = cmd.split("=", 2)[2]
+            ok = self.vonr.hangup(cid)
+            return f'+VONR: {"Terminated" if ok else "Not found"}'
+        
+        if "=STATUS" in cmd:
+            status = self.vonr.get_status()
+            return f'+VONR: Calls={status["active_calls"]}, Registered={status["registered"]}'
+        
+        return "+VONR: OK"
+    
+    def _cmd_status(self, cmd: str) -> str:
+        """AT+STATUS — Full system status."""
+        uptime = int(time.time() - self.start_time)
+        lines = [
+            f"+STATUS: SIF Virtual Modem v4.0",
+            f"+STATUS: Uptime={uptime}s",
+            f"+STATUS: IMSI={self.id.imsi[:6]}***",
+            f"+STATUS: IMEI={self.id.imei[:8]}***",
+            f"+STATUS: Registered={'Yes' if self.registered else 'No'}",
+            f"+STATUS: Signal={self.signal}/31",
+            f"+STATUS: Data={'Active' if self.data_active else 'Inactive'}",
+            f"+STATUS: Tunnels={len(self.active_tunnels)}",
+            f"+STATUS: eSIM Profiles={len(self.esim.profiles)}",
+            f"+STATUS: VoNR Calls={len(self.vonr.calls)}",
+            f"+STATUS: WiFi Links={len(self.wifi.links)}",
+            f"+STATUS: Rotations={self.rotation_count}",
+        ]
+        return "\r\n".join(lines)
+    
+    def _cmd_help(self, cmd: str) -> str:
+        """AT+HELP — List available commands."""
+        commands = [
+            "+HELP: === Basic ===",
+            "+HELP: AT           - Basic attention",
+            "+HELP: AT+CIMI      - Get IMSI",
+            "+HELP: AT+CGSN      - Get IMEI",
+            "+HELP: AT+CSQ       - Signal quality",
+            "+HELP: AT+CREG?     - Registration status",
+            "+HELP: AT+COPS?     - Operator selection",
+            "+HELP: === Data ===",
+            "+HELP: ATD*99#      - Dial (SOCAT tunnel)",
+            "+HELP: ATD*99***1#  - Dial (SOCKS5 proxy)",
+            "+HELP: ATD*99***2#  - Dial (TCP relay)",
+            "+HELP: ATH          - Hang up",
+            "+HELP: === eSIM ===",
+            "+HELP: AT+ESIM=LIST - List profiles",
+            "+HELP: AT+ESIM=DOWNLOAD=<code>",
+            "+HELP: AT+ESIM=ENABLE=<iccid>",
+            "+HELP: === Advanced ===",
+            "+HELP: AT+WIFI=CONFIG",
+            "+HELP: AT+BEAM=<az>,<el>",
+            "+HELP: AT+HENB=ATTACH",
+            "+HELP: AT+VONR=DIAL=<number>",
+            "+HELP: AT+ANTENNA?",
+            "+HELP: AT+STATUS",
+        ]
+        return "\r\n".join(commands)
+    
+    # ── Core Engine ──────────────────────────────────────────
+    
+    def _process_at(self, line: str) -> str:
+        """Parse and dispatch AT commands with response formatting."""
+        line = line.strip().upper()
+        if not line:
+            return ""
+        
+        # Try exact match first
+        base_cmd = line.split("?")[0].split("=")[0]
+        if base_cmd in self.commands:
+            try:
+                result = self.commands[base_cmd](line)
+                if result:
+                    return f"\r\n{result}\r\n\r\nOK\r\n"
+                return "\r\nOK\r\n"
+            except Exception as e:
+                print(f"[Modem] Command error: {e}")
+                return f"\r\nERROR\r\n"
+        
+        # Try prefix matching for sub-commands
+        for cmd_key in sorted(self.commands.keys(), key=len, reverse=True):
+            if line.startswith(cmd_key):
+                try:
+                    result = self.commands[cmd_key](line)
+                    if result:
+                        return f"\r\n{result}\r\n\r\nOK\r\n"
+                    return "\r\nOK\r\n"
+                except Exception as e:
+                    print(f"[Modem] Command error ({cmd_key}): {e}")
+        
+        return "\r\nERROR\r\n"
+    
+    def _at_loop(self):
+        """Main processing loop reading from pseudo-terminal."""
+        buffer = ""
+        while self.running:
+            try:
+                data = os.read(self.master_fd, 1024).decode('utf-8', errors='ignore')
+                buffer += data
+                
+                while '\r' in buffer or '\n' in buffer:
+                    end_r = buffer.find('\r')
+                    end_n = buffer.find('\n')
+                    
+                    if end_r == -1:
+                        end = end_n
+                    elif end_n == -1:
+                        end = end_r
+                    else:
+                        end = min(end_r, end_n)
+                    
+                    if end == -1:
+                        break
+                    
+                    line = buffer[:end].strip()
+                    buffer = buffer[end + 1:].lstrip('\n').lstrip('\r')
+                    
+                    if line:
+                        response = self._process_at(line)
+                        os.write(self.master_fd, response.encode('utf-8'))
+                        
+            except OSError:
+                time.sleep(0.01)
+    
+    # ── Tunnel Management ────────────────────────────────────
+    
+    def _start_socks5_proxy(self, port: int):
+        """Start built-in SOCKS5 proxy server."""
+        
+        class SOCKS5Handler(socketserver.StreamRequestHandler):
+            def handle(this):
+                try:
+                    # Handshake
+                    this.connection.recv(262)
+                    this.connection.sendall(b'\x05\x00')
+                    
+                    # Request
+                    data = this.connection.recv(4)
+                    if len(data) < 4 or data[1] != 0x01:
+                        return
+                    
+                    addr_type = data[3]
+                    addr = None
+                    port_num = None
+                    
+                    if addr_type == 0x01:  # IPv4
+                        addr = socket.inet_ntoa(this.connection.recv(4))
+                        port_num = struct.unpack('>H', this.connection.recv(2))[0]
+                    elif addr_type == 0x03:  # Domain
+                        domain_len = ord(this.connection.recv(1))
+                        addr = this.connection.recv(domain_len).decode()
+                        port_num = struct.unpack('>H', this.connection.recv(2))[0]
+                    else:
+                        return
+                    
+                    remote = socket.create_connection((addr, port_num), timeout=10)
+                    this.connection.sendall(
+                        b'\x05\x00\x00\x01' +
+                        socket.inet_aton('0.0.0.0') +
+                        struct.pack('>H', 0)
+                    )
+                    
+                    # Bidirectional relay
+                    sockets_list = [this.connection, remote]
+                    while True:
+                        r, _, _ = select.select(sockets_list, [], [], 30)
+                        if not r:
+                            break
+                        for s in r:
+                            data = s.recv(8192)
+                            if not data:
+                                sockets_list.remove(s)
+                                continue
+                            if s is this.connection:
+                                remote.sendall(data)
+                            else:
+                                this.connection.sendall(data)
+                        if len(sockets_list) < 2:
+                            break
+                            
+                except Exception:
+                    pass
+                finally:
+                    try:
+                        remote.close()
+                    except:
+                        pass
+        
+        self.socks_server = socketserver.ThreadingTCPServer(
+            ('127.0.0.1', port), SOCKS5Handler
+        )
+        threading.Thread(target=self.socks_server.serve_forever, daemon=True).start()
+    
+    def _start_tcp_relay(self, port: int, target_host: str = "192.168.42.1", target_port: int = 80):
+        """Start Python-based TCP relay."""
+        
+        def handle_client(client_sock):
+            remote_sock = None
+            try:
+                remote_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                remote_sock.settimeout(10)
+                remote_sock.connect((target_host, target_port))
+                
+                sockets_list = [client_sock, remote_sock]
+                while True:
+                    r, _, _ = select.select(sockets_list, [], [], 30)
+                    if not r:
+                        break
+                    for s in r:
+                        data = s.recv(8192)
+                        if not data:
+                            sockets_list.remove(s)
+                            continue
+                        if s is client_sock:
+                            remote_sock.sendall(data)
+                        else:
+                            client_sock.sendall(data)
+                    if len(sockets_list) < 2:
+                        break
+            except Exception:
+                pass
+            finally:
+                try:
+                    client_sock.close()
+                except:
+                    pass
+                if remote_sock:
+                    try:
+                        remote_sock.close()
+                    except:
+                        pass
+        
+        server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_sock.bind(('127.0.0.1', port))
+        server_sock.listen(10)
+        
+        def accept_loop():
+            while self.running:
+                try:
+                    server_sock.settimeout(1)
+                    client, _ = server_sock.accept()
+                    threading.Thread(target=handle_client, args=(client,), daemon=True).start()
+                except socket.timeout:
+                    continue
+                except:
+                    break
+        
+        threading.Thread(target=accept_loop, daemon=True).start()
+    
+    def _disconnect_all_tunnels(self):
+        """Terminate all active data tunnels."""
+        for tunnel in self.active_tunnels:
+            if tunnel.process:
+                try:
+                    tunnel.process.terminate()
+                    tunnel.process.wait(timeout=2)
+                except:
+                    try:
+                        tunnel.process.kill()
+                    except:
+                        pass
+            if tunnel.data_pty and os.path.exists(tunnel.data_pty):
+                try:
+                    os.unlink(tunnel.data_pty)
+                except:
+                    pass
+        
+        self.active_tunnels.clear()
+        
+        if self.socks_server:
+            try:
+                self.socks_server.shutdown()
+            except:
+                pass
+            self.socks_server = None
+        
+        self.data_active = False
+        print("[Modem] All tunnels disconnected")
+    
+  # ── REST API ─────────────────────────────────────────────
+    
+    def _rest_api(self):
+        """HTTP REST API for identity rotation, status, and control."""
+        modem = self
+        
+        class ModemAPI(BaseHTTPRequestHandler):
+            def do_GET(this):
+                if this.path == "/status":
+                    this._json(modem._get_full_status())
+                elif this.path == "/threat/status":
+                    this._json({"threat_detected": False, "last_check": time.time()})
+                elif this.path == "/tunnels":
+                    this._json(modem._get_tunnel_status())
+                elif this.path == "/health":
+                    this._json({"status": "healthy", "uptime": int(time.time() - modem.start_time)})
+                else:
+                    this.send_error(404)
+            
+            def do_POST(this):
+                cl = int(this.headers.get('Content-Length', 0))
+                body = json.loads(this.rfile.read(cl)) if cl > 0 else {}
+                
+                if this.path == "/rotate":
+                    modem._handle_rotation(body)
+                    this._json({
+                        "status": "rotated",
+                        "imsi": modem.id.imsi[:6] + "***",
+                        "count": modem.rotation_count
+                    })
+                    
+                elif this.path == "/threat":
+                    print("[Modem] ⚠️ Threat signal received!")
+                    # Trigger emergency rotation with new identity
+                    if modem.pool:
+                        import random
+                        new_id = random.choice(modem.pool)
+                        modem.id = new_id
+                        modem.rotation_count += 1
+                    this._json({
+                        "status": "emergency_rotation",
+                        "imsi": modem.id.imsi[:6] + "***"
+                    })
+                    
+                elif this.path == "/disconnect":
+                    modem._disconnect_all_tunnels()
+                    this._json({"status": "disconnected"})
+                    
+                elif this.path == "/connect":
+                    tunnel_type = body.get("type", "socat")
+                    if tunnel_type == "socks5":
+                        modem._cmd_dial_socks("ATD*99***1#")
+                    elif tunnel_type == "relay":
+                        modem._cmd_dial_relay("ATD*99***2#")
+                    else:
+                        modem._cmd_dial_socat("ATD*99#")
+                    this._json({"status": "connected", "type": tunnel_type})
+                    
+                else:
+                    this.send_error(404)
+            
+            def _json(this, data):
+                this.send_response(200)
+                this.send_header("Content-Type", "application/json")
+                this.send_header("Access-Control-Allow-Origin", "*")
+                this.end_headers()
+                this.wfile.write(json.dumps(data, indent=2).encode())
+            
+            def log_message(this, *args):
+                pass  # Suppress HTTP access logs
+        
+        server = HTTPServer(('127.0.0.1', 9042), ModemAPI)
+        print("[Modem] REST API: http://127.0.0.1:9042")
+        server.serve_forever()
+    
+    def _handle_rotation(self, body: dict):
+        """Process identity rotation request."""
+        for key in ["imsi", "imei", "msisdn", "ki", "opc", "iccid"]:
+            if key in body:
+                setattr(self.id, key, body[key])
+        self.rotation_count += 1
+        print(f"[Modem] Identity rotated (#{self.rotation_count}): IMSI {self.id.imsi[:6]}***")
+    
+    def _get_full_status(self) -> dict:
+        """Get complete modem status."""
+        return {
+            "modem": {
+                "version": "4.0-termux",
+                "uptime_seconds": int(time.time() - self.start_time),
+                "pty_path": self.pty_path,
+            },
+            "identity": {
+                "imsi": self.id.imsi[:6] + "***",
+                "imei": self.id.imei[:8] + "***",
+                "msisdn": self.id.msisdn,
+                "operator": self.id.operator,
+                "rotation_count": self.rotation_count,
+            },
+            "network": {
+                "registered": self.registered,
+                "signal_csq": self.signal,
+                "data_active": self.data_active,
+            },
+            "tunnels": self._get_tunnel_status(),
+            "esim": {
+                "eid": self.esim.eid,
+                "profiles_count": len(self.esim.profiles),
+                "active_iccid": self.esim.active_iccid,
+            },
+            "vonr": self.vonr.get_status(),
+            "wifi": self.wifi.get_status(),
+            "antenna": self.antenna.get_status(),
+            "henb": self.henb.get_status(),
+        }
+    
+    def _get_tunnel_status(self) -> dict:
+        """Get active tunnel information."""
+        return {
+            "active": self.data_active,
+            "count": len(self.active_tunnels),
+            "tunnels": [
+                {
+                    "port": t.port,
+                    "type": t.tunnel_type,
+                    "data_pty": t.data_pty,
+                    "active": t.process is not None and t.process.poll() is None if t.process else True
+                }
+                for t in self.active_tunnels
+            ]
+        }
+    
+    # ── Lifecycle ────────────────────────────────────────────
+    
+    def start(self):
+        """Start the virtual modem."""
+        self.master_fd, self.slave_fd = pty.openpty()
+        
+        # Set terminal attributes
+        import termios
+        attrs = termios.tcgetattr(self.slave_fd)
+        attrs[2] = attrs[2] | termios.B9600
+        termios.tcsetattr(self.slave_fd, termios.TCSANOW, attrs)
+        
+        # Create symbolic link
+        if os.path.exists(self.pty_path):
+            os.unlink(self.pty_path)
+        os.symlink(f"/dev/fd/{self.slave_fd}", self.pty_path)
+        
+        self.running = True
+        self.start_time = time.time()
+        
+        print(f"\n{'='*60}")
+        print(f"  SIF Enhanced Virtual Modem v4.0")
+        print(f"  Termux-Compatible Edition")
+        print(f"  {'='*60}")
+        print(f"  PTY:      {self.pty_path}")
+        print(f"  IMSI:     {self.id.imsi}")
+        print(f"  IMEI:     {self.id.imei}")
+        print(f"  Operator: {self.id.operator}")
+        print(f"  eSIM EID: {self.esim.eid}")
+        print(f"  Pool:     {len(self.pool)} identities")
+        print(f"  {'='*60}")
+        print(f"  Data modes: SOCAT tunnel, SOCKS5 proxy, TCP relay")
+        print(f"  No PPP required — Termux compatible")
+        print(f"  {'='*60}\n")
+        
+        # Start processing threads
+        threading.Thread(target=self._at_loop, daemon=True, name="AT-Loop").start()
+        threading.Thread(target=self._rest_api, daemon=True, name="REST-API").start()
+    
+    def stop(self):
+        """Graceful shutdown."""
+        print("[Modem] Shutting down...")
+        self.running = False
+        self._disconnect_all_tunnels()
+        
+        if self.master_fd:
+            try:
+                os.close(self.master_fd)
+            except:
+                pass
+        if self.slave_fd:
+            try:
+                os.close(self.slave_fd)
+            except:
+                pass
+        if os.path.exists(self.pty_path):
+            try:
+                os.unlink(self.pty_path)
+            except:
+                pass
+        
+        print("[Modem] Shutdown complete.")
+
+# ═══════════════════════════════════════════════════════════════
+# MAIN ENTRY POINT
+# ═══════════════════════════════════════════════════════════════
+
+if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+        description="SIF Enhanced Virtual Modem — Termux Edition",
+        epilog="No PPP required. Uses SOCAT tunnels, SOCKS5 proxy, and TCP relay."
+    )
+    parser.add_argument("--pty", default="/tmp/vmodem",
+                        help="Pseudo-terminal path (default: /tmp/vmodem)")
+    parser.add_argument("--identities", default=None,
+                        help="JSON file with virtual identity pool")
+    parser.add_argument("--port", type=int, default=9042,
+                        help="REST API port (default: 9042)")
+    
+    args = parser.parse_args()
+    
+    # Create modem instance
+    modem = EnhancedVirtualModem(
+        pty_path=args.pty,
+        identity_file=args.identities
+    )
+    
+    # Handle graceful shutdown
+    def signal_handler(sig, frame):
+        print("\n[Modem] Received shutdown signal...")
+        modem.stop()
+        sys.exit(0)
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    # Start modem
+    modem.start()
+    
+    # Keep main thread alive
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        modem.stop()
+        print("[Modem] Goodbye.")
