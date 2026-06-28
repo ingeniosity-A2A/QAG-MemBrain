@@ -77,6 +77,9 @@ impl From<ReceiptFrame> for Receipt {
             trust_score: f.trust_score,
             knox_safe: f.knox_safe,
             metadata: Arc::new(metadata),
+            signature: None,
+            signer_did: None,
+            atommem_directive: None,
         }
     }
 }

@@ -259,6 +259,9 @@ impl ContextLake for DuckDbContextLake {
                     trust_score: trust,
                     knox_safe: knox,
                     metadata: Arc::new(metadata),
+            signature: None,
+            signer_did: None,
+            atommem_directive: None,
                 })
             },
         )?;

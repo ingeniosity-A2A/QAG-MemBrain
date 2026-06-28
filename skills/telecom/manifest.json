@@ -1,0 +1,23 @@
+{
+  "skill_manifest": {
+    "name": "telecom",
+    "version": 1,
+    "description": "Double Learning Intelligence for sovereign telecom operation",
+    "harnesses": [
+      "termux_usb_serial",
+      "gsap_temporal",
+      "neo4j_graphrag",
+      "mellum2",
+      "lora_sx1262"
+    ],
+    "capabilities": [
+      "telecom.detect_imsi_catcher",
+      "telecom.rotate_identity",
+      "telecom.steer_backhaul",
+      "telecom.purge_logs",
+      "telecom.train_dli"
+    ],
+    "training_algorithm": "training/dli/double_dqn.py",
+    "config": "skills/telecom/dli_config.json"
+  }
+}

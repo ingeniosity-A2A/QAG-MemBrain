@@ -98,6 +98,7 @@ impl Router {
             Route::Tashi  => self.run_tashi(&decision, intent, parent_receipt).await,
             Route::Epoch  => self.run_epoch(&decision, intent).await,
             Route::User   => self.run_user(&decision, intent).await,
+            Route::Cortex => self.run_cortex(&decision, intent, parent_receipt, reservation.as_ref().unwrap()).await,
         };
 
         // ── 3. Release budget with actual usage ──────────────────────
@@ -386,6 +387,60 @@ impl Router {
             receipts: vec![],
             response_text: intent.query.clone(),
             route: Route::User,
+            total_latency_ms: 0,
+            budget_reservation: None,
+            success: true,
+            error: None,
+        })
+    }
+
+    /// CORTEX: deep reasoning via Mercury2 diffusion (L6 Cortex tier).
+    async fn run_cortex(
+        &self,
+        decision: &Decision,
+        intent: &crate::policy::Intent,
+        parent_receipt: Option<uuid::Uuid>,
+        _reservation: &BudgetReservation,
+    ) -> anyhow::Result<RouterResult> {
+        let injected = self.injector.inject(
+            &intent.query, None, &intent.session_id, parent_receipt, decision.context_budget,
+        ).await?;
+
+        let cortex_prompt = format!(
+            "{prefix}You are the CORTEX tier of AVA007. Use deep reasoning.\n\n             ESCALATION: REV.IKE + FABLE could not resolve intent {bucket:?} (conf {conf:.2}).\n\n             USER QUERY: {query}\n\n             Provide a thorough, well-reasoned response:",
+            prefix = injected.prompt_prefix,
+            bucket = intent.bucket,
+            conf = intent.confidence,
+            query = intent.query,
+        );
+
+        let req = InferenceRequest {
+            prompt: cortex_prompt.into(),
+            max_tokens: decision.generation_budget,
+            temperature: 0.7,
+            top_p: 0.95,
+            stop_tokens: vec!["\n\n\n".into()],
+            model: ModelChoice::Mercury2,
+        };
+        let resp = self.inference.generate(req).await?;
+
+        let receipt = Receipt::new(
+            intent.session_id.clone(),
+            lite_notebook::Origin::Fable,
+            lite_notebook::ReceiptKind::Cognition,
+            resp.text.clone(),
+            parent_receipt,
+        )
+        .with_trust(0.85)
+        .with_metadata("model", "mercury-2")
+        .with_metadata("tier", "cortex")
+        .with_metadata("latency_ms", resp.latency_ms.to_string())
+        .with_metadata("tokens_generated", resp.tokens_generated.to_string());
+
+        Ok(RouterResult {
+            receipts: vec![receipt],
+            response_text: resp.text,
+            route: Route::Cortex,
             total_latency_ms: 0,
             budget_reservation: None,
             success: true,

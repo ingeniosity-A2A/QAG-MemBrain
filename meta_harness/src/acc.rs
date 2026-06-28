@@ -56,7 +56,7 @@ impl ConflictType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ConflictResolution {
     /// Resolved by preferring the higher-trust output
     PreferHigherTrust,

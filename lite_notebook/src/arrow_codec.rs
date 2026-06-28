@@ -207,6 +207,9 @@ impl ReceiptCodec {
                 trust_score,
                 knox_safe,
                 metadata: Arc::new(metadata),
+                signature: None,
+                signer_did: None,
+                atommem_directive: None,
             });
         }
 

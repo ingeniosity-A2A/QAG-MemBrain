@@ -104,7 +104,7 @@ what's salvageable, and what's missing.
 | 1 | **Binary Ninja Agent** (`bn`) | `goose/src/binary_ninja.rs` | Medium | New — Preview-then-Commit binary audit loop |
 | 2 | **FAPO Selection** | New `fapo/` crate | High | New — Fractional Pareto-Optimality Arena for capability selection |
 | 3 | **Artificial ACC** | `meta_harness/src/acc.rs` | Medium | New — conflict monitoring + drift detection + self-correction |
-| 4 | **WASM-native Capabilities IR** | New `capabilities/` crate | High | New — evolvable capability sandboxes (was "Genes" in white paper — corrected to "Capabilities" per framework terminology) |
+| 4 | **WASM-native Capabilities IR** | New `capabilities/` crate | High | New — evolvable capability sandboxes |
 | 5 | **Cloudflare Vectorize** | Future | Low | Future work |
 | 6 | **DID key management** | Future | Low | Future work |
 | 7 | **YouTube/Whisper ingestion** | Future | Low | Future work |
@@ -126,18 +126,19 @@ what's salvageable, and what's missing.
 
 ---
 
-## Terminology Corrections
+## Terminology
 
-The white paper uses some terms that don't match the framework's actual
-codebase terminology. This roadmap uses the **framework's terms**:
+This roadmap uses the framework's canonical terms:
 
-| White Paper Term | Framework Term | Used In |
-|-----------------|----------------|---------|
-| "Genes" | **Capabilities** | `constellation/`, `meta_harness/router.rs` |
-| "AtomMem" | **Receipt** (+ directives) | `lite_notebook/receipt.rs` |
-| "Posterior / Prefrontal" | **Subconscious / Executive** | `meta_harness/` (Route::RevIke / Route::Fable) |
-| "Interaction Quanta" | **Interaction Quanta** (kept — canonical) | New module |
-| "HolographicReconstructor" | **GSAPTemporalReconstructor** | `mobile-runtime/src/temporal/` |
+| Term | Used In |
+|------|---------|
+| **Capabilities** | `constellation/`, `meta_harness/router.rs`, `capabilities/` crate |
+| **Receipt** (+ directives) | `lite_notebook/receipt.rs` |
+| **Subconscious / Executive** | `meta_harness/` (Route::RevIke / Route::Fable) |
+| **Interaction Quanta** | `lite_notebook/interaction_quantum.rs` |
+| **GSAPTemporalReconstructor** | `mobile-runtime/src/temporal/` |
+| **Skills** | `skills/` (telecom, latent_skill, griptape) |
+| **Harnesses** | `harness/` crate (execution substrates Skills deploy to) |
 
 ---
 

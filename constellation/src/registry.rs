@@ -93,5 +93,33 @@ pub fn default_registry() -> Vec<ModelConfig> {
             cost_per_1k_tokens: 0.0,
             capabilities: vec!["Translate".into(), "Multilang".into()],
         },
+        // Mercury2 — Cortex tier (diffusion LLM, Inception Labs)
+        ModelConfig {
+            id: ModelId::Mercury2,
+            endpoint: ModelEndpoint::Cloud {
+                api_url: std::env::var("MERCURY2_ENDPOINT")
+                    .unwrap_or_else(|_| "https://api.inceptionlabs.ai/v1/chat/completions".into()),
+                api_key_env: "MERCURY2_API_KEY".into(),
+            },
+            quantization: Quantization::Cloud,
+            always_loaded: false,
+            load_time_ms: 0,
+            avg_latency_ms: 2000,
+            max_context_tokens: 32_768,
+            cost_per_1k_tokens: 0.002,
+            capabilities: vec!["deep_reasoning".into(), "policy".into(), "novel_types".into()],
+        },
+        // Mellum2 — Executive tier (MoE 12B/2.5B active, local Ollama)
+        ModelConfig {
+            id: ModelId::Mellum2,
+            endpoint: ModelEndpoint::Local { port: 11434 },
+            quantization: Quantization::Q4KM,
+            always_loaded: false,
+            load_time_ms: 1500,
+            avg_latency_ms: 150,
+            max_context_tokens: 8192,
+            cost_per_1k_tokens: 0.0,
+            capabilities: vec!["routing".into(), "planning".into(), "escalation".into()],
+        },
     ]
 }

@@ -295,7 +295,8 @@ mod tests {
             ..Default::default()
         };
         let assignment = c.route(&signals);
-        assert_eq!(assignment.model, ModelId::Gemma12B);
+        // Planning should route to a planning-capable model (Gemma12B or Mellum2)
+        assert!(matches!(assignment.model, ModelId::Gemma12B | ModelId::Mellum2));
     }
 
     #[test]

@@ -11,6 +11,10 @@ pub enum ModelId {
     Claude,
     GPT4o,
     Qwen7B,
+    /// Mercury2 diffusion LLM (Inception Labs) — Cortex tier
+    Mercury2,
+    /// Mellum2 MoE (local Ollama) — Executive tier
+    Mellum2,
     Custom(String),
 }
 
@@ -23,6 +27,8 @@ impl ModelId {
             ModelId::Claude => "claude",
             ModelId::GPT4o => "gpt-4o",
             ModelId::Qwen7B => "qwen-7b",
+            ModelId::Mercury2 => "mercury-2",
+            ModelId::Mellum2 => "mellum-2",
             ModelId::Custom(s) => s.as_str(),
         }
     }

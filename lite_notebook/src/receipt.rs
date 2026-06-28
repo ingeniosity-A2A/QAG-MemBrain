@@ -122,6 +122,65 @@ pub struct Receipt {
 
     /// Free-form metadata (model name, latency_ms, token_count, etc.)
     pub metadata: Arc<HashMap<Arc<str>, Arc<str>>>,
+
+    /// ── L1 Atomic Memory extensions (white paper §3) ────────────────
+    ///
+    /// Ed25519 signature over (id + timestamp_ns + content_hash).
+    /// None for unsigned receipts. Set by Tashi consensus layer.
+    pub signature: Option<Arc<Vec<u8>>>,
+
+    /// DID of the signer. None when signature is None.
+    pub signer_did: Option<Arc<str>>,
+
+    /// AtomMem directives — XML-token action space for GRPO-trained
+    /// self-managing memory policy (white paper §3, L6 Executive).
+    pub atommem_directive: Option<AtomMemDirective>,
+}
+
+/// AtomMem directive — the GRPO-trained memory CRUD action space.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum AtomMemDirective {
+    Create { atom_type: Arc<str>, tags: Vec<Arc<str>> },
+    Read { target_id: Uuid },
+    Update { target_id: Uuid },
+    Delete { target_id: Uuid },
+}
+
+impl AtomMemDirective {
+    pub fn to_xml(&self) -> String {
+        match self {
+            AtomMemDirective::Create { atom_type, tags } => {
+                format!("<create type=\"{}\" tags=\"{}\" />",
+                    atom_type, tags.iter().map(|t| t.as_ref()).collect::<Vec<_>>().join(","))
+            }
+            AtomMemDirective::Read { target_id } => format!("<read id=\"{}\" />", target_id),
+            AtomMemDirective::Update { target_id } => format!("<update id=\"{}\" />", target_id),
+            AtomMemDirective::Delete { target_id } => format!("<delete id=\"{}\" />", target_id),
+        }
+    }
+
+    pub fn parse(xml: &str) -> Option<Self> {
+        let t = xml.trim();
+        if t.starts_with("<create") {
+            let atom_type = extract_attr(t, "type")?;
+            let tags_str = extract_attr(t, "tags").unwrap_or_default();
+            let tags: Vec<Arc<str>> = tags_str.split(',').filter(|s| !s.is_empty()).map(|s| s.trim().into()).collect();
+            Some(AtomMemDirective::Create { atom_type: atom_type.into(), tags })
+        } else if t.starts_with("<read") {
+            extract_attr(t, "id").and_then(|s| Uuid::parse_str(&s).ok()).map(|id| AtomMemDirective::Read { target_id: id })
+        } else if t.starts_with("<update") {
+            extract_attr(t, "id").and_then(|s| Uuid::parse_str(&s).ok()).map(|id| AtomMemDirective::Update { target_id: id })
+        } else if t.starts_with("<delete") {
+            extract_attr(t, "id").and_then(|s| Uuid::parse_str(&s).ok()).map(|id| AtomMemDirective::Delete { target_id: id })
+        } else { None }
+    }
+}
+
+fn extract_attr(xml: &str, attr: &str) -> Option<String> {
+    let pattern = format!("{}=\"", attr);
+    let start = xml.find(&pattern)? + pattern.len();
+    let end = xml[start..].find('"')? + start;
+    Some(xml[start..end].to_string())
 }
 
 impl Receipt {
@@ -162,6 +221,9 @@ impl Receipt {
             },
             knox_safe: true,
             metadata: Arc::new(HashMap::new()),
+            signature: None,
+            signer_did: None,
+            atommem_directive: None,
         }
     }
 
@@ -181,6 +243,67 @@ impl Receipt {
         self.metadata = Arc::new(m);
         self
     }
+
+    /// Attach an AtomMem directive (GRPO-trained memory CRUD action).
+    pub fn with_atommem_directive(mut self, directive: AtomMemDirective) -> Self {
+        self.atommem_directive = Some(directive);
+        self
+    }
+
+    /// Sign this receipt with an Ed25519-style signature.
+    /// Payload: id (16) + timestamp_ns (8) + content_hash (32) = 56 bytes.
+    /// Placeholder: HMAC-SHA256 (real Ed25519 added when key infra is built).
+    pub fn sign(mut self, signer_did: Arc<str>, secret_key: &[u8]) -> Self {
+        let mut payload = Vec::with_capacity(56);
+        payload.extend_from_slice(self.id.as_bytes());
+        payload.extend_from_slice(&self.timestamp_ns.to_le_bytes());
+        payload.extend_from_slice(&self.content_hash);
+
+        let mut hasher = Sha256::new();
+        hasher.update(&payload);
+        hasher.update(secret_key);
+        let digest = hasher.finalize();
+
+        let mut sig = vec![0u8; 64];
+        sig[..32].copy_from_slice(&digest);
+        let mut hasher2 = Sha256::new();
+        hasher2.update(&sig[..32]);
+        hasher2.update(secret_key);
+        sig[32..].copy_from_slice(&hasher2.finalize());
+
+        self.signature = Some(Arc::new(sig));
+        self.signer_did = Some(signer_did);
+        self
+    }
+
+    /// Verify the signature on this receipt.
+    pub fn verify(&self, public_key: &[u8]) -> bool {
+        let signature = match &self.signature { Some(s) => s, None => return false };
+        if self.signer_did.is_none() { return false; }
+
+        let mut payload = Vec::with_capacity(56);
+        payload.extend_from_slice(self.id.as_bytes());
+        payload.extend_from_slice(&self.timestamp_ns.to_le_bytes());
+        payload.extend_from_slice(&self.content_hash);
+
+        let mut hasher = Sha256::new();
+        hasher.update(&payload);
+        hasher.update(public_key);
+        let digest = hasher.finalize();
+
+        let mut expected = vec![0u8; 64];
+        expected[..32].copy_from_slice(&digest);
+        let mut hasher2 = Sha256::new();
+        hasher2.update(&expected[..32]);
+        hasher2.update(public_key);
+        expected[32..].copy_from_slice(&hasher2.finalize());
+
+        let mut diff = 0u8;
+        for (a, b) in signature.iter().zip(expected.iter()) { diff |= a ^ b; }
+        diff == 0
+    }
+
+    pub fn is_signed(&self) -> bool { self.signature.is_some() }
 
     /// Mark unsafe for Knox surfaces. Once set, cannot be unset.
     pub fn mark_knox_unsafe(mut self) -> Self {

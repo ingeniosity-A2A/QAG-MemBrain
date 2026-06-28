@@ -48,6 +48,10 @@ pub enum Route {
     /// Direct user echo (acknowledgement, "thinking...", error messages).
     /// Bypasses inference entirely.
     User = 5,
+
+    /// Cortex tier — Mercury2 diffusion for deep reasoning.
+    /// Escalation target when REV.IKE and FABLE can't resolve.
+    Cortex = 6,
 }
 
 impl Route {
@@ -59,6 +63,7 @@ impl Route {
             Route::Tashi  => Origin::Tashi,
             Route::Epoch  => Origin::Epoch,
             Route::User   => Origin::User,
+            Route::Cortex => Origin::Fable,
         }
     }
 
@@ -70,6 +75,7 @@ impl Route {
             Route::Tashi  => "TASHI",
             Route::Epoch  => "EPOCH",
             Route::User   => "USER",
+            Route::Cortex => "CORTEX",
         }
     }
 }
@@ -193,6 +199,12 @@ pub enum ModelChoice {
     /// FABLE — Gemma 4 12B agentic finetune. Loaded on-demand.
     /// ~7 tok/s. Used only for Planning intents.
     Fable12B,
+
+    /// Mercury2 — diffusion LLM from Inception Labs (Cortex tier).
+    Mercury2,
+
+    /// Mellum2 — MoE 12B/2.5B active via local Ollama (Executive tier).
+    Mellum2,
 
     /// No model needed (UI navigation, memory ops handled structurally)
     None,

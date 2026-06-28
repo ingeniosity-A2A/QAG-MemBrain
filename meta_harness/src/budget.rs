@@ -181,7 +181,7 @@ impl BudgetTracker {
 
         // ── Per-model limits ────────────────────────────────────────
         match model {
-            ModelChoice::Gemma2B => {
+            ModelChoice::Gemma2B | ModelChoice::Mellum2 => {
                 // Roll the 1-second window if needed
                 self.maybe_roll_gemma_window();
                 let tok_this_sec = self.gemma_tok_window.load(Ordering::Relaxed);
@@ -189,7 +189,7 @@ impl BudgetTracker {
                     return BudgetDenialReason::GemmaThroughputCap;
                 }
             }
-            ModelChoice::Fable12B => {
+            ModelChoice::Fable12B | ModelChoice::Mercury2 => {
                 // Concurrent limit
                 let in_flight = self.fable_in_flight.load(Ordering::Relaxed);
                 if in_flight >= self.limits.fable_max_concurrent {
@@ -221,10 +221,10 @@ impl BudgetTracker {
         }
 
         match model {
-            ModelChoice::Gemma2B => {
+            ModelChoice::Gemma2B | ModelChoice::Mellum2 => {
                 self.gemma_tok_window.fetch_add(est_tokens, Ordering::Relaxed);
             }
-            ModelChoice::Fable12B => {
+            ModelChoice::Fable12B | ModelChoice::Mercury2 => {
                 self.fable_in_flight.fetch_add(1, Ordering::Relaxed);
                 self.fable_calls_window.fetch_add(1, Ordering::Relaxed);
             }
@@ -243,7 +243,7 @@ impl BudgetTracker {
     /// Records actual tokens used (for accuracy in next estimate).
     pub fn release(&self, reservation: BudgetReservation, actual_tokens: u32) {
         match reservation.model {
-            ModelChoice::Gemma2B => {
+            ModelChoice::Gemma2B | ModelChoice::Mellum2 => {
                 // Subtract the reservation, add back actual (smoother)
                 // Net effect: we used `actual_tokens` not `reserved_tokens`
                 let delta = reservation.reserved_tokens as i64 - actual_tokens as i64;
@@ -251,7 +251,7 @@ impl BudgetTracker {
                     self.gemma_tok_window.fetch_sub(delta as u32, Ordering::Relaxed);
                 }
             }
-            ModelChoice::Fable12B => {
+            ModelChoice::Fable12B | ModelChoice::Mercury2 => {
                 self.fable_in_flight.fetch_sub(1, Ordering::Relaxed);
             }
             ModelChoice::None => {}

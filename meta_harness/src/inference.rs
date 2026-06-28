@@ -289,6 +289,8 @@ impl InferenceBackend for RoutedBackend {
         match req.model {
             ModelChoice::Gemma2B => self.gemma.generate(req).await,
             ModelChoice::Fable12B => self.fable.generate(req).await,
+            ModelChoice::Mercury2 => self.fable.generate(req).await,
+            ModelChoice::Mellum2  => self.gemma.generate(req).await,
             ModelChoice::None => Err(anyhow::anyhow!("ModelChoice::None cannot generate")),
         }
     }

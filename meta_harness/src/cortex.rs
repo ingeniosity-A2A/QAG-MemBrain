@@ -40,7 +40,7 @@ pub struct CortexResult {
 
 /// The Cortex tier — calls Mercury2 diffusion for deep reasoning.
 pub struct Cortex {
-    mercury2: Arc<crate::inference::LlamaServerBackend>,
+    mercury2: Arc<dyn crate::inference::InferenceBackend>,
 }
 
 impl Cortex {
@@ -48,7 +48,7 @@ impl Cortex {
     /// In production, this uses constellation::backends::Mercury2Backend.
     /// For now, it uses the LlamaServerBackend (which can point at any
     /// OpenAI-compatible API including Mercury2's endpoint).
-    pub fn new(mercury2: Arc<crate::inference::LlamaServerBackend>) -> Self {
+    pub fn new(mercury2: Arc<dyn crate::inference::InferenceBackend>) -> Self {
         Self { mercury2 }
     }
 

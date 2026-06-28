@@ -340,7 +340,8 @@ mod tests {
     fn genesis_vertex_is_valid() {
         let atom = make_receipt("genesis");
         let vertex = create_vertex(&atom, &[], "did:ava:node-1", "sig123");
-        let known = HashSet::new();
+        let mut known = HashSet::new();
+        known.insert("known_parent".to_string());
         let result = validate_vertex(&vertex, &known);
         assert!(result.valid);
     }
@@ -348,8 +349,9 @@ mod tests {
     #[test]
     fn vertex_with_unknown_parent_is_rejected() {
         let atom = make_receipt("child");
-        let vertex = create_vertex(&atom, &["unknown_hash"], "did:ava:node-1", "sig123");
-        let known = HashSet::new();
+        let vertex = create_vertex(&atom, &["unknown_hash".to_string()], "did:ava:node-1", "sig123");
+        let mut known = HashSet::new();
+        known.insert("known_parent".to_string());
         let result = validate_vertex(&vertex, &known);
         assert!(!result.valid);
         assert!(result.reason.unwrap().contains("Unknown parent"));
@@ -358,9 +360,12 @@ mod tests {
     #[test]
     fn hash_mismatch_is_detected() {
         let atom = make_receipt("data");
-        let mut vertex = create_vertex(&atom, &[], "did:ava:node-1", "sig123");
+        let mut vertex = create_vertex(&atom, &["known_parent".to_string()], "did:ava:node-1", "sig123");
+        // Tamper the hash field — validation should detect the mismatch
+        // between the stored hash and the recomputed hash
         vertex.hash = "tampered_hash".into();
-        let known = HashSet::new();
+        let mut known = HashSet::new();
+        known.insert("known_parent".to_string());
         let result = validate_vertex(&vertex, &known);
         assert!(!result.valid);
         assert!(result.reason.unwrap().contains("Hash mismatch"));

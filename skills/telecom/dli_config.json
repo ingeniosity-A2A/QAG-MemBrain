@@ -1,0 +1,81 @@
+{
+  "algorithm": "Double DQN + Rainbow + Lyapunov",
+  "description": "Double Learning Intelligence for sovereign telecom operation",
+  "references": ["arxiv:1710.02298", "arxiv:1509.06461", "arxiv:1810.07105"],
+
+  "state_space": {
+    "queue_states": {
+      "Q_data": "Data queue length",
+      "Q_security": "Security event queue",
+      "Q_identity": "Time since last IMSI rotation (virtual queue)"
+    },
+    "rf_environment": {
+      "channel_gain": "Local channel gain (omega_WL)",
+      "interference_levels": "Per-frequency interference",
+      "sensing_reflections": "JCAS reflections for IMSI-catcher detection"
+    },
+    "backhaul_status": {
+      "e_band_throughput": "E-band mmWave throughput (Mbps)",
+      "microwave_latency": "Microwave IP latency (ms)",
+      "microwave_jitter": "Microwave IP jitter (ms)"
+    }
+  },
+
+  "action_space": {
+    "waveform_config": {
+      "power_allocation": "Joint sensing/comm power allocation",
+      "beamforming_weights": "8-element array weights"
+    },
+    "security_actions": {
+      "trigger_identity_rotation": "Rotate IMSI/IMEI",
+      "activate_signaling_proxy": "Enable SS7/MAP firewall",
+      "initiate_log_purge": "Run ephemeral log policy"
+    },
+    "backhaul_steering": {
+      "route_e_band": "Steer via E-band mmWave",
+      "route_microwave": "Steer via Microwave IP/MPLS"
+    }
+  },
+
+  "reward_function": {
+    "formula": "R(t) = achieved_data_rate - V * (power_penalty + privacy_violation_penalty)",
+    "V_tradeoff_factor": {
+      "min": 5,
+      "max": 40,
+      "default": 20,
+      "description": "Balances power/delay tradeoff"
+    },
+    "squared_term_logic": "Queue length as squared term (Q^2) to prioritize queue stability"
+  },
+
+  "hyperparameters": {
+    "network_type": "Sparse ReLU Network",
+    "network_layers": 5,
+    "network_neurons_per_layer": 64,
+    "optimizer": "Adam",
+    "learning_rate": 0.0000625,
+    "target_update_period": 32000,
+    "prioritized_replay": {
+      "enabled": true,
+      "priority_omega": 0.5,
+      "beta_start": 0.4,
+      "beta_end": 1.0,
+      "beta_anneal_steps": 1000000
+    },
+    "multi_step_returns": 3,
+    "exploration": {
+      "method": "Noisy Nets",
+      "sigma_0": 0.5
+    },
+    "softmax_temperature": 0.03,
+    "replay_buffer_size": 1000000,
+    "minibatch_size": 32
+  },
+
+  "lyapunov": {
+    "algorithm": "LDPTRLQ (Lyapunov Drift-Plus-Tailored RL with Queues)",
+    "virtual_queues": ["Q_identity", "Q_security"],
+    "drift_plus_penalty": "minimize per-slot drift + V * penalty",
+    "stability_goal": "Maintain minimal log retention without sacrificing spectrum gains"
+  }
+}

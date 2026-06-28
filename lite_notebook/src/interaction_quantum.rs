@@ -207,7 +207,7 @@ impl InteractionQuantum {
         };
 
         let receipt = Receipt::new(
-            format!("rf-{}", opts.destination_did),
+            format!("rf-{}", opts.destination_did).into(),
             Origin::User,
             ReceiptKind::Perception,
             opts.content,

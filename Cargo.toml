@@ -13,6 +13,7 @@ members = [
     "graph_rag",
     "fapo",
     "capabilities",
+    "harness",
 ]
 
 [workspace.package]
