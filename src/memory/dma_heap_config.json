@@ -1,0 +1,50 @@
+{
+  "dma_heap_config": {
+    "heap_name": "system-secure-sif",
+    "heap_path": "/dev/dma_heap/system-secure-sif",
+    "buffer_pool": {
+      "iq_samples": {
+        "size_bytes": 262144,
+        "count": 16,
+        "cache_policy": "write_combine",
+        "description": "Raw IQ samples from sSDR"
+      },
+      "reasoning_state": {
+        "size_bytes": 1048576,
+        "count": 4,
+        "cache_policy": "uncached_device",
+        "description": "World Model state tensor"
+      },
+      "identity_keystore": {
+        "size_bytes": 4096,
+        "count": 2,
+        "cache_policy": "uncached",
+        "secure_erase": true,
+        "description": "Active IMSI/IMEI keys"
+      },
+      "beamforming_weights": {
+        "size_bytes": 65536,
+        "count": 2,
+        "cache_policy": "write_combine",
+        "description": "Phased array weights"
+      }
+    },
+    "mapping": {
+      "usb_otg_xsdr": {
+        "endpoint": "bulk_in",
+        "target_buffer": "iq_samples",
+        "zero_copy": true
+      },
+      "gpu_jcas_kernel": {
+        "opencl_context": "adreno_jcas",
+        "target_buffer": "reasoning_state",
+        "sync_primitive": "dma_fence"
+      },
+      "gpu_beamforming": {
+        "opencl_context": "adreno_beam",
+        "target_buffer": "beamforming_weights",
+        "sync_primitive": "dma_fence"
+      }
+    }
+  }
+}
