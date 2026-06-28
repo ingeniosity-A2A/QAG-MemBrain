@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AVA007 — Voice-Integrated Card</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden;user-select:none}
+.ava-indicator{position:fixed;top:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;background:rgba(255,255,255,.08);backdrop-filter:blur(20px);z-index:1000;opacity:0;transition:opacity .3s}
+.ava-indicator.active{opacity:1}
+.ava-pulse{width:8px;height:8px;border-radius:50%;background:#4fc3f7;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+.ava-label{color:rgba(255,255,255,.6);font-size:12px;font-weight:500;letter-spacing:1px}
+.card{position:relative;width:280px;height:480px;border-radius:40px;opacity:0;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:40px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
+.head{opacity:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.head .title{color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:2px}
+.head .subtitle{color:rgba(255,255,255,.2);font-size:10px}
+.stepper{width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:grab;padding:20px 0}
+.stepper.pull{cursor:grabbing}
+.step{height:3px;width:20px;border-radius:2px;background:rgba(255,255,255,.15);transition:all .25s ease-out}
+.main{display:flex;flex-direction:column;align-items:center;gap:8px}
+.main .value{font-size:48px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;opacity:0}
+.main .unit{font-size:14px;color:rgba(255,255,255,.3)}
+.label-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0}
+.label-wrap .label{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px}
+.label-wrap .item{font-size:14px;color:rgba(255,255,255,.6)}
+.running{display:none;flex-direction:column;align-items:center;gap:12px}
+.running .distance{font-size:36px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+.running .label{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px}
+#container{width:120px;height:60px}
+.button{position:relative;width:14rem;height:3.5rem;border-radius:28px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;opacity:0;background:rgba(255,255,255,.06)}
+.button-bg{position:absolute;inset:0;background:#fff;border-radius:28px;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+.button-icon{position:relative;z-index:1;width:20px;height:20px;margin-right:8px;opacity:0}
+.button-text,.pause-text{position:relative;z-index:1;font-size:14px;font-weight:600;letter-spacing:1px;display:flex;align-items:center;color:#fff}
+.pause-text{display:none}
+.aura{position:absolute;inset:0;border-radius:40px;opacity:.5;background:radial-gradient(circle at 50% 30%,rgba(79,195,247,.08) 0%,transparent 60%);pointer-events:none}
+</style>
+</head>
+<body>
+<div class="ava-indicator" id="avaIndicator"><div class="ava-pulse"></div><span class="ava-label">AVA</span></div>
+<div class="card">
+<div class="aura"></div>
+<div class="head"><span class="title">Distance</span><span class="subtitle">Set your goal</span></div>
+<div class="stepper" id="stepper"><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div></div>
+<div class="main"><div class="value distance to-run">10.0</div><div class="unit">km</div></div>
+<div class="running"><div class="distance">10.0</div><div class="label">Remaining</div><div id="container"></div></div>
+<div class="label-wrap"><span class="label">Goal</span><span class="item">Morning Run</span></div>
+<button class="button"><div class="button-bg"></div><svg class="button-icon" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg><span class="button-text">START</span><span class="pause-text">PAUSE</span></button>
+</div>
+<script type="module">
+import{animate,stagger,press,hover}from"https://esm.sh/motion";import{Howl}from"https://esm.sh/howler";import ProgressBar from"https://esm.sh/progressbar.js";import confetti from"https://esm.sh/canvas-confetti";
+
+// ═══ AVA'S VOICE — from Ava007 repo (runtime/lib/voice/speak.ts) ═══
+const spoken=new Set();
+function pickFemaleVoice(){if(typeof window==="undefined"||!("speechSynthesis"in window))return null;const v=window.speechSynthesis.getVoices();return v.find(x=>/zira|samantha|karen|victoria|fiona|female|woman/i.test(x.name)&&x.lang.startsWith("en"))??v.find(x=>x.lang.startsWith("en"))??null}
+function avaSpeak(text,opts={}){if(typeof window==="undefined"||!("speechSynthesis"in window)){opts?.onEnd?.();return}window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=opts.rate??.95;u.pitch=opts.pitch??1.1;u.volume=opts.volume??1.0;const voice=pickFemaleVoice();if(voice)u.voice=voice;if(opts.onStart)u.onstart=opts.onStart;if(opts.onEnd){u.onend=opts.onEnd;u.onerror=opts.onEnd}window.speechSynthesis.speak(u)}
+function speakOnce(key,text,opts={}){if(spoken.has(key))return;spoken.add(key);avaSpeak(text,opts)}
+function clearKey(key){spoken.delete(key)}
+
+// ═══ AVA'S VOICE INDICATOR ═══
+const avaIndicator=document.getElementById("avaIndicator");
+const showAva=()=>avaIndicator.classList.add("active");
+const hideAva=()=>avaIndicator.classList.remove("active");
+
+// ═══ AVA'S VOICE POLICY — from Ava007 repo (runtime/lib/voice/policy.ts) ═══
+function buildUtterance(e){const B={rate:1.0,pitch:1.0,volume:1.0};switch(e.type){
+case"greeting":return{...B,text:"AVA007 online. Ready when you are.",rate:.95,pitch:1.1};
+case"start":return{...B,text:`Starting your run. ${e.distance} kilometers. Let's go!`,rate:1.0,pitch:1.1};
+case"progress":return{...B,text:`${e.remaining.toFixed(1)} kilometers remaining. Keep going!`,rate:1.0,pitch:1.0};
+case"halftime":return{...B,text:"Halfway there. You're doing great!",rate:1.0,pitch:1.05};
+case"almost":return{...B,text:`Almost there. Just ${e.remaining.toFixed(1)} to go!`,rate:1.05,pitch:1.1};
+case"completed":return{...B,text:`Run complete. ${e.distance} kilometers. Great work today!`,rate:.95,pitch:1.1};
+case"paused":return{...B,text:"Paused. Take your time.",rate:.9,pitch:1.0};
+case"reset":return{...B,text:"Reset. Ready for your next run.",rate:.95,pitch:1.05};
+default:return{...B,text:e.text||"",rate:.95,pitch:1.1}}}
+function avaSay(event){const u=buildUtterance(event);avaSpeak(u.text,{rate:u.rate,pitch:u.pitch,volume:u.volume,onStart:showAva,onEnd:hideAva})}
+
+// ═══ CARD WIDGET ═══
+const safe=(fn,f)=>{try{return fn()}catch(e){console.warn(e);return f}};
+const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];const clamp=(n,a,b)=>Math.min(Math.max(n,a),b);
+const steps=$$(".step"),distanceMain=$(".distance.to-run"),distanceRun=$(".running .distance"),stepper=$(".stepper"),container=$("#container");
+let audioCtx;try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){audioCtx={resume:async()=>{}}}
+let currentSound;const play=(f,v=.5,s=1)=>{try{audioCtx.resume().catch(()=>{});currentSound?.stop?.();currentSound=new Howl({src:[f],autoplay:true,volume:v,rate:s})}catch(e){}};
+const bgUrl="https://cdn.pixabay.com/audio/2025/09/23/audio_81730014f2.mp3";safe(()=>new Howl({src:[bgUrl],autoplay:true,volume:.15}));
+const tryBg=()=>{safe(()=>audioCtx.resume());safe(()=>new Howl({src:[bgUrl],autoplay:true,volume:.15}));["click","touchstart","keydown"].forEach(e=>document.removeEventListener(e,tryBg))};
+["click","touchstart","keydown"].forEach(e=>document.addEventListener(e,tryBg,{passive:true}));
+let value=parseFloat(distanceMain.textContent||"10")||10,lastValue=value;distanceMain.textContent=value.toFixed(1);distanceRun.textContent=value.toFixed(1);
+const bar=safe(()=>new ProgressBar.SemiCircle(container,{strokeWidth:10,color:"#fff",trailWidth:0,easing:"easeInOut",duration:500,svgStyle:null,text:{value:"",alignToBottom:false},from:{color:"#ababab"},to:{color:"#fff"}}))||{animate:()=>{}};
+
+// Intro + AVA GREETING
+safe(async()=>{
+await animate(".card",{opacity:1,scale:[0,1]},{type:"spring",stiffness:50});
+await animate(".head",{opacity:[0,1],scale:[0,1]},{type:"spring",stiffness:50});
+setTimeout(()=>{safe(()=>animate(".label-wrap",{opacity:.4},{delay:stagger(.1)}));safe(()=>animate(".value",{opacity:1},{delay:stagger(.1)}))},25);
+safe(()=>animate(".button, .button-icon, .button-text",{opacity:1,scale:[0,1]},{type:"spring",stiffness:100}));
+setTimeout(()=>avaSay({type:"greeting"}),1500); // 🔊 AVA SPEAKS
+});
+
+const updateUI=()=>{safe(()=>{const cm=parseFloat(distanceMain.textContent||"0")||0;if(isRunning)distanceRun.textContent=value.toFixed(1);else animate(cm,value,{duration:.3,easing:"easeOut",onUpdate:v=>distanceMain.textContent=v.toFixed(1)});animate(".aura",{opacity:[.5,.7,.5]},{duration:.3});steps.forEach((s,i)=>{const d=Math.abs(i-value),p=clamp(1-(d*2)/20,0,1),sc=1+p*.2;animate(s,{width:`${sc*20}px`,opacity:p,zIndex:Math.floor(p*50)},{duration:.25,easing:"easeOut"})})})};
+
+let startY=null;const threshold=10;
+const onMove=e=>{if(startY===null)return;const y=e.touches?e.touches[0].clientY:e.clientY,d=startY-y;if(Math.abs(d)>threshold){value=clamp(value+Math.round(d/threshold),1,Math.max(1,steps.length-1));if(value!==lastValue){play("https://cdn.freesound.org/previews/677/677861_9129912-lq.mp3",.2);speakOnce(`d${value}`,`${value} kilometers`,{rate:1.0,pitch:1.0,onStart:showAva,onEnd:hideAva});updateUI();lastValue=value}startY=y}};
+const onStart=e=>{startY=e.touches?e.touches[0].clientY:e.clientY;stepper.classList.add("pull");document.body.classList.add("pull");document.addEventListener("mousemove",onMove);document.addEventListener("touchmove",onMove,{passive:true})};
+const onEnd=()=>{stepper.classList.remove("pull");document.body.classList.remove("pull");document.removeEventListener("mousemove",onMove);document.removeEventListener("touchmove",onMove);startY=null;for(let i=1;i<=20;i++)clearKey(`d${i}`);updateUI()};
+stepper.addEventListener("mousedown",onStart);stepper.addEventListener("touchstart",onStart,{passive:true});document.addEventListener("mouseup",onEnd);document.addEventListener("touchend",onEnd,{passive:true});
+
+let confettiShown=false,isRunning=false,runInterval=null,runSound,heartSound,breathingSound,lastAnnounced=-1,halfwayAnnounced=false;
+const resetWidget=async()=>{safe(()=>animate(".item",{scale:1,opacity:1},{type:"spring",stiffness:100,delay:stagger(.05)}));clearInterval(runInterval);runInterval=null;confettiShown=false;isRunning=false;halfwayAnnounced=false;lastAnnounced=-1;safe(()=>runSound?.stop?.());safe(()=>heartSound?.stop?.());safe(()=>breathingSound?.stop?.());await safe(()=>animate(".chart",{scale:0,opacity:0},{duration:.4}));const r=$(".running");if(r)r.style.display="none";distanceMain.textContent=value.toFixed(1);distanceRun.textContent=value.toFixed(1);safe(()=>animate(".step",{scale:1,opacity:1},{duration:.2}));safe(()=>animate(".bg",{width:"15.25rem"}));animate(".item",{scale:1,opacity:1},{type:"spring",stiffness:100,delay:stagger(.05)});animate(".label-wrap",{scale:1,opacity:1},{type:"spring",stiffness:100,delay:stagger(.05)});safe(()=>animate(".head",{scale:1,opacity:1},{type:"spring",stiffness:50,delay:stagger(.05)}));setTimeout(updateUI,600);safe(()=>animate(".main",{scale:1}));const st=$(".button-text"),pa=$(".pause-text");if(pa&&st){pa.style.display="none";st.style.display="flex";animate(st,{scale:1,opacity:1,y:[10,0]})}avaSay({type:"reset"})}; // 🔊 AVA SPEAKS
+
+hover(".button",el=>{safe(()=>animate(el,{opacity:1,scale:1.1,color:"black"}));safe(()=>animate(".button-icon",{scale:1.1,rotate:10}));safe(()=>animate(".button-bg",{scaleX:1},{duration:.25}));return()=>{safe(()=>animate(el,{opacity:.9,scale:1,color:"white"}));safe(()=>animate(".button-icon",{scale:1,rotate:0}));safe(()=>animate(".button-bg",{scaleX:0},{duration:.25}))}});
+
+press(".button",async el=>{
+if(isRunning&&!runInterval)return;play("https://cdn.freesound.org/previews/582/582898_5965684-lq.mp3");animate(el,{scale:1.1});
+setTimeout(async()=>{
+const st=$(".button-text"),pa=$(".pause-text"),show=isRunning?st:pa,hide=isRunning?pa:st;
+if(hide&&show){safe(()=>{animate(hide,{scale:0,opacity:0,y:[0,10]});hide.style.display="none";show.style.display="flex";animate(show,{scale:1,opacity:1,y:[10,0]});animate(".bg",{width:isRunning?"15.25rem":"100%"});animate(".item",{scale:isRunning?1:0,opacity:isRunning?1:0},{type:"spring",stiffness:100,delay:stagger(.1)});animate(".head",{scale:isRunning?1:0,opacity:isRunning?1:0},{type:"spring",stiffness:50,delay:stagger(.1)});animate(".step",{scale:isRunning?1:0,opacity:isRunning?1:0},{type:"spring",stiffness:100,delay:stagger(.025)});animate(el,{width:isRunning?"11rem":"14rem",left:isRunning?"0":"1rem"},{delay:isRunning?0:.75});animate(".main",{scale:isRunning?1:.75})})}
+if(!isRunning){
+confettiShown=false;halfwayAnnounced=false;lastAnnounced=-1;const r=$(".running");if(r)r.style.display="flex";safe(()=>animate(".chart",{scale:1,opacity:1}));
+avaSay({type:"start",distance:value}); // 🔊 AVA SPEAKS: Start
+runSound=new Howl({src:["https://cdn.pixabay.com/audio/2024/04/04/audio_2a0847e497.mp3"],volume:.3,autoplay:true});
+heartSound=new Howl({src:["https://cdn.pixabay.com/audio/2022/03/24/audio_ae449e67b0.mp3"],volume:.2,autoplay:true});
+breathingSound=new Howl({src:["https://cdn.pixabay.com/audio/2022/01/18/audio_0fe7251bf1.mp3"],loop:true,volume:.15,autoplay:true});
+let progress=0,remaining=parseFloat(distanceMain.textContent||"10"),total=remaining;
+clearInterval(runInterval);runInterval=setInterval(()=>{
+progress=Math.min(progress+.02,1);remaining=Math.max(remaining-.2,0);distanceRun.textContent=remaining.toFixed(1);safe(()=>bar.animate(progress));
+const ri=Math.ceil(remaining);
+if(ri!==lastAnnounced&&ri>0&&ri%2===0){lastAnnounced=ri;avaSay({type:"progress",remaining})} // 🔊 AVA SPEAKS: Progress
+if(!halfwayAnnounced&&remaining<=total/2){halfwayAnnounced=true;avaSay({type:"halftime"})} // 🔊 AVA SPEAKS: Halfway
+if(remaining>0&&remaining<2&&remaining>1.8){speakOnce("almost","",{onStart:showAva,onEnd:hideAva});avaSay({type:"almost",remaining})} // 🔊 AVA SPEAKS: Almost
+if(remaining<=0&&!confettiShown){confettiShown=true;clearInterval(runInterval);runInterval=null;safe(()=>bar.animate(1));safe(()=>confetti({particleCount:40,spread:60,startVelocity:25,gravity:.9,scalar:.8,ticks:200,origin:{y:.6},colors:["#fff","#ccc","#aaa"]}));new Howl({src:["https://www.myinstants.com/media/sounds/confetti-pop.mp3"],autoplay:true,volume:.5});
+avaSay({type:"completed",distance:total}); // 🔊 AVA SPEAKS: Complete
+setTimeout(()=>resetWidget(),3000)}
+},1000);
+}else{
+avaSay({type:"paused"}); // 🔊 AVA SPEAKS: Paused
+await resetWidget();clearInterval(runInterval);runInterval=null;safe(()=>bar.animate(0));safe(()=>animate(".chart",{scale:0,opacity:0}));const r=$(".running");if(r)r.style.display="none";distanceMain.textContent=value.toFixed(1);distanceRun.textContent=value.toFixed(1)}
+isRunning=!isRunning
+},500)});
+updateUI();
+
+// Voice loading
+if("speechSynthesis"in window){window.speechSynthesis.onvoiceschanged=()=>{const v=window.speechSynthesis.getVoices();console.log(`Ava voice ready: ${v.length} voices`);const f=pickFemaleVoice();if(f)console.log(`Selected: ${f.name} (${f.lang})`)}}
+</script>
+</body>
+</html>
