@@ -1,0 +1,52 @@
+[
+  {
+    "imsi": "310260000000001",
+    "imei": "4901542032375001",
+    "msisdn": "1555000001",
+    "ki": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    "opc": "f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6",
+    "iccid": "8914800000000000001",
+    "operator": "SIF-Sovereign",
+    "rotationTtl": 300000
+  },
+  {
+    "imsi": "310410000000001",
+    "imei": "4901542032375002",
+    "msisdn": "1555000002",
+    "ki": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7",
+    "opc": "f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3",
+    "iccid": "8914800000000000002",
+    "operator": "SIF-Roaming",
+    "rotationTtl": 420000
+  },
+  {
+    "imsi": "310150000000001",
+    "imei": "4901542032375003",
+    "msisdn": "1555000003",
+    "ki": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8",
+    "opc": "a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4",
+    "iccid": "8914800000000000003",
+    "operator": "SIF-Phantom",
+    "rotationTtl": 600000
+  },
+  {
+    "imsi": "310170000000001",
+    "imei": "4901542032375004",
+    "msisdn": "1555000004",
+    "ki": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9",
+    "opc": "b0a9c8d7e6f5b4a3c2d1e0f9a8b7c6d5",
+    "iccid": "8914800000000000004",
+    "operator": "SIF-Shadow",
+    "rotationTtl": 480000
+  },
+  {
+    "imsi": "310030000000001",
+    "imei": "4901542032375005",
+    "msisdn": "1555000005",
+    "ki": "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+    "opc": "c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6",
+    "iccid": "8914800000000000005",
+    "operator": "SIF-Nomad",
+    "rotationTtl": 360000
+  }
+]
