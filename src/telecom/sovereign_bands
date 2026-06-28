@@ -1,0 +1,40 @@
+{
+  "sovereign_bands": {
+    "sif_primary": {
+      "name": "SIF Sub-THz Inter-Node Link",
+      "center_freq_hz": 72000000000,
+      "bandwidth_hz": 2000000000,
+      "duplex_mode": "TDD",
+      "channel_access": "JCAS",
+      "fpga_profile": "jcas_wideband_v2",
+      "comment": "72 GHz V-band for S25↔S26 reasoning sync"
+    },
+    "sif_mesh_backhaul": {
+      "name": "SIF Mesh Backhaul",
+      "center_freq_hz": 3800000000,
+      "bandwidth_hz": 100000000,
+      "duplex_mode": "TDD",
+      "channel_access": "CSMA/CA",
+      "fpga_profile": "cbrs_mesh",
+      "comment": "3.8 GHz CBRS for cluster interlink"
+    },
+    "sif_jcas_sensing": {
+      "name": "SIF Joint Sensing Band",
+      "center_freq_hz": 5900000000,
+      "bandwidth_hz": 500000000,
+      "duplex_mode": "TDD",
+      "channel_access": "Pulsed",
+      "fpga_profile": "radar_sensing",
+      "comment": "5.9 GHz for environmental mapping"
+    },
+    "sif_chameleon": {
+      "name": "Chameleon Identity Channel",
+      "center_freq_hz": 3550000000,
+      "bandwidth_hz": 20000000,
+      "duplex_mode": "FDD",
+      "channel_access": "Cellular",
+      "fpga_profile": "imsi_rotation",
+      "comment": "CBRS private LTE/NR with rotating IDs"
+    }
+  }
+}
