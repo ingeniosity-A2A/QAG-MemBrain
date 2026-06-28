@@ -1,0 +1,56 @@
+{
+  "gnb_id": 411,
+  "gnb_id_bits": 22,
+  "amf": {
+    "addr": "127.0.0.1",
+    "bind_addr": "127.0.0.1"
+  },
+  "rf_driver": {
+    "name": "soapy",
+    "device_args": "driver=sdrplay",
+    "tx_gain": 80,
+    "rx_gain": 40,
+    "freq_offset": 0,
+    "clock_source": "internal",
+    "log_level": "warning"
+  },
+  "cell_cfg": {
+    "dl_arfcn": 636640,
+    "band": 48,
+    "channel_bandwidth_MHz": 20,
+    "common_scs": 30,
+    "plmn": "00101",
+    "tac": 7,
+    "pci": 1,
+    "prach": {
+      "prach_config_index": 17,
+      "prach_root_sequence_index": 1,
+      "zero_correlation_zone": 0
+    },
+    "ssb": {
+      "ssb_period": 20,
+      "ssb_offset": 0,
+      "ssb_duplex_mode": "tdd",
+      "ssb_pos_bitmap": "10000000"
+    }
+  },
+  "dma_buf": {
+    "enable": true,
+    "heap_path": "/dev/dma_heap/system-secure-sif",
+    "num_buffers": 8,
+    "buffer_size_bytes": 65536
+  },
+  "identity_rotation": {
+    "enabled": true,
+    "rotation_api": "http://localhost:9042/rotate",
+    "rotate_on_attach": false
+  },
+  "log": {
+    "phy_level": "warning",
+    "mac_level": "info",
+    "rlc_level": "info",
+    "pdcp_level": "info",
+    "rrc_level": "info",
+    "all_hex_limit": 32
+  }
+}
