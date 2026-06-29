@@ -21,7 +21,11 @@
     "gsap": "^3.12.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "three": "^0.164.0"
+    "three": "^0.164.0",
+    "@react-three/fiber": "^8.16.0",
+    "@react-three/drei": "^9.105.0",
+    "@builder.io/react": "^3.2.0",
+    "@builder.io/sdk": "^2.1.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^5.7.0",

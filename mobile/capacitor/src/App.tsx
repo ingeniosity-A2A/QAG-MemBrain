@@ -5,6 +5,8 @@ import InputConsole from './components/flagship/InputConsole';
 import SocialGlassBar from './components/flagship/SocialGlassBar';
 import SplitFlapBoard from './components/flagship/SplitFlapBoard';
 import AtlantaWeather from './components/flagship/AtlantaWeather';
+import ProductRenderer from './components/ProductRenderer';
+import './builder-config';
 import { metaHarness } from '../../../src/meta/index.js';
 import { getTemporalEngine } from '../../../src/temporal/index.js';
 import { getPhoneIntegration, type PhoneState } from '../../../src/telecom/PhoneIntegration.js';
