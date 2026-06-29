@@ -1,6 +1,7 @@
 import os
 COMPANY_NAME = os.environ.get("COMPANY_NAME", "Help Assembly Services LLC")
 SERVICE_AREA = os.environ.get("SERVICE_AREA", "Metro Atlanta")
+BUSINESS_PHONE = os.environ.get("BUSINESS_PHONE", "+14044391350")
 MERCURY_API_URL = os.environ.get("MERCURY_API_URL", "https://api.inceptionlabs.ai/v1/chat/completions")
 MERCURY_API_KEY = os.environ.get("MERCURY_API_KEY", "")
 MERCURY_MODEL = os.environ.get("MERCURY_MODEL", "mercury-2")
