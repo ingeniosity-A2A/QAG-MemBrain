@@ -28,3 +28,7 @@ mobile/capacitor/android/app/src/main/jniLibs/arm64-v8a/*.so
 .vscode/
 .idea/
 *.swp
+
+# Python
+cache/
+__pycache__/
