@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QAG-MemBrain + Ava007 Verification Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --yellow: #d29922; --red: #f85149; --purple: #bc8cff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); padding: 24px; }
+  h1 { font-size: 28px; margin-bottom: 8px; }
+  h2 { font-size: 20px; margin: 32px 0 16px; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { font-size: 16px; margin: 20px 0 12px; color: var(--muted); }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center; }
+  .stat .number { font-size: 36px; font-weight: 700; }
+  .stat .label { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .green { color: var(--green); } .yellow { color: var(--yellow); } .red { color: var(--red); } .purple { color: var(--purple); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+  th { background: #1c2128; text-align: left; padding: 12px 16px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: #1c2128; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+  .badge-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .badge-red { background: rgba(248,81,73,0.15); color: var(--red); }
+  .badge-purple { background: rgba(188,140,255,0.15); color: var(--purple); }
+  .badge-blue { background: rgba(88,166,255,0.15); color: var(--accent); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .issue { background: var(--surface); border-left: 4px solid var(--red); padding: 16px; margin: 12px 0; border-radius: 0 8px 8px 0; }
+  .issue.warn { border-left-color: var(--yellow); }
+  .issue.info { border-left-color: var(--accent); }
+  .issue h4 { margin-bottom: 8px; }
+  .issue p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+  code { background: #1c2128; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'SF Mono', SFMono-Regular, Consolas, monospace; }
+  .code-block { background: #1c2128; padding: 12px 16px; border-radius: 6px; margin: 8px 0; overflow-x: auto; font-family: 'SF Mono', SFMono-Regular, Consolas, monospace; font-size: 13px; line-height: 1.5; }
+  .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>🔍 QAG-MemBrain + Ava007 Verification Dashboard</h1>
+<p class="subtitle">Cross-repo audit against architecture docs · Generated 2026-07-01 · QAG-MemBrain@mobile-runtime (605 files) · Ava007@main (699 files)</p>
+
+<div class="stats">
+  <div class="stat"><div class="number green">16/16</div><div class="label">DONE items verified</div></div>
+  <div class="stat"><div class="number purple">5</div><div class="label">Systems ahead of spec</div></div>
+  <div class="stat"><div class="number red">2</div><div class="label">Contract violations</div></div>
+  <div class="stat"><div class="number yellow">11+</div><div class="label">Undocumented systems</div></div>
+  <div class="stat"><div class="number yellow">1</div><div class="label">Mercury 2 contradiction</div></div>
+</div>
+
+<h2>📋 AMOS v2.8 Section 19 — Component Status</h2>
+
+<table>
+  <thead>
+    <tr><th>Component</th><th>Doc Status</th><th>Actual Status</th><th>Code Exists</th><th>Matches Doc</th><th>Source</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Repository consolidation</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td>—</td></tr>
+    <tr><td>Reconciliation manifest</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td>—</td></tr>
+    <tr><td>Mobile Runtime scaffolding</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/tree/mobile-runtime/mobile/capacitor">mobile/capacitor/</a></td></tr>
+    <tr><td>Meta Harness (TS + Rust)</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/meta/MetaHarness.ts">src/meta/MetaHarness.ts</a></td></tr>
+    <tr><td>Constellation (TS + Rust)</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/constellation/Router.ts">src/constellation/Router.ts</a></td></tr>
+    <tr><td>EPOCH (TS)</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/tree/mobile-runtime/src/epoch">src/epoch/</a></td></tr>
+    <tr><td>BackendExecutor interface</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/constellation/backends/BackendExecutor.ts">BackendExecutor.ts</a></td></tr>
+    <tr><td>MlcLlmBackend</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/constellation/backends/MlcLlmBackend.ts">MlcLlmBackend.ts</a></td></tr>
+    <tr><td>WebLlmBackend</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/constellation/backends/WebLlmBackend.ts">WebLlmBackend.ts</a></td></tr>
+    <tr><td>LlamdropBackend</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/constellation/backends/LlamdropBackend.ts">LlamdropBackend.ts</a></td></tr>
+    <tr><td>CloudBackend</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/constellation/backends/CloudBackend.ts">CloudBackend.ts</a></td></tr>
+    <tr><td>GemmaBackend.ts</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/constellation/backends/GemmaBackend.ts">GemmaBackend.ts</a></td></tr>
+    <tr><td>rust/gemma-bridge/</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/tree/mobile-runtime/rust/gemma-bridge">rust/gemma-bridge/</a></td></tr>
+    <tr><td>GemmaBridge.kt</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/mobile/capacitor/android/app/src/main/java/com/ava007/mobile/GemmaBridge.kt">GemmaBridge.kt</a></td></tr>
+    <tr><td>AMOS v2.8 spec</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/docs/AMOS_v2.8_ARCHITECTURE.md">AMOS_v2.8_ARCHITECTURE.md</a></td></tr>
+    <tr><td>Vulkan compute POC</td><td><span class="badge badge-green">DONE</span></td><td><span class="badge badge-green">DONE</span></td><td>✅</td><td>✅</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/tree/mobile-runtime/mobile/capacitor/android/app/src/main/cpp/vulkan">cpp/vulkan/</a></td></tr>
+  </tbody>
+</table>
+
+<h3>⚠️ Spec Understates Reality</h3>
+<table>
+  <thead>
+    <tr><th>Component</th><th>Doc Says</th><th>Actual</th><th>Evidence</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>REV.IKE</td><td><span class="badge badge-yellow">Stub (Phase 8)</span></td><td><span class="badge badge-green">IMPLEMENTED</span></td><td>6 TS files + A2A handler + API route + Python bridge</td></tr>
+    <tr><td>TASHI</td><td><span class="badge badge-yellow">Partial</span></td><td><span class="badge badge-green">Substantially Complete</span></td><td>29 files, 13 dirs: consensus, replay, vector, ledger</td></tr>
+    <tr><td>GSAP Temporal</td><td><span class="badge badge-yellow">Stub (Phase 6)</span></td><td><span class="badge badge-green">Substantially Complete</span></td><td>9 files, 8 dirs: replay, hashing, lineage, reports</td></tr>
+    <tr><td>EPOCH</td><td><span class="badge badge-yellow">Stub (Phase 7)</span></td><td><span class="badge badge-purple">Partial</span></td><td>8 files: AdaptiveLayout, AgentSandbox, AnimatedUI</td></tr>
+    <tr><td>GOOSE</td><td><span class="badge badge-yellow">Stub (Phase 8)</span></td><td><span class="badge badge-purple">Partial</span></td><td>executor.py + tool_dispatcher.py</td></tr>
+  </tbody>
+</table>
+
+<h2>🔗 Cross-Repo Contract Verification</h2>
+
+<div class="issue">
+  <h4>❌ ObservationProposal Format Mismatch</h4>
+  <p>The <code>DUAL_CONSCIOUSNESS_CONTRACT.md</code> defines a specific <code>ObservationProposal</code> interface. Neither QAG-MemBrain's TypeScript nor Ava007's Python implementation matches it.</p>
+  <div class="code-block">
+<strong>Contract specifies:</strong>
+type: "observation_proposal" | source: "REV.IKE" | timestamp | content: { interpretation, pattern?, question?, ... }
+
+<strong>QAG TS actual:</strong>
+type: "observation" ❌ | source: "rev_ike_lens" ❌ | No timestamp ❌ | Uses "insight" instead of content.interpretation
+
+<strong>Ava007 Python actual:</strong>
+14 fields (vs 6 in contract) | No type/source/timestamp fields | Uses "insight" + "philosophical_diagnosis" + "strategic_advice" + "tactical_directive"
+  </div>
+</div>
+
+<div class="issue warn">
+  <h4>⚠️ Ava007Adapter Import Path — Fragile</h4>
+  <p>The adapter resolves Ava007 via <code>Path(__file__).resolve().parents[4] / "Ava007"</code>. This requires both repos to be cloned as siblings. Works in dev, may break in production deployments.</p>
+</div>
+
+<div class="issue info">
+  <h4>✅ Authority Order — Enforced in Code</h4>
+  <p><code>CANONICAL_AUTHORITY_ORDER = ["JSONL", "Tashi", "Neo4j", "GSAP", "Runtime"]</code> is defined in <code>replayContract.ts</code> and validated at load time by <code>governanceLoader.ts</code>. Throws error if manifest doesn't match.</p>
+</div>
+
+<div class="issue warn">
+  <h4>⚠️ Mercury 2 Contradiction</h4>
+  <p>AMOS v2.8 section 18 lists <code>~~Mercury-2~~ — doesn't exist</code> in the forbidden list. But the <code>AVA007_UNIFIED_MEMORY_INTELLIGENCE_CONTRACT.md</code uses Mercury2 as Cloud Cortex model, and code has both DeterministicMercury2Client and HttpMercury2Client. <strong>Mercury 2 by Inception Labs IS real.</strong> The forbidden entry is stale.</p>
+</div>
+
+<h2>📦 Undocumented Systems</h2>
+<p>Systems built in QAG-MemBrain but not in AMOS v2.8 or any architecture doc:</p>
+
+<table>
+  <thead>
+    <tr><th>System</th><th>Location</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Ava007 Adapter</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/execution/revike/ava007_adapter.py">src/execution/revike/ava007_adapter.py</a></td><td>Cross-repo bridge to Ava007's Python Rev.Ike</td></tr>
+    <tr><td>Mercury2 Client</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/core/ava007/mercury2.ts">src/core/ava007/mercury2.ts</a></td><td>Deterministic + HTTP Mercury 2 clients</td></tr>
+    <tr><td>Mercury2 Synthesis</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/core/ava007/executive/mercury2SynthesisClient.ts">executive/mercury2SynthesisClient.ts</a></td><td>Philosophical diagnosis synthesis</td></tr>
+    <tr><td>Gemma Query Transformer</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/core/ava007/reflex/gemmaQueryTransformer.ts">reflex/gemmaQueryTransformer.ts</a></td><td>Query transformation for Gemma</td></tr>
+    <tr><td>VibeThinker Provider</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/core/inference/webllm/VibeThinkerProvider.ts">VibeThinkerProvider.ts</a></td><td>VibeThinker-3B inference</td></tr>
+    <tr><td>RevIke A2A Handler</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/a2a/handlers/revike_handler.py">src/a2a/handlers/revike_handler.py</a></td><td>A2A protocol handler for Rev.Ike</td></tr>
+    <tr><td>RevIke Retrieval Repo</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/graph/repositories/revikeRetrievalRepository.ts">revikeRetrievalRepository.ts</a></td><td>Graph-based memory retrieval for Rev.Ike</td></tr>
+    <tr><td>GRPO Harness</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/training/grpo_harness.py">src/training/grpo_harness.py</a></td><td>Reinforcement learning training</td></tr>
+    <tr><td>SIP Client</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/scripts/sip_client.py">scripts/sip_client.py</a></td><td>SIP telephony integration</td></tr>
+    <tr><td>Orchestration Services</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/tree/mobile-runtime/services/orchestration">services/orchestration/</a></td><td>memory_router, memory_policy, context_filter, task_memory_manager</td></tr>
+    <tr><td>Phone Integration</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/telecom/PhoneIntegration.ts">src/telecom/PhoneIntegration.ts</a></td><td>Android telephony scaffolding</td></tr>
+    <tr><td>Telnyx Integration</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/telnyx/index.ts">src/telnyx/index.ts</a></td><td>Telnyx telephony API</td></tr>
+    <tr><td>Neo4j Enforcement</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/graph/neo4j/enforcement.ts">src/graph/neo4j/enforcement.ts</a></td><td>Graph governance enforcement</td></tr>
+    <tr><td>Graph Quantization</td><td><a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/blob/mobile-runtime/src/graph/quantization.ts">src/graph/quantization.ts</a></td><td>Graph compression</td></tr>
+  </tbody>
+</table>
+
+<h2>🏛️ Authority Chain Compliance</h2>
+
+<table>
+  <thead>
+    <tr><th>Layer</th><th>Defined In</th><th>Enforced In Code</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>JSONL (source truth)</td><td>DUAL_CONSCIOUSNESS_CONTRACT.md</td><td>src/memory/jsonl/</td><td><span class="badge badge-green">✅ Enforced</span></td></tr>
+    <tr><td>Tashi (verifies truth)</td><td>AVA007_RUNTIME_GOVERNANCE.md</td><td>src/memory/tashi/ (29 files)</td><td><span class="badge badge-green">✅ Enforced</span></td></tr>
+    <tr><td>Neo4j (advisory relationships)</td><td>AVA007_UNIFIED_MEMORY_INTELLIGENCE_CONTRACT.md</td><td>src/graph/neo4j/</td><td><span class="badge badge-green">✅ Enforced</span></td></tr>
+    <tr><td>GSAP (replay, never rewrites)</td><td>AMOS v2.8 §2</td><td>src/runtime/timeline/</td><td><span class="badge badge-green">✅ Enforced</span></td></tr>
+    <tr><td>Runtime (executes, never overrides)</td><td>AMOS v2.8 §2</td><td>src/core/</td><td><span class="badge badge-green">✅ Enforced</span></td></tr>
+  </tbody>
+</table>
+
+<p style="margin-top:16px; color: var(--muted);">Canonical order validated at load time: <code>governanceLoader.ts:88</code> throws if manifest doesn't match <code>["JSONL", "Tashi", "Neo4j", "GSAP", "Runtime"]</code></p>
+
+<h2>🔧 Recommended Fixes (Priority Order)</h2>
+
+<div class="issue">
+  <h4>P1 — Standardize ObservationProposal across repos</h4>
+  <p>Both QAG TS and Ava007 Python must produce the format defined in <code>DUAL_CONSCIOUSNESS_CONTRACT.md</code>. Add <code>type</code>, <code>source</code>, <code>timestamp</code> fields. Restructure to use <code>content.interpretation</code> instead of flat <code>insight</code>.</p>
+</div>
+
+<div class="issue">
+  <h4>P1 — Fix Mercury 2 forbidden list entry</h4>
+  <p>AMOS v2.8 section 18: change <code>~~Mercury-2 model~~ — doesn't exist</code> to <code>~~Mercury-2 (generic/unverified)~~ — Use Mercury 2 by Inception Labs (real, verified)</code></p>
+</div>
+
+<div class="issue warn">
+  <h4>P2 — Update AMOS v2.8 section 19 status table</h4>
+  <p>REV.IKE → Implemented, TASHI → Substantially Complete, GSAP Temporal → Substantially Complete, EPOCH → Partial, GOOSE → Partial</p>
+</div>
+
+<div class="issue warn">
+  <h4>P2 — Document 11+ undocumented systems</h4>
+  <p>At minimum: Ava007 Adapter, Mercury2, GRPO Harness, Orchestration Services, Phone Integration, Telnyx</p>
+</div>
+
+<div class="issue info">
+  <h4>P3 — Ava007Adapter import path</h4>
+  <p>Document sibling-directory requirement or add env-var fallback for production deployments</p>
+</div>
+
+<div class="issue info">
+  <h4>P3 — Ava007 governance ↔ authority order</h4>
+  <p>Python governance uses action-classification (SAFE/ELEVATED/RESTRICTED/FORBIDDEN). Add explicit reference to JSONL > Tashi > Neo4j > GSAP > Runtime chain.</p>
+</div>
+
+<div class="footer">
+  <p>QAG-MemBrain + Ava007 Verification Dashboard · Generated by MiMo Claw · 2026-07-01</p>
+  <p>Repos: <a href="https://github.com/ingeniosity-A2A/QAG-MemBrain/tree/mobile-runtime">QAG-MemBrain@mobile-runtime</a> · <a href="https://github.com/ingeniosity-A2A/Ava007/tree/main">Ava007@main</a></p>
+</div>
+
+</body>
+</html>
