@@ -1,41 +1,30 @@
-# QAG-MemBrain — archive intake (three-repo cleanup)
+# QAG-MemBrain — archive intake
 
-QAG-MemBrain is **not** one of the three official product repos.
-It receives **outdated, misfit, and source-mined** material so Agent-X, Cybernetic-Ava007, and a2a-exoskeleton stay clean.
+**Not** an official product repo. Receives outdated / misfit material so the three stay clean.
 
-## Official three (do not re-home product here)
+## Official three (organization parity)
 
-1. Cybernetic-Ava007 — intellect
-2. a2a-exoskeleton — substrate
-3. Agent-X — capabilities + ESA/Help consoles
+Each has `ORGANIZATION.md` + `OFFICIAL-THREE-REPO.md`:
 
-## Intake folders (create as material arrives)
+1. **Cybernetic-Ava007** — intellect
+2. **a2a-exoskeleton** — substrate
+3. **Agent-X** — capabilities + consoles (Bento UI upgrade)
 
-```
+## Intake folders
+
+```text
 archive/
-  from-agent-x/          # destiny_*, s25_*, imports junk
-  from-a2a-exoskeleton/  # rust zips, ticket scripts
-  from-ava007-monorepo/  # Freebuff SKILL, mattpocock lock, mixed monorepo
-  from-core-membrain/    # if contracts superseded
-  from-bridge/           # ava007-bridge snapshots if retired
+  from-agent-x/
+  from-a2a-exoskeleton/
+  from-ava007-monorepo/
+  from-core-membrain/
+  from-bridge/
 ```
 
-## Scheduled moves (checklist)
+## Pending moves
 
-### From Agent-X
-- [ ] `Modelfile.destiny`, `destiny_build/`, `merge_destiny.sh`
-- [ ] `s25_proot_diagnostic.sh`
-- [ ] `imports/` if unreferenced
+- Agent-X: `destiny_build/`, unused `imports/`
+- a2a-exoskeleton: ticket scripts if monorepo-bound
+- Old Ava007 monorepo: Freebuff SKILL, mixed UI — mine then archive
 
-### From a2a-exoskeleton
-- [ ] `ava007-agent-exoskeleton-rust.zip`
-
-### From old Ava007 (source only — not official)
-- [ ] Root Freebuff `SKILL.md`
-- [ ] `skills-lock.json` (mattpocock)
-- [ ] Duplicate dashboard / monorepo UI that is neither ESA nor Help
-- [ ] Keep *useful* `exoskeleton/` code paths documented for **port into a2a-exoskeleton**, not permanent residence in Ava007
-
-## Rule
-
-If it is not intellect, substrate, or Agent-X capability/console — it lands here or is deleted after archive copy.
+Rule: if not intellect, substrate, or Agent-X capability/console → here or delete after archive copy.
