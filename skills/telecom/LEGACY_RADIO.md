@@ -1,21 +1,28 @@
-# LEGACY — not active radio runtime
+# Provenance — NOT buried
 
-This directory is a **historical intelligence source** for Omnibus extraction.
+This package is **valuable**. It has been **promoted for active use** to:
 
-| File | Treat as |
-|------|----------|
-| `backhaul.py` | Policy / selection research → promote via Omnibus if still valid |
-| `identity_rotation.py` | Identity-state ideas — not SoftSIM hardware |
-| `jcas.py` | JCAS research notes |
-| `ephemeral_log.py` | Logging patterns |
-| `dli_config.json` / `manifest.json` | Config archaeology |
+## **`Ava007-Omni-OS/Omnibus/skills/telecom-dli/`**
 
-**Do not** deploy these as live modem/LoRa/Telnyx drivers.
+| Capability | Active path |
+|------------|-------------|
+| JCAS / IMSI-catcher sensing | Omnibus `telecom-dli/jcas.py` |
+| Identity rotation | Omnibus `telecom-dli/identity_rotation.py` |
+| Backhaul steering | Omnibus `telecom-dli/backhaul.py` |
+| Ephemeral log policy | Omnibus `telecom-dli/ephemeral_log.py` |
+| DLI config | Omnibus `telecom-dli/dli_config.json` |
 
-Active homes:
+**This directory remains** as the historical source of truth for git archaeology.
 
-- Cellular execution → `Agent-X/containers/cellular-edge` + `skills/onomondo-ncs`
-- RAN → `fapo-ran`
-- Hub → `Ava007-Omni-OS` Omnibus
+**Do not** treat this path as dead code — treat it as **upstream provenance**.  
+**Do not** delete these files until Omnibus has been validated in your pipeline.
 
-See root `LEGACY.md`.
+Utilization flow:
+
+```text
+QAG-MemBrain/skills/telecom  (provenance)
+        → promoted copy
+Omnibus/skills/telecom-dli   (ACTIVE — use this)
+        → capability route
+Agent-X containers           (hardware harness)
+```
