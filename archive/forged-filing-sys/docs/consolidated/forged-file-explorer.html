@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#23211d" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="AVA007" />
+<link rel="manifest" href="manifest.webmanifest" />
+<script src="native-layer.js" defer></script>
+<script src="browser-kernel.js" defer></script>
+<link rel="apple-touch-icon" href="icon.svg" />
+<title>Forged File Explorer · Ava007 · FFS v1.2.1</title>
+<style>
+/* ============================================================================
+   FORGED FILE EXPLORER — consolidated reference (docs/FORGED_FILE_STANDARD.md §9/§10)
+   Concave stage shell: subgrid + SVG-filter corner reflow (Ana Tudor mechanism,
+   reconstructed). Curation stack: swipe right = FORGE (activate) / left = DEV-LOCK.
+   Palette lock: three colors only — neutral / orange / yellow. No fourth accent.
+   ========================================================================== */
+
+:root {
+  /* Neutral shell — the ONLY structural accent family */
+  --shell:   #d8d3c8;   /* warm neutral surface */
+  --shell-2: #a9a396;   /* frame / outlines */
+  --shell-3: #55514a;   /* strong ink */
+  --ink:     #1d1b18;   /* text */
+  --paper:   #23211d;   /* canvas ground */
+  /* Semantic accents — allowed ONLY on RocksDB/Skills and DuckDB/Intelligence */
+  --orange:  #ff8a3d;   /* RocksDB · Skills · executable capabilities */
+  --yellow:  #ffd23f;   /* DuckDB · Intelligence · structured knowledge */
+  /* Concave frame knob: 1em == 10px on .stage so every offset scales together */
+  --stage-em: 10px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  background: radial-gradient(1200px 800px at 50% -10%, #2a2722 0%, var(--paper) 55%);
+  color: var(--ink);
+  font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* ============================================================================
+   CONCAVE STAGE SHELL — subgrid + SVG filter chain + trapezoid pseudos
+   .stage is a 3×3 grid. Corner cells reflow because their tracks are sized by
+   the live content placed in them (FORGED // <view> chip · dynamic hint).
+   ========================================================================== */
+
+.stage {
+  /* the knobs Ana Tudor's demo uses; verbatim math below */
+  --r: 3em;            /* base corner radius (em on .stage => 10px em) */
+  --x: 1.2em;          /* horizontal overshoot */
+  --y: 0.8em;          /* vertical overshoot */
+  --d: 1em;            /* depth of the straight part */
+  font-size: var(--stage-em);
+  width: min(1240px, 100%);
+  display: grid;
+  grid-template-columns: var(--r) 1fr var(--r);
+  grid-template-rows: var(--r) auto var(--r);
+  grid-template-areas:
+    "tl top    tr"
+    "l  canvas r"
+    "bl bottom br";
+  filter: url(#sharp) url(#shape) url(#smooth);
+  filter: url(#shape);
+  /* layered: .back paints glow; .shape paints the concave surface */
+  position: relative;
+  color: var(--shell);
+}
+
+/* .back and .shape span the whole stage and inherit its grid via subgrid */
+.stage > .back,
+.stage > .shape {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template: subgrid;
+  grid-row: 1 / -1;
+  grid-column: 1 / -1;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stage > .back > .cell,
+.stage > .shape > .cell {
+  grid-area: var(--ga);
+  position: relative;
+}
+
+/* .back: dark radial back-glow, 50% opacity — decoration only */
+.stage > .back { opacity: 0.5; }
+.stage > .back > .cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(closest-side at 50% 42%, #3a352c 0%, rgba(42, 39, 34, 0) 72%);
+}
+
+/* .shape: the frame layer — each corner cell gets a trapezoid pseudo that the
+   SVG filter chain (discrete alpha → gaussian) turns into a concave corner. */
+.stage > .shape > .cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  --i: 0; --j: 0; --o: 0;
+  background:
+    linear-gradient(var(--shell-2), var(--shell-2)) 0 0 / 100% 100% no-repeat;
+  -webkit-mask: none;
+  mask: none;
+}
+.stage > .shape > .cell:nth-child(1)::before { --i:  1; --j: -1; --o: 0; }
+.stage > .shape > .cell:nth-child(2)::before { --i:  0; --j: -1; --o: 0; }
+.stage > .shape > .cell:nth-child(3)::before { --i: -1; --j: -1; --o: 0; }
+.stage > .shape > .cell:nth-child(4)::before { --i:  1; --j:  0; --o: 0; }
+.stage > .shape > .cell:nth-child(6)::before { --i: -1; --j:  0; --o: 0; }
+.stage > .shape > .cell:nth-child(7)::before { --i:  1; --j:  1; --o: 0; }
+.stage > .shape > .cell:nth-child(8)::before { --i:  0; --j:  1; --o: 0; }
+.stage > .shape > .cell:nth-child(9)::before { --i: -1; --j:  1; --o: 0; }
+
+/* trapezoid cut: two gradients, positions driven by --i/--j/--o (verbatim math) */
+.stage > .shape > .cell::before {
+  background:
+    linear-gradient(var(--shell-2) 0 0) 50% calc(50% + (1 - (1 - var(--j)*var(--j)))*var(--y) + var(--o)*var(--d)) / calc(100% - 2*var(--x)) calc(100% - 2*var(--y)) no-repeat,
+    linear-gradient(var(--shell-2) 0 0) calc(50% + (1 - (1 - var(--i)*var(--i)))*var(--x) + var(--o)*var(--d)) 50% / calc(100% - 2*var(--x)) calc(100% - 2*var(--y)) no-repeat;
+}
+
+/* outline frame drawn once across all cells (the crisp inner line) */
+.stage > .shape > .cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  --i: 0; --j: 0; --o: 0;
+  background:
+    linear-gradient(var(--shell) 0 0) 50% calc(50% + (1 - (1 - var(--j)*var(--j)))*var(--y) + var(--o)*var(--d)) / calc(100% - 2*var(--x)) calc(100% - 2*var(--y)) no-repeat,
+    linear-gradient(var(--shell-2) 0 0) calc(50% + (1 - (1 - var(--i)*var(--i)))*var(--x) + var(--o)*var(--d)) 50% / calc(100% - 2*var(--x)) calc(100% - 2*var(--y)) no-repeat;
+}
+
+/* corner cells carry LIVE content — this is what makes the shell reflow:
+   the tracks are var(--r) wide, but content wider than --r pushes the fr
+   columns, so the concave corners physically move as content changes. */
+.corner { display: flex; align-items: center; justify-content: center; z-index: 2; }
+.corner.tl { grid-area: tl; justify-content: flex-start; padding-left: 1.4em; }
+.corner.tr { grid-area: tr; justify-content: flex-end;  padding-right: 1.4em; }
+.corner.bl { grid-area: bl; justify-content: flex-start; padding-left: 1.4em; }
+.corner.br { grid-area: br; justify-content: flex-end;  padding-right: 1.4em; }
+
+/* edge cells host the top bar / status bar */
+.edge.top { grid-area: top; z-index: 2; }
+.edge.bottom { grid-area: bottom; z-index: 2; }
+.edge.left, .edge.right { z-index: 2; }
+
+/* ============================================================================
+   CHROME: title/path bar · left nav · canvas · inspector · status bar
+   ========================================================================== */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--shell);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.topbar .brand { color: var(--shell); font-weight: 700; }
+.topbar .brand em { color: var(--shell-2); font-style: normal; }
+.topbar .path { color: var(--shell-2); }
+.topbar .path b { color: var(--shell); font-weight: 600; }
+
+.viewtoggle { margin-left: auto; display: flex; gap: 6px; }
+.viewtoggle button {
+  font: inherit; letter-spacing: 0.08em;
+  background: transparent; color: var(--shell-2);
+  border: 1px solid rgba(169, 163, 150, 0.35);
+  border-radius: 999px; padding: 4px 12px; cursor: pointer;
+}
+.viewtoggle button[aria-pressed="true"] { color: var(--ink); background: var(--shell); border-color: var(--shell); }
+.viewtoggle button:hover { color: var(--ink); background: var(--shell); }
+
+.body-row {
+  grid-area: canvas;
+  display: grid;
+  grid-template-columns: 190px 1fr 300px;
+  gap: 0;
+  min-height: 560px;
+}
+
+/* left navigation — lifecycle zones (binding labels) */
+.leftnav {
+  border-right: 1px solid rgba(169, 163, 150, 0.25);
+  padding: 14px 10px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.leftnav .navhead { color: var(--shell-2); font-size: 10px; letter-spacing: 0.18em; padding: 4px 8px 8px; }
+.leftnav button.zone {
+  font: inherit; text-align: left; cursor: pointer;
+  background: transparent; border: 0;
+  color: var(--shell-2);
+  padding: 7px 10px; border-radius: 8px;
+  display: flex; align-items: center; gap: 8px;
+  letter-spacing: 0.04em;
+}
+.leftnav button.zone .dot { width: 7px; height: 7px; border-radius: 2px; background: var(--shell-2); opacity: .7; }
+.leftnav button.zone[data-color="orange"] .dot { background: var(--orange); opacity: 1; }
+.leftnav button.zone[data-color="yellow"] .dot { background: var(--yellow); opacity: 1; }
+.leftnav button.zone:hover { background: rgba(169, 163, 150, 0.12); color: var(--shell); }
+.leftnav button.zone[aria-current="true"] { background: rgba(169, 163, 150, 0.18); color: var(--shell); }
+
+/* central canvas */
+.canvas {
+  position: relative;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.canvas .controls {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(169, 163, 150, 0.25);
+}
+.canvas .controls input[type="search"] {
+  font: inherit; color: var(--shell);
+  background: rgba(29, 27, 24, 0.55);
+  border: 1px solid rgba(169, 163, 150, 0.3);
+  border-radius: 999px; padding: 6px 14px; min-width: 220px; outline: none;
+}
+.canvas .controls input[type="search"]:focus { border-color: var(--shell); }
+.canvas .controls select {
+  font: inherit; color: var(--shell-2);
+  background: rgba(29, 27, 24, 0.55);
+  border: 1px solid rgba(169, 163, 150, 0.3);
+  border-radius: 8px; padding: 5px 8px;
+}
+.crumb { padding: 8px 16px 0; color: var(--shell-2); font-size: 11px; letter-spacing: 0.08em; }
+.crumb b { color: var(--shell); font-weight: 600; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; padding: 12px 16px 16px; overflow: auto; }
+.list { display: flex; flex-direction: column; gap: 6px; padding: 12px 16px 16px; overflow: auto; }
+.list .card { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; }
+
+/* forged asset card (§10 contract shape) */
+.card {
+  position: relative;
+  background: rgba(29, 27, 24, 0.62);
+  border: 1px solid rgba(169, 163, 150, 0.28);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--shell);
+  transition: transform .18s ease, border-color .18s ease;
+}
+.card:hover { transform: translateY(-2px); border-color: rgba(169, 163, 150, 0.55); }
+.card .stagebadge {
+  display: inline-block; font-size: 10px; letter-spacing: .14em;
+  border: 1px solid rgba(169,163,150,.4); border-radius: 6px; padding: 2px 7px;
+  color: var(--shell-2);
+}
+.card .title { margin-top: 8px; font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+.card .subtitle { color: var(--shell-2); font-size: 10px; letter-spacing: .16em; margin-top: 2px; }
+.card .metrics { display: flex; gap: 14px; margin-top: 10px; font-size: 11px; color: var(--shell-2); }
+.card .metrics b { color: var(--shell); font-weight: 600; }
+.card .dest { margin-top: 8px; font-size: 10px; letter-spacing: .16em; color: var(--shell-2); }
+.card .dest[data-dest="ROCKSDB"] { color: var(--orange); }
+.card .dest[data-dest="DUCKDB"]  { color: var(--yellow); }
+.card .devlock { margin-top: 8px; font-size: 10px; letter-spacing: .16em; color: var(--shell-2); opacity: .85; }
+.card.devlocked { opacity: .4; }
+.card.devlocked::after { content: " 🔒"; }
+.card.selected { outline: 2px solid var(--shell); outline-offset: 1px; }
+.card .devlock[data-dest="ROCKSDB"] { color: var(--orange); }
+.card .devlock[data-dest="DUCKDB"]  { color: var(--yellow); }
+
+/* curation stack (third view) */
+.stack-wrap { position: relative; height: 430px; margin: 8px 16px 16px; }
+.stack-card {
+  position: absolute; inset: 0;
+  margin: 0 auto; width: min(420px, 92%);
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+.stack-card.front { z-index: 3; cursor: grab; }
+.stack-card.front:active { cursor: grabbing; }
+.stack-card.mid  { z-index: 2; transform: translateY(14px) scale(.955); }
+.stack-card.back { z-index: 1; transform: translateY(26px) scale(.91); opacity: .8; }
+.stack-hint { text-align: center; color: var(--shell-2); font-size: 11px; letter-spacing: .12em; padding-bottom: 12px; }
+.queuefill { height: 3px; background: rgba(169,163,150,.2); border-radius: 2px; margin: 0 16px 8px; overflow: hidden; }
+.queuefill > i { display: block; height: 100%; width: 0%; background: var(--shell-2); transition: width .25s ease; }
+.stack-empty { text-align: center; padding: 60px 0; color: var(--shell-2); letter-spacing: .08em; display: none; }
+.stack-empty button {
+  font: inherit; margin-top: 14px; cursor: pointer;
+  background: var(--shell); color: var(--ink); border: 0; border-radius: 999px; padding: 8px 18px;
+}
+
+/* right inspector — control/provenance panel */
+.inspector {
+  border-left: 1px solid rgba(169, 163, 150, 0.25);
+  padding: 14px;
+  overflow: auto;
+  color: var(--shell);
+  font-size: 12px;
+}
+.inspector h3 { font-size: 10px; letter-spacing: .2em; color: var(--shell-2); margin: 12px 0 8px; }
+.inspector h3:first-child { margin-top: 0; }
+.inspector .kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 10px; }
+.inspector .kv dt { color: var(--shell-2); }
+.inspector .kv dd { color: var(--shell); word-break: break-all; }
+.inspector .kv dd[data-dest="ROCKSDB"] { color: var(--orange); }
+.inspector .kv dd[data-dest="DUCKDB"]  { color: var(--yellow); }
+.chain { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
+.chain .node { display: flex; align-items: center; gap: 8px; color: var(--shell); }
+.chain .node::before { content: "○"; color: var(--shell-2); }
+.chain .node.hit::before { content: "●"; color: var(--shell); }
+.chain .down { color: var(--shell-2); padding-left: 5px; }
+.inspector .capline { color: var(--shell-2); letter-spacing: .04em; }
+.inspector .capline b { color: var(--shell); }
+
+/* status bar — manifest summary + DEV-lock count, live odometers */
+.statusbar {
+  display: flex; align-items: center; gap: 18px;
+  padding: 10px 16px;
+  color: var(--shell-2); font-size: 11px; letter-spacing: .1em;
+}
+.statusbar .stat b { color: var(--shell); font-weight: 700; font-variant-numeric: tabular-nums; }
+.statusbar .stat.rocks b { color: var(--orange); }
+.statusbar .stat.duck  b { color: var(--yellow); }
+.statusbar .devcount { margin-left: auto; color: var(--shell-2); }
+.statusbar .devcount b { color: var(--shell); }
+
+/* DEV-locked surfaces: visible · inert · reduced opacity + lock glyph */
+.dev-locked-surface { opacity: .4; pointer-events: none; user-select: none; }
+.dev-locked-surface::after { content: " 🔒"; }
+
+/* footnote / hint chip content in corners */
+.chip {
+  font-size: 10px; letter-spacing: .18em; color: var(--shell-2);
+  border: 1px solid rgba(169,163,150,.3); border-radius: 999px; padding: 4px 10px;
+  white-space: nowrap;
+}
+.chip b { color: var(--shell); font-weight: 700; }
+.hint { font-size: 10px; letter-spacing: .12em; color: var(--shell-2); white-space: nowrap; }
+
+/* F1 ingest strip (GSAP SplitText reveal target) */
+.f1strip { padding: 4px 16px 10px; color: var(--shell-2); font-size: 10px; letter-spacing: .18em; }
+.f1strip .splitline { color: var(--shell); letter-spacing: .3em; }
+
+@media (max-width: 980px) {
+  .body-row { grid-template-columns: 1fr; }
+  .leftnav { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid rgba(169,163,150,.25); }
+  .inspector { border-left: 0; border-top: 1px solid rgba(169,163,150,.25); }
+}
+
+/* ============================================================================
+   S26-ULTRA NATIVE LAYER — phone-first shell (Galaxy S26 Ultra class: 412–480
+   CSS px, tall aspect, edge screens). The concave stage stays the desktop
+   canvas; on phones it becomes a full-bleed app frame with safe-area padding.
+   AI chat dock + stream-ingest sheet are fixed overlays (thumb-zone FABs).
+   ========================================================================== */
+@supports (padding: max(0px)) {
+  body {
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+             max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+}
+body { -webkit-tap-highlight-color: transparent; }
+
+/* AI chat dock — the Ava007 chat surface (lens-wired) */
+.chatdock {
+  position: fixed; z-index: 40; top: 0; right: 0; bottom: 0;
+  width: min(420px, 100vw);
+  display: flex; flex-direction: column;
+  background: rgba(29, 27, 24, 0.97);
+  border-left: 1px solid rgba(169, 163, 150, 0.35);
+  transform: translateX(103%);
+  transition: transform .38s cubic-bezier(.22,1,.36,1);
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px calc(env(safe-area-inset-bottom, 0px) + 12px);
+}
+.chatdock.open { transform: translateX(0); }
+.chatdock .chathead {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--shell); letter-spacing: .14em; font-size: 11px;
+  padding-bottom: 10px; border-bottom: 1px solid rgba(169,163,150,.25);
+}
+.chatdock .chatstate { margin-left: auto; color: var(--shell-2); }
+.chatdock .chatclose, .ingestsheet .ingestclose {
+  background: none; border: 0; color: var(--shell-2); font: inherit; cursor: pointer; padding: 2px 6px;
+}
+.chatdock .chatclose:hover, .ingestsheet .ingestclose:hover { color: var(--shell); }
+.chatdock .chatlog { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 12px 2px; }
+.chatdock .msg { max-width: 92%; padding: 9px 12px; border-radius: 12px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.chatdock .msg.you { align-self: flex-end; background: rgba(169,163,150,.18); color: var(--shell); border-bottom-right-radius: 4px; }
+.chatdock .msg.ava { align-self: flex-start; background: rgba(29,27,24,.6); border: 1px solid rgba(169,163,150,.3); color: var(--shell); border-bottom-left-radius: 4px; }
+.chatdock .msg.ava.err { border-color: var(--orange); }  /* orange = capability surface */
+.chatdock .chatrow { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(169,163,150,.25); }
+.chatdock .chatrow input {
+  flex: 1; min-width: 0; font: inherit; color: var(--shell);
+  background: rgba(29,27,24,.55); border: 1px solid rgba(169,163,150,.3);
+  border-radius: 999px; padding: 10px 14px; outline: none;
+}
+.chatdock .chatrow input:focus { border-color: var(--shell); }
+.chatdock .chatrow button {
+  font: inherit; cursor: pointer; background: var(--shell); color: var(--ink);
+  border: 0; border-radius: 999px; padding: 10px 16px; font-weight: 700;
+}
+.chatdock .chatrow button:disabled { opacity: .4; cursor: default; }
+.chatdock .chatmode {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  color: var(--shell-2); font-size: 10px; letter-spacing: .12em; padding: 8px 2px 0;
+}
+.chatdock .chatmode b { cursor: pointer; font-weight: 400; }
+.chatdock .chatmode b[data-on="true"] { color: var(--yellow); }
+.chatdock.chatlocked .chatrow, .chatdock.chatlocked .chatlog, .chatdock.chatlocked .chatmode { opacity: .4; pointer-events: none; }
+
+/* FABs — bottom-right thumb zone, stacked */
+.fabcol {
+  position: fixed; z-index: 41;
+  right: calc(env(safe-area-inset-right, 0px) + 12px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.fab {
+  position: relative;
+  width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(29,27,24,.92); color: var(--shell);
+  border: 1px solid rgba(169,163,150,.45);
+  font: inherit; font-size: 17px; cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.fab:active { transform: scale(.94); }
+.fab.chatfab[aria-pressed="true"] { background: var(--shell); color: var(--ink); }
+.fab .fabbadge {
+  position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px;
+  border-radius: 8px; background: var(--yellow); color: var(--ink);
+  font-size: 9px; font-weight: 700; display: grid; place-items: center; padding: 0 4px;
+}
+.fab .fabbadge[hidden] { display: none; }
+
+/* stream-ingest sheet — URL → F0 */
+.ingestsheet {
+  position: fixed; z-index: 45; left: 50%; bottom: 0;
+  transform: translate(-50%, 110%);
+  width: min(560px, 100vw);
+  background: rgba(29,27,24,.97); color: var(--shell);
+  border: 1px solid rgba(169,163,150,.35); border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  transition: transform .38s cubic-bezier(.22,1,.36,1);
+  padding: 16px 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+.ingestsheet.open { transform: translate(-50%, 0); }
+.ingestsheet .ingesthead {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; letter-spacing: .14em; color: var(--shell-2); margin-bottom: 10px;
+}
+.ingestsheet input[type="url"] {
+  width: 100%; font: inherit; color: var(--shell);
+  background: rgba(29,27,24,.55); border: 1px solid rgba(169,163,150,.3);
+  border-radius: 999px; padding: 10px 14px; outline: none;
+}
+.ingestsheet input[type="url"]:focus { border-color: var(--shell); }
+.ingestsheet .ingestrow { display: flex; gap: 8px; margin-top: 10px; }
+.ingestsheet .ingestrow button {
+  font: inherit; cursor: pointer; background: var(--shell); color: var(--ink);
+  border: 0; border-radius: 999px; padding: 10px 16px; font-weight: 700;
+}
+.ingestsheet .ingestrow button.ghost { background: transparent; color: var(--shell-2); border: 1px solid rgba(169,163,150,.3); }
+.ingestsheet .ingestrow button:disabled { opacity: .4; cursor: default; }
+.ingestsheet .ingesthint { color: var(--shell-2); font-size: 10px; letter-spacing: .1em; margin-top: 8px; }
+
+
+  .card.inview { animation: f0ripple .45s ease both; }
+  .ingestsheet .ingestrow { flex-wrap: wrap; }
+  .kernellens {
+    position: fixed; inset: auto 12px 78px 12px; z-index: 45;
+    background: rgba(29,27,24,.94); border: 1px solid rgba(169,163,150,.35);
+    border-radius: 18px; padding: 10px; color: var(--shell);
+    display: grid; gap: 8px;
+  }
+  .kernellens video { width: 100%; max-height: 42vh; border-radius: 12px; background: #111; object-fit: cover; }
+  .kernellens .ingestrow { margin: 0; }
+  .inspector { position: relative; overflow: hidden; }
+  .exploded-lock-trigger {
+    position: absolute; top: 8px; right: 8px; z-index: 3;
+    width: 32px; height: 32px; border-radius: 10px;
+    background: rgba(216,211,200,.08); border: 1px solid rgba(169,163,150,.3);
+    color: var(--shell-2); cursor: pointer; font-size: 14px; line-height: 1;
+  }
+  .exploded-lock-trigger:hover { color: var(--orange); transform: scale(1.08) rotate(5deg); }
+  .devrear {
+    position: absolute; top: 0; left: 100%; width: 100%; height: 100%;
+    padding: 18px 14px; box-sizing: border-box;
+    background: rgba(29,27,24,.96); color: var(--shell);
+    display: flex; flex-direction: column; gap: 10px;
+    opacity: 0; transform: translateX(0);
+    transition: transform .45s cubic-bezier(.22,1,.36,1), opacity .35s ease;
+    z-index: 2;
+  }
+  .inspector.rear-open .devrear { pointer-events: auto; }
+  .devrear h4 { font-size: 11px; letter-spacing: .16em; color: var(--orange); margin: 0; }
+  .devrear .diag {
+    font-family: inherit; font-size: 11px; line-height: 1.7;
+    background: rgba(0,0,0,.45); border: 1px solid rgba(169,163,150,.2);
+    border-radius: 12px; padding: 12px; color: var(--yellow);
+  }
+  .devrear .diag span { color: var(--shell-2); letter-spacing: .08em; }
+  .devrear .ghost {
+    align-self: flex-start; background: transparent; color: var(--shell-2);
+    border: 1px solid rgba(169,163,150,.3); border-radius: 999px;
+    padding: 6px 14px; font: inherit; font-size: 11px; cursor: pointer;
+  }
+
+/* PHONE LAYOUT — stage becomes the app frame; columns fold */
+@media (max-width: 900px) {
+  body { padding: 0; place-items: stretch; }
+  .stage {
+    width: 100%; min-height: 100dvh; border-radius: 0;
+    font-size: clamp(6px, 1.8vw, 10px);
+    --r: 1.6em; --x: .6em; --y: .4em; --d: .4em;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .topbar { flex-wrap: wrap; row-gap: 6px; }
+  .leftnav { display: none; }        /* zone rail folds away on phones */
+  .body-row { display: block; }
+  .canvas { height: auto; }
+  .canvas .controls input[type="search"] { min-width: 0; flex: 1; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .inspector {
+    display: none;
+    position: fixed; z-index: 50; inset: auto 0 0 0;
+    max-height: 62dvh; border-left: 0;
+    border-top: 1px solid rgba(169,163,150,.35);
+    border-radius: 18px 18px 0 0; background: rgba(29,27,24,.98);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+  }
+  .inspector.open { display: block; }
+  .statusbar { flex-wrap: wrap; gap: 10px 14px; }
+  .stack-wrap { height: min(58dvh, 430px); }
+}
+
+/* ============================================================================
+   DISPLAY-MODE AWARENESS — @media (display-mode: …) consolidation
+   The browser knows how it is displayed: standalone (installed PWA),
+   minimal-ui, fullscreen, or a plain browser tab. The shell adapts its chrome
+   and the TR corner chip reports the live mode (corner reflow included).
+   ========================================================================== */
+.installpill {
+  font: inherit; font-size: 10px; letter-spacing: .18em; cursor: pointer;
+  background: var(--shell); color: var(--ink);
+  border: 0; border-radius: 999px; padding: 5px 12px;
+  white-space: nowrap;
+}
+.installpill[hidden] { display: none; }
+
+/* installed as an app: install affordance is meaningless, trim hint noise */
+@media all and (display-mode: standalone) {
+  .installpill { display: none; }
+}
+@media all and (display-mode: minimal-ui) {
+  .installpill { display: none; }
+}
+/* fullscreen (launched into display: fullscreen or device fullscreen):
+   keep FABs; body padding already collapses via the safe-area layer */
+@media all and (display-mode: fullscreen) {
+  .corner.bl, .corner.br { padding-right: 1.2em; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================================
+     SVG filter chain — discrete alpha + gaussian smoothing turns trapezoid
+     masks into the concave corner surface (mechanism preserved).
+     ========================================================================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="sharp">
+      <feComponentTransfer in="SourceGraphic" result="tr">
+        <feFuncA type="discrete" tableValues="0 1"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="shape" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="6" edgeMode="none" result="b"/>
+      <feComponentTransfer in="b" result="s">
+        <feFuncA type="discrete" tableValues="0 1"/>
+      </feComponentTransfer>
+      <feComposite in="SourceGraphic" in2="s" operator="in"/>
+    </filter>
+    <filter id="smooth" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1" edgeMode="none"/>
+    </filter>
+  </defs>
+</svg>
+
+<main class="stage" id="stage" style="filter: url(#shape);">
+  <div class="back" aria-hidden="true">
+    <div class="cell" style="--ga: tl"></div>
+    <div class="cell" style="--ga: top"></div>
+    <div class="cell" style="--ga: tr"></div>
+    <div class="cell" style="--ga: l"></div>
+    <div class="cell" style="--ga: canvas"></div>
+    <div class="cell" style="--ga: r"></div>
+    <div class="cell" style="--ga: bl"></div>
+    <div class="cell" style="--ga: bottom"></div>
+    <div class="cell" style="--ga: br"></div>
+  </div>
+  <div class="shape" aria-hidden="true">
+    <div class="cell" style="--ga: tl"></div>
+    <div class="cell" style="--ga: top"></div>
+    <div class="cell" style="--ga: tr"></div>
+    <div class="cell" style="--ga: l"></div>
+    <div class="cell" style="--ga: canvas"></div>
+    <div class="cell" style="--ga: r"></div>
+    <div class="cell" style="--ga: bl"></div>
+    <div class="cell" style="--ga: bottom"></div>
+    <div class="cell" style="--ga: br"></div>
+  </div>
+
+  <!-- top edge: title/path bar + view toggle -->
+  <header class="edge top">
+    <div class="topbar">
+      <span class="brand">FORGED <em>//</em> <b id="viewchip">CANVAS</b></span>
+      <span class="path">vault <b>/ F2 Forged</b> <span id="crumbpath"></span></span>
+      <div class="viewtoggle" role="group" aria-label="View mode">
+        <button type="button" data-view="grid" aria-pressed="true">▦ GRID</button>
+        <button type="button" data-view="list" aria-pressed="false">▤ LIST</button>
+        <button type="button" data-view="stack" aria-pressed="false">◈ CURATE</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- body -->
+  <section class="body-row">
+    <nav class="leftnav" aria-label="Lifecycle zones">
+      <div class="navhead">LIFECYCLE</div>
+      <button class="zone" data-zone="f0_raw" data-color="neutral"><span class="dot"></span>F0 Raw</button>
+      <button class="zone" data-zone="f1_chunk" data-color="neutral"><span class="dot"></span>F1 Chunk</button>
+      <button class="zone" data-zone="f2_forged" data-color="neutral"><span class="dot"></span>F2 Forged</button>
+      <button class="zone" data-zone="f3_manifest" data-color="neutral"><span class="dot"></span>F3 Manifest</button>
+      <div class="navhead" style="margin-top:10px">STORES · VENDOR</div>
+      <button class="zone" data-zone="rocksdb_skills" data-color="orange"><span class="dot"></span>RocksDB / Skills</button>
+      <button class="zone" data-zone="duckdb_intelligence" data-color="yellow"><span class="dot"></span>DuckDB / Intelligence</button>
+      <button class="zone" data-zone="hf_vendor" data-color="neutral"><span class="dot"></span>HF / Vendor</button>
+      <button class="zone" data-zone="capability" data-color="orange"><span class="dot"></span>Capability</button>
+      <button class="zone" data-zone="quarantine" data-color="neutral"><span class="dot"></span>Quarantine</button>
+      <div class="navhead" style="margin-top:10px">FFS v1.2.1</div>
+      <div class="hint" style="padding:0 8px">F0/F1/F2 immutable · F3 append-only<br>Capability = Tools + Harness</div>
+    </nav>
+
+    <section class="canvas" aria-label="File canvas">
+      <div class="controls">
+        <input id="search" type="search" placeholder="search id · source · domain · destination" />
+        <select id="sortsel" aria-label="Sort">
+          <option value="forged_at">forged_at</option>
+          <option value="confidence">confidence</option>
+          <option value="chunks">chunks</option>
+          <option value="size">size</option>
+        </select>
+        <select id="dirsel" aria-label="Direction">
+          <option value="desc">desc</option>
+          <option value="asc">asc</option>
+        </select>
+        <span class="hint" id="count"></span>
+      </div>
+      <div class="crumb" id="crumb">vault / <b>F2 Forged</b></div>
+
+      <div id="gridview" class="grid"></div>
+      <div id="listview" class="list" hidden></div>
+
+      <div id="stackview" hidden>
+        <div class="queuefill"><i id="queuefillbar"></i></div>
+        <div class="stack-wrap" id="stackwrap"></div>
+        <div class="stack-hint">← dev-lock · → forge · drag either way · ↩ reset</div>
+        <div class="stack-empty" id="stackempty">
+          ALL CURATED.
+          <div id="stackemptystats" style="margin-top:8px; letter-spacing:.14em"></div>
+          <button type="button" id="requeue">REQUEUE LOCKED</button>
+        </div>
+      </div>
+
+      <div class="f1strip" id="f1strip" hidden>
+        RAW DOCUMENT → ASCII RIPPLE → <span class="splitline" id="splitline"></span>
+      </div>
+    </section>
+
+    <aside class="inspector" id="inspector" aria-label="Inspector">
+      <button type="button" class="exploded-lock-trigger" id="devrearlock" title="Unlock DEV rear" aria-pressed="false">🔒</button>
+      <div class="devrear" id="devrear" aria-hidden="true">
+        <h4>KERNEL DIAGNOSTICS</h4>
+        <div class="diag" id="devrearbody">DEV rear locked.</div>
+        <button type="button" class="ghost" id="devrearclose">Lock Panel</button>
+      </div>
+
+      <h3>FORGED FILE</h3>
+      <div id="insp-forged" class="kv"><span style="color:var(--shell-2)">select a card…</span></div>
+      <h3>PROVENANCE</h3>
+      <div class="chain" id="insp-chain"></div>
+      <h3>CAPABILITY (Tools + Harness)</h3>
+      <div id="insp-cap" class="capline">none bound</div>
+    </aside>
+  </section>
+
+  <!-- bottom edge: status bar (odometer readouts recompute live) -->
+  <footer class="edge bottom">
+    <div class="statusbar" role="status">
+      <span class="stat">FILES <b id="s-files">000</b></span>
+      <span class="stat">CHUNKS <b id="s-chunks">000</b></span>
+      <span class="stat rocks">SKILLS <b id="s-skills">000</b></span>
+      <span class="stat duck">INTELLIGENCE <b id="s-intel">000</b></span>
+      <span class="stat">AVG CONF <b id="s-conf">0%</b></span>
+      <span class="devcount">DEV-LOCKED <b id="s-dev">0</b></span>
+    </div>
+  </footer>
+
+  <!-- corner cells: LIVE content — the concave corners reflow around these -->
+  <div class="corner tl"><span class="chip">FORGED // <b id="corner-view">CANVAS</b></span></div>
+  <div class="corner tr"><span class="chip" id="corner-tr">FFS v1.2.1</span></div>
+  <div class="corner bl"><span class="hint" id="corner-bl">3-COLOR LOCK · neutral/orange/yellow</span>
+  </div>
+  <div class="corner br"><span class="hint" id="corner-br">swipe → forge · ← dev-lock</span><button type="button" class="installpill" id="installpill" hidden>INSTALL ⤓</button></div>
+</main>
+
+<!-- ============================================================================
+     S26-ULTRA NATIVE LAYER — AI chat dock · stream-ingest sheet · thumb FABs
+     ========================================================================= -->
+<aside class="chatdock" id="chatdock" aria-label="Ava007 chat" aria-hidden="true">
+  <div class="chathead">
+    <span>AVA007 <em>//</em> CHAT</span>
+    <span class="chatstate" id="chatstate">LENS</span>
+    <button type="button" class="chatclose" id="chatclose" aria-label="Close chat">✕</button>
+  </div>
+  <div class="chatlog" id="chatlog" aria-live="polite"></div>
+  <div class="chatmode" id="chatmode" role="group" aria-label="Chat mode">
+    <b data-on="true" data-mode="chat">CHAT</b><span>·</span>
+    <b data-on="false" data-mode="lens">LENS (page→prompt)</b><span>·</span>
+    <b data-on="false" data-mode="curate">CURATE (queue→prompt)</b>
+  </div>
+  <form class="chatrow" id="chatform">
+    <input id="chatinput" type="text" placeholder="message ava007…" autocomplete="off" enterkeyhint="send" />
+    <button type="submit" id="chatsend">SEND</button>
+  </form>
+</aside>
+
+<div class="ingestsheet" id="ingestsheet" aria-hidden="true">
+  <div class="ingesthead"><span>STREAM INGEST → F0</span><button type="button" class="ingestclose" id="ingestclose" aria-label="Close">✕</button></div>
+  <form id="ingestform">
+    <input id="ingesturl" type="url" inputmode="url" placeholder="https://site-or-catalog/page" enterkeyhint="go" required />
+    <div class="ingestrow">
+      <button type="submit" id="ingestgo">STREAM → F0</button>
+      <button type="button" class="ghost" id="ingestcatalog">VIEW CATALOG</button>
+      <button type="button" class="ghost" id="kernelfilebtn">FILE → F0</button>
+      <button type="button" class="ghost" id="kerneldirbtn">FOLDER</button>
+      <button type="button" class="ghost" id="kernellensbtn">LENS</button>
+      <input id="kernelfile" type="file" multiple hidden />
+    </div>
+    <div class="ingesthint" id="ingesthint">extract → itemize → rendering cards · catalog packaged in-service</div>
+  </form>
+</div>
+
+
+<div class="kernellens" id="kernellens" hidden>
+  <video id="kernellensvideo" playsinline muted></video>
+  <div class="ingestrow">
+    <button type="button" id="kernelcapture">CAPTURE → F0</button>
+    <button type="button" class="ghost" id="kernellensclose">CLOSE</button>
+  </div>
+</div>
+
+<div class="fabcol">
+  <button type="button" class="fab" id="fabingest" aria-label="Stream ingest" title="Stream a site/catalog page into F0">⇪</button>
+  <button type="button" class="fab chatfab" id="fabchat" aria-label="Ava007 chat" aria-pressed="false" title="AI chat">◆</button>
+</div>
+
+<script>
+/* ============================================================================
+   DATA ISLAND — FFS state model mirrored from components/forged/explorer_state.ts
+   (zones, three-color mapping, card/inspector shapes, filter/sort, DEV-lock).
+   ========================================================================== */
+"use strict";
+
+/* ============================================================================
+   S26-ULTRA NATIVE LAYER — engine wiring (three-color locked)
+   1. AVA007 CHAT — app-dock chat over the same-origin Pages Function /api/chat
+      (Ava007 lens proxy; HUGGINGFACE_TOKEN lives server-side in the Pages
+      project). Until then the function returns 503 and the dock runs
+      DEV-LOCKED: visible · inert · reason displayed (§9 — never silently dead).
+   2. STREAM INGEST — URL → same-origin /api/ingest (fetch + extract) → F0
+      ripple → curation queue. Inventory & order lane: extracted items land as
+      F0 cards; the curator forges/locks them; the odometer re-drives live.
+   3. PHONE WIRING — card tap opens the inspector bottom-sheet; the chat FAB
+      badge tracks the queue size. All bootstrap runs at window load so the
+      data-island declarations below are fully initialized before use.
+   ========================================================================== */
+var chat = null;
+var ingest = null;
+
+function chatBadge() {
+  if (!chat) return;
+  const n = QUEUE.length;
+  if (!chat.badge) {
+    chat.badge = document.createElement("span");
+    chat.badge.className = "fabbadge";
+    chat.fab.appendChild(chat.badge);
+  }
+  chat.badge.hidden = n === 0;
+  chat.badge.textContent = String(n);
+}
+
+function setChatOpen(open) {
+  chat.open = open;
+  chat.dock.classList.toggle("open", open);
+  chat.dock.setAttribute("aria-hidden", String(!open));
+  chat.fab.setAttribute("aria-pressed", String(open));
+  if (open) chat.input.focus({ preventScroll: true });
+}
+
+function chatMsg(role, content, cls) {
+  const m = document.createElement("div");
+  m.className = "msg " + (role === "user" ? "you" : "ava" + (cls ? " " + cls : ""));
+  m.textContent = content;
+  chat.log.appendChild(m);
+  chat.log.scrollTop = chat.log.scrollHeight;
+  return m;
+}
+
+function chatLock(reason) {
+  chat.dock.classList.add("chatlocked");
+  chat.state.textContent = "DEV-LOCKED 🔒";
+  chatMsg("ava", reason, "err");
+}
+
+async function sendChat() {
+  const text = chat.input.value.trim();
+  if (!text || chat.busy || chat.dock.classList.contains("chatlocked")) return;
+  chat.input.value = "";
+  chat.busy = true; chat.send.disabled = true;
+  chatMsg("user", text);
+  chat.history.push({ role: "user", content: text });
+
+  /* lens / curate modes prepend the governed context */
+  let prompt = text;
+  if (chat.modeSel === "lens" && state.selectedId) {
+    const c = FILES.find((f) => f.id === state.selectedId);
+    if (c) prompt = "[LENS " + c.id + " · " + c.title + "]\n" + text;
+  } else if (chat.modeSel === "curate") {
+    prompt = "[CURATE QUEUE " + QUEUE.length + " items]\n" + text;
+  }
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        messages: chat.history.slice(-11, -1).concat([{ role: "user", content: prompt }]),
+      }),
+    });
+    if (res.status === 503) {
+      const j = await res.json().catch(() => ({}));
+      chatLock(j.reason || "lens backend not configured (HUGGINGFACE_TOKEN missing) — chat is DEV-locked, visible + inert");
+      return;
+    }
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const reply = (data.reply || "").trim() || "(empty reply)";
+    const node = chatMsg("ava", "");
+    asciiRipple(node, reply, 12);      /* ingest semantics: ripple settles into the reply */
+    chat.history.push({ role: "assistant", content: reply });
+  } catch (err) {
+    chatMsg("ava", "lens fault: " + err.message, "err");
+  } finally {
+    chat.busy = false; chat.send.disabled = false;
+  }
+}
+
+function setIngestOpen(open) {
+  ingest.sheet.classList.toggle("open", open);
+  ingest.sheet.setAttribute("aria-hidden", String(!open));
+  if (open) ingest.url.focus({ preventScroll: true });
+}
+
+async function submitIngest(e) {
+  e.preventDefault();
+  const url = ingest.url.value.trim();
+  if (!url) return;
+  ingest.go.disabled = true;
+  ingest.hint.textContent = "streaming · extract → F0…";
+  try {
+    const res = await fetch("/api/ingest", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+    /* local F0: ripple the page title once */
+    el.f1strip.hidden = false;
+    asciiRipple(el.splitline, "F0 « " + (data.title || "INGEST").slice(0, 18).toUpperCase() + " »", 10);
+    setTimeout(() => { el.f1strip.hidden = true; }, 2200);
+
+    /* catalog is packaged with the service: it renders as CARDS, never a
+       separate destination. Itemize the extraction — one F0 card per item
+       (inventory & order) — with the page itself as the parent record. */
+    const parent = {
+      id: "f0_" + Math.random().toString(16).slice(2, 10),
+      stage: "F0", title: data.title || url, subtitle: "RAW INGEST",
+      destination: "NONE", confidence: 0, chunks: data.chunks || 0,
+      sizeBytes: data.bytes || 0, domain: "ingest",
+      source: "http://" + url.replace(/^https?:\/\//, ""),
+      createdAt: new Date().toISOString(), devLocked: false,
+      capability: null, curation: undefined,
+    };
+    const incoming = [parent];
+    const items = Array.isArray(data.items) ? data.items : [];
+    for (const it of items.slice(0, 12)) {
+      incoming.push({
+        id: "f0_" + Math.random().toString(16).slice(2, 10),
+        stage: "F0", title: String(it.text || "").slice(0, 48) || "(item)",
+        subtitle: it.kind === "link" ? "CATALOG LINK" : "CATALOG ITEM",
+        destination: "NONE", confidence: 0, chunks: 1,
+        sizeBytes: String(it.text || "").length, domain: "catalog",
+        source: parent.source + "#" + incoming.length,
+        createdAt: new Date().toISOString(), devLocked: false,
+        capability: null, curation: undefined,
+      });
+    }
+    FILES.unshift(...incoming);
+    QUEUE.unshift(...incoming.map((c) => c.id));
+    state.zone = "f0_raw";
+    document.querySelectorAll(".leftnav button.zone").forEach((x) => {
+      x.setAttribute("aria-current", String(x.dataset.zone === "f0_raw"));
+    });
+    refreshStats(); renderCanvas(); renderStack(); chatBadge();
+    const nItems = Math.min(items.length, 12);
+    ingest.hint.textContent = (data.title || url) + " → F0 queued · " +
+      nItems + " item" + (nItems === 1 ? "" : "s") + " → rendering cards";
+    ingest.url.value = "";
+  } catch (err) {
+    if (window.FFSKernel && typeof window.FFSKernel.streamFallback === "function") {
+      try {
+        await window.FFSKernel.streamFallback(url);
+      } catch (err2) {
+        ingest.hint.textContent = "ingest fault: " + (err2 && err2.message ? err2.message : err.message);
+      }
+    } else {
+      ingest.hint.textContent = "ingest fault: " + err.message;
+    }
+  } finally {
+    ingest.go.disabled = false;
+  }
+}
+
+/* overrides: queue badge rides the existing stat refresh; phone taps open the
+   inspector as a bottom-sheet (both originals are preserved and re-invoked) */
+const _nativeSelectCard = selectCard;
+selectCard = function (id) {
+  _nativeSelectCard(id);
+  if (window.matchMedia("(max-width: 900px)").matches) {
+    document.getElementById("inspector").classList.add("open");
+  }
+};
+const _nativeRefreshStats = refreshStats;
+refreshStats = function () { _nativeRefreshStats(); chatBadge(); };
+
+/* --- display-mode awareness (@media display-mode consolidation) -------------
+   The shell reports how it is displayed — standalone (installed PWA),
+   minimal-ui, fullscreen, or a plain browser tab — in the TR corner chip;
+   the INSTALL affordance appears only where it can actually work. */
+function displayMode() {
+  if (window.matchMedia("(display-mode: standalone)").matches) return "standalone";
+  if (window.matchMedia("(display-mode: minimal-ui)").matches) return "minimal-ui";
+  if (window.matchMedia("(display-mode: fullscreen)").matches) return "fullscreen";
+  if (window.matchMedia("(display-mode: window-controls-overlay)").matches) return "window-controls-overlay";
+  return "browser";
+}
+var _dmChipBase = "FFS v1.2.1";
+function renderDisplayMode() {
+  const chip = document.getElementById("corner-tr");
+  if (!chip) return;
+  const mode = displayMode();
+  chip.textContent = mode === "browser" ? _dmChipBase : _dmChipBase + " · " + mode.toUpperCase();
+}
+var _installEvent = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  _installEvent = e;
+  window.__avaInstallEvent = e;   /* consumed by native-layer.js bootstrap */
+  if (displayMode() === "browser") {
+    const pill = document.getElementById("installpill");
+    if (pill) pill.hidden = false;
+  }
+});
+document.addEventListener("fullscreenchange", renderDisplayMode);
+
+const FFS_SPEC_VERSION = "1.2.0";
+const ZONE_COLORS = {
+  f0_raw: "neutral", f1_chunk: "neutral", f2_forged: "neutral", f3_manifest: "neutral",
+  rocksdb_skills: "orange", duckdb_intelligence: "yellow",
+  hf_vendor: "neutral", capability: "orange", quarantine: "neutral",
+};
+const ZONE_LABELS = {
+  f0_raw: "F0 Raw", f1_chunk: "F1 Chunk", f2_forged: "F2 Forged", f3_manifest: "F3 Manifest",
+  rocksdb_skills: "RocksDB / Skills", duckdb_intelligence: "DuckDB / Intelligence",
+  hf_vendor: "Hugging Face / Vendor", capability: "Capability (Tools + Harness)", quarantine: "Quarantine",
+};
+
+/* --- seeded demo vault: illumine cards with Forged-File semantics ---------- */
+let FILES = [
+  { id: "f2_9f41c2ae", stage: "F2", title: "PDF Smart Extractor", subtitle: "FORGED FILE",
+    destination: "ROCKSDB", confidence: 0.94, chunks: 18, sizeBytes: 131072, domain: "document",
+    source: "raw://9f41c2ae", createdAt: "2026-09-14T08:12:04Z", devLocked: false,
+    capability: { dependencies: {}, tools: { parser: "layout" }, skill: { kind: "extract", domain: "pdf" }, harness: { sandbox: "worker" } } },
+  { id: "f2_77b0d31c", stage: "F2", title: "Audio Turn Forger", subtitle: "FORGED FILE",
+    destination: "DUCKDB", confidence: 0.88, chunks: 42, sizeBytes: 262144, domain: "audio",
+    source: "raw://77b0d31c", createdAt: "2026-09-14T09:03:41Z", devLocked: false,
+    capability: null },
+  { id: "f2_1c88e5f0", stage: "F2", title: "Manifest Stitcher", subtitle: "F3 RECORD",
+    destination: "NONE", confidence: 0.0, chunks: 0, sizeBytes: 4096, domain: "manifest",
+    source: "forge://manifest", createdAt: "2026-09-14T09:40:12Z", devLocked: true,
+    devLockReason: "F3 backlink graph is append-only; stitcher not yet operational", capability: null },
+  { id: "f2_5d2a90b3", stage: "F2", title: "Vendor Header Intel", subtitle: "MODEL INTELLIGENCE",
+    destination: "DUCKDB", confidence: 0.81, chunks: 9, sizeBytes: 20480, domain: "model",
+    source: "vendor://e0f…/config.json", createdAt: "2026-09-14T10:15:00Z", devLocked: false,
+    capability: null },
+  { id: "f2_a3e77105", stage: "F2", title: "Skill Compiler", subtitle: "CAPABILITY COMPILE",
+    destination: "ROCKSDB", confidence: 0.9, chunks: 27, sizeBytes: 98304, domain: "capability",
+    source: "forge://capabilities", createdAt: "2026-09-14T10:44:55Z", devLocked: true,
+    devLockReason: "compiler refuses ghost skills; harness sections pending", capability: null },
+  { id: "f2_04d16b8f", stage: "F2", title: "Trace Resolver", subtitle: "FORGED FILE",
+    destination: "DUCKDB", confidence: 0.76, chunks: 11, sizeBytes: 12288, domain: "provenance",
+    source: "raw://04d16b8f", createdAt: "2026-09-14T11:02:18Z", devLocked: false,
+    capability: null },
+];
+
+/* curation queue: undecided, non-manifest cards; snapshot for requeue */
+let QUEUE = FILES.filter(f => !f.devLocked && f.domain !== "manifest").map(f => f.id);
+let LOCK_SNAPSHOT = null;
+
+/* --- dom ------------------------------------------------------------------- */
+const $ = (id) => document.getElementById(id);
+const el = {
+  stage: $("stage"), viewchip: $("viewchip"), cornerView: $("corner-view"),
+  crumb: $("crumb"), crumbpath: $("crumbpath"),
+  search: $("search"), sortsel: $("sortsel"), dirsel: $("dirsel"), count: $("count"),
+  grid: $("gridview"), list: $("listview"), stackwrap: $("stackwrap"),
+  stackview: $("stackview"), stackempty: $("stackempty"), stackemptystats: $("stackemptystats"),
+  queuefillbar: $("queuefillbar"), requeue: $("requeue"),
+  inspForged: $("insp-forged"), inspChain: $("insp-chain"), inspCap: $("insp-cap"),
+  sFiles: $("s-files"), sChunks: $("s-chunks"), sSkills: $("s-skills"),
+  sIntel: $("s-intel"), sConf: $("s-conf"), sDev: $("s-dev"),
+  cornerTR: $("corner-tr"), cornerBL: $("corner-bl"), cornerBR: $("corner-br"),
+  f1strip: $("f1strip"), splitline: $("splitline"),
+};
+
+const state = {
+  view: "grid",                 // grid | list | stack
+  zone: "f2_forged",
+  search: "",
+  sort: { key: "forged_at", direction: "desc" },
+  selectedId: null,
+};
+
+const pad3 = (n) => String(n).padStart(3, "0");
+
+/* odometer — digits roll, never a static number (§9). */
+function odometer(node, to, fmt = pad3, duration = 650) {
+  const from = Number(node.dataset.v || 0);
+  const t0 = performance.now();
+  node.dataset.v = String(to);
+  cancelAnimationFrame(Number(node.dataset.raf || 0));
+  const tick = (t) => {
+    const k = Math.min(1, (t - t0) / duration);
+    const eased = 1 - Math.pow(1 - k, 3);
+    node.textContent = fmt(Math.round(from + (to - from) * eased));
+    if (k < 1) node.dataset.raf = String(requestAnimationFrame(tick));
+  };
+  node.dataset.raf = String(requestAnimationFrame(tick));
+}
+
+/* ASCII glitch ripple on ingest (§9). */
+function asciiRipple(node, finalText, frames = 14) {
+  const glyphs = "!<>-_\\/[]{}—=+*^?#________";
+  let f = 0;
+  const timer = setInterval(() => {
+    f += 1;
+    const reveal = Math.floor((f / frames) * finalText.length);
+    node.textContent = finalText.split("").map((ch, i) =>
+      i < reveal ? ch : glyphs[Math.floor(Math.random() * glyphs.length)]).join("") || finalText;
+    if (f >= frames) { clearInterval(timer); node.textContent = finalText; }
+  }, 38);
+}
+
+/* F1 → GSAP SPLIT TEXT: characters physically separate (§9). */
+function splitReveal(node, text) {
+  node.textContent = "";
+  const spans = Array.from(text).map((ch) => {
+    const s = document.createElement("span");
+    s.style.display = "inline-block";
+    s.style.whiteSpace = "pre";
+    s.textContent = ch;
+    node.appendChild(s);
+    return s;
+  });
+  requestAnimationFrame(() => {
+    spans.forEach((s, i) => {
+      s.style.transition = "transform .5s cubic-bezier(.34,1.56,.64,1)";
+      s.style.transitionDelay = (i * 12) + "ms";
+      s.style.transform = "translate(6px,-4px)";
+    });
+  });
+}
+
+/* --- derived views ---------------------------------------------------------- */
+function zoneFilter(cards) {
+  switch (state.zone) {
+    case "f0_raw": return cards.filter(c => c.source.startsWith("raw://"));
+    case "f1_chunk": return cards.filter(c => c.chunks > 0);
+    case "f3_manifest": return cards.filter(c => c.subtitle === "F3 RECORD" || c.domain === "manifest");
+    case "rocksdb_skills": return cards.filter(c => c.destination === "ROCKSDB");
+    case "duckdb_intelligence": return cards.filter(c => c.destination === "DUCKDB");
+    case "hf_vendor": return cards.filter(c => c.source.startsWith("vendor://"));
+    case "capability": return cards.filter(c => !!c.capability);
+    case "quarantine": return cards.filter(c => c.destination === "QUARANTINE");
+    case "f2_forged":
+    default: return cards;
+  }
+}
+
+function visibleCards() {
+  const q = state.search.trim().toLowerCase();
+  let out = FILES.filter((c) =>
+    !q ||
+    c.id.toLowerCase().includes(q) ||
+    c.source.toLowerCase().includes(q) ||
+    c.domain.toLowerCase().includes(q) ||
+    c.destination.toLowerCase().includes(q));
+  out = zoneFilter(out);
+  const dir = state.sort.direction === "asc" ? 1 : -1;
+  out.sort((a, b) => {
+    switch (state.sort.key) {
+      case "confidence": return dir * (a.confidence - b.confidence);
+      case "chunks": return dir * (a.chunks - b.chunks);
+      case "size": return dir * (a.sizeBytes - b.sizeBytes);
+      case "forged_at":
+      default: return dir * a.createdAt.localeCompare(b.createdAt);
+    }
+  });
+  return out;
+}
+
+/* --- status bar: every decision re-drives this (refreshStats) --------------- */
+function refreshStats() {
+  const files = FILES;                          // manifest summary counts all
+  const totalFiles = files.length;
+  const totalChunks = files.reduce((a, f) => a + f.chunks, 0);
+  const skills = files.filter(f => f.destination === "ROCKSDB").reduce((a, f) => a + f.chunks, 0);
+  const intel = files.filter(f => f.destination === "DUCKDB").reduce((a, f) => a + f.chunks, 0);
+  const decided = files.filter(f => f.confidence > 0);
+  const avg = decided.length ? decided.reduce((a, f) => a + f.confidence, 0) / decided.length : 0;
+  const devCount = files.filter(f => f.devLocked).length;
+
+  odometer(el.sFiles, totalFiles);
+  odometer(el.sChunks, totalChunks);
+  odometer(el.sSkills, skills);
+  odometer(el.sIntel, intel);
+  odometer(el.sConf, Math.round(avg * 100), (n) => String(n).padStart(2, "0") + "%", 500);
+  el.sDev.textContent = String(devCount);
+}
+
+/* --- card rendering --------------------------------------------------------- */
+function cardNode(c) {
+  const node = document.createElement("article");
+  node.className = "card" + (c.devLocked ? " devlocked" : "") + (c.id === state.selectedId ? " selected" : "");
+  node.dataset.id = c.id;
+  node.tabIndex = 0;
+  node.innerHTML =
+    '<span class="stagebadge">' + c.stage + "</span>" +
+    '<div class="title">◈ ' + c.title + "</div>" +
+    '<div class="subtitle">' + c.subtitle + "</div>" +
+    '<div class="metrics">conf <b>' + c.confidence.toFixed(2) + "</b> · chunks <b>" + pad3(c.chunks) + "</b></div>" +
+    '<div class="dest" data-dest="' + c.destination + '">destination ' + c.destination + "</div>" +
+    (c.devLocked ? '<div class="devlock" data-dest="' + c.destination + '">DEV LOCKED' +
+      (c.devLockReason ? " — " + c.devLockReason : "") + "</div>" : "");
+  node.addEventListener("click", () => selectCard(c.id));
+  node.addEventListener("keydown", (e) => { if (e.key === "Enter") selectCard(c.id); });
+  return node;
+}
+
+function renderCanvas() {
+  const cards = visibleCards();
+  el.count.textContent = String(cards.length) + " ASSETS";
+  el.grid.replaceChildren(...cards.map(cardNode));
+  el.list.replaceChildren(...cards.map(cardNode));
+  el.crumb.innerHTML = "vault / <b>" + ZONE_LABELS[state.zone] + "</b>" + (state.selectedId ? " / " + state.selectedId : "");
+  el.crumbpath.textContent = state.selectedId ? " / " + state.selectedId : "";
+}
+
+/* --- inspector --------------------------------------------------------------- */
+function selectCard(id) {
+  state.selectedId = id;
+  const c = FILES.find(f => f.id === id);
+  if (!c) return;
+  el.inspForged.innerHTML =
+    kv("Forged ID", c.id) + kv("Source Upload", c.source) +
+    kv("Chunk Range", c.chunks ? "0–" + String(c.chunks - 1).padStart(3, "0") : "—") +
+    kv("Engine", "GSAP Split Text") +
+    kv("Destination", c.destination, c.destination) +
+    kv("Confidence", c.confidence ? c.confidence.toFixed(2) : "—") +
+    kv("Created", c.createdAt) +
+    kv("DEV Status", c.devLocked ? "dev-locked 🔒" : "operational");
+  const hit = c.source.startsWith("vendor://") ? 3 : (c.subtitle === "F3 RECORD" ? 3 : 2);
+  el.inspChain.innerHTML = chainHTML(hit);
+  el.inspCap.innerHTML = c.capability
+    ? "deps <b>" + Object.keys(c.capability.dependencies).length + "</b> · tools <b>" +
+      Object.keys(c.capability.tools).length + "</b> · harness <b>" +
+      Object.keys(c.capability.harness).length + "</b>"
+    : "none bound";
+  renderCanvas();
+}
+
+function kv(k, v, dest) {
+  return '<dt>' + k + "</dt><dd" + (dest ? ' data-dest="' + dest + '"' : "") + ">" + v + "</dd>";
+}
+
+function chainHTML(hitIdx) {
+  const names = ["F0 Raw Upload", "F1 Chunk", "F2 Forged File", "F3 Manifest"];
+  return names.map((n, i) =>
+    '<div class="node' + (i <= hitIdx ? " hit" : "") + '">' + n + "</div>" +
+    (i < 3 ? '<div class="down">↓</div>' : "")).join("");
+}
+
+/* --- view switching ---------------------------------------------------------- */
+function setView(view) {
+  state.view = view;
+  el.viewchip.textContent = view.toUpperCase();
+  el.cornerView.textContent = view.toUpperCase();
+  const isStack = view === "stack";
+  el.grid.hidden = view !== "grid";
+  el.list.hidden = view !== "list";
+  el.stackview.hidden = !isStack;
+  document.querySelectorAll(".viewtoggle button").forEach((b) =>
+    b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+  if (isStack) { renderStack(); }
+  asciiRipple(el.cornerView, view.toUpperCase());
+}
+
+document.querySelectorAll(".viewtoggle button").forEach((b) =>
+  b.addEventListener("click", () => setView(b.dataset.view)));
+
+/* --- left nav ----------------------------------------------------------------- */
+document.querySelectorAll(".leftnav button.zone").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.zone = b.dataset.zone;
+    document.querySelectorAll(".leftnav button.zone").forEach((x) =>
+      x.setAttribute("aria-current", String(x === b)));
+    renderCanvas();
+  }));
+
+/* --- search + sort (§10 contract: id/source/domain/destination) ---------------- */
+el.search.addEventListener("input", () => { state.search = el.search.value; renderCanvas(); });
+el.sortsel.addEventListener("change", () => { state.sort.key = el.sortsel.value; renderCanvas(); });
+el.dirsel.addEventListener("change", () => { state.sort.direction = el.dirsel.value; renderCanvas(); });
+
+/* ============================================================================
+   CURATION STACK — swipe right = FORGE (activate) · left = DEV-LOCK.
+   Original promotion (translateY + scale), spring snap-back, ±25° fly-out,
+   mouse + touch drag, ←/→ keyboard curation. Stamps recolor per-card to the
+   destination accent so orange/yellow only touch RocksDB/DuckDB assets.
+   ========================================================================== */
+const SPRING = "cubic-bezier(.34,1.56,.64,1)";
+
+function stackCards() {
+  return QUEUE.map((id) => FILES.find((f) => f.id === id)).filter(Boolean);
+}
+
+function renderStack() {
+  const cards = stackCards();
+  el.stackempty.style.display = cards.length ? "none" : "block";
+  el.stackemptystats.textContent = FILES.filter(f => f.curation === "forged").length + " forged · " +
+    FILES.filter(f => f.curation === "locked").length + " locked";
+  const done = FILES.length - QUEUE.length;
+  el.queuefillbar.style.width = Math.round((done / Math.max(1, FILES.length)) * 100) + "%";
+  el.stackwrap.replaceChildren(...cards.slice(0, 3).map((c, i) => buildStackCard(c, i)));
+}
+
+function buildStackCard(c, depth) {
+  const node = cardNode(c);
+  node.classList.add("stack-card");
+  node.classList.add(depth === 0 ? "front" : depth === 1 ? "mid" : "back");
+  node.classList.remove("selected");
+  if (depth === 0) attachDrag(node, c);
+  return node;
+}
+
+function decide(id, decision) {
+  const c = FILES.find((f) => f.id === id);
+  if (!c) return;
+  c.curation = decision;                       // "forged" | "locked"
+  if (decision === "locked") {
+    c.devLocked = true;
+    c.devLockReason = c.devLockReason || "curator dev-lock";
+  } else {
+    c.devLocked = false;
+  }
+  c.createdAt = new Date().toISOString();      // decision re-drives sort + stats
+  QUEUE = QUEUE.filter((q) => q !== id);
+  refreshStats();
+  renderCanvas();
+  renderStack();
+}
+
+/* fly-out + snap-back (dev-dijest mechanics, FFS semantics) */
+function attachDrag(node, c) {
+  let startX = 0, startY = 0, dragging = false;
+  const down = (x, y) => { dragging = true; startX = x; startY = y; node.style.transition = "none"; };
+  const move = (x) => {
+    if (!dragging) return;
+    const dx = x - startX;
+    node.style.transform = "translateX(" + dx + "px) rotate(" + (dx / 18) + "deg)";
+  };
+  const up = (x) => {
+    if (!dragging) return;
+    dragging = false;
+    const dx = x - startX;
+    if (dx > 90) { flyOut(node, 1, () => decide(c.id, "forged")); }
+    else if (dx < -90) { flyOut(node, -1, () => decide(c.id, "locked")); }
+    else { node.style.transition = "transform .45s " + SPRING; node.style.transform = ""; }
+  };
+  node.addEventListener("mousedown", (e) => { e.preventDefault(); down(e.clientX, e.clientY); });
+  window.addEventListener("mousemove", (e) => move(e.clientX));
+  window.addEventListener("mouseup", (e) => up(e.clientX));
+  node.addEventListener("touchstart", (e) => down(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+  node.addEventListener("touchmove", (e) => move(e.touches[0].clientX), { passive: true });
+  node.addEventListener("touchend", (e) => {
+    const t = e.changedTouches[0];
+    up(t ? t.clientX : startX);
+  });
+  node._cleanupDrag = () => {
+    window.removeEventListener("mousemove", move);
+    window.removeEventListener("mouseup", up);
+  };
+}
+
+function flyOut(node, sign, after) {
+  node.style.transition = "transform .38s ease-in, opacity .38s ease-in";
+  node.style.transform = "translateX(" + (sign * 140) + "%) rotate(" + (sign * 25) + "deg)";
+  node.style.opacity = "0";
+  setTimeout(() => { node._cleanupDrag && node._cleanupDrag(); after(); }, 390);
+}
+
+/* keyboard curation */
+window.addEventListener("keydown", (e) => {
+  if (state.view !== "stack") return;
+  const front = el.stackwrap.querySelector(".stack-card.front");
+  if (!front) {
+    if (e.key === "r" || e.key === "R") requeueLocked();
+    return;
+  }
+  if (e.key === "ArrowRight") flyOut(front, 1, () => decide(front.dataset.id, "forged"));
+  if (e.key === "ArrowLeft")  flyOut(front, -1, () => decide(front.dataset.id, "locked"));
+  if (e.key === "Enter") { front.style.transition = "transform .45s " + SPRING; front.style.transform = ""; }
+});
+
+/* requeue: restore the pre-curation lock snapshot */
+function requeueLocked() {
+  if (!LOCK_SNAPSHOT) LOCK_SNAPSHOT = JSON.parse(JSON.stringify(FILES));
+  QUEUE = FILES.filter(f => f.curation === "locked" || !f.curation).map(f => f.id);
+  FILES.forEach((f) => {
+    if (f.curation === "locked") {
+      const snap = LOCK_SNAPSHOT.find(s => s.id === f.id);
+      if (snap) { f.devLocked = snap.devLocked; f.devLockReason = snap.devLockReason; }
+      f.curation = undefined;
+    }
+  });
+  refreshStats(); renderCanvas(); renderStack();
+}
+el.requeue.addEventListener("click", requeueLocked);
+
+/* --- F1 ingest demo strip (ripple → split) ------------------------------------ */
+function runIngestDemo() {
+  el.f1strip.hidden = false;
+  const text = "G S A P  S P L I T";
+  asciiRipple(el.splitline, text, 10);
+  setTimeout(() => splitReveal(el.splitline, text), 480);
+  setTimeout(() => { el.f1strip.hidden = true; }, 3400);
+}
+window.addEventListener("load", () => { setTimeout(runIngestDemo, 600); });
+
+/* --- boot ---------------------------------------------------------------------- */
+document.querySelector('.leftnav button.zone[data-zone="f2_forged"]')
+  .setAttribute("aria-current", "true");
+refreshStats();
+renderCanvas();
+</script>
+</body>
+</html>

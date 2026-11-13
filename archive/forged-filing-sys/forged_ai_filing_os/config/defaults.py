@@ -1,0 +1,32 @@
+"""Default configuration for Forged-AI-Filing-OS / Ava007."""
+
+from pathlib import Path
+
+WORKSPACE = Path("/workspace/scratch/forged_vault")
+L0_DIR = WORKSPACE / "L0_Trace"
+L1_DIR = WORKSPACE / "L1_Atoms"
+L2_DIR = WORKSPACE / "L2_Scenarios"
+L3_DIR = WORKSPACE / "L3_Persona"
+REFS_DIR = WORKSPACE / "refs_offload"
+DB_PATH = WORKSPACE / "local_memory.db"
+VAULT_DIR = WORKSPACE / "forge_vault"   # F0 raw / F2 forged / F3 manifest
+
+MERCURY_MODEL_ID = "inception/mercury-2.5"
+MERCURY_CONTEXT_TOKENS = 260_000
+MERCURY_TARGET_TPS = 1107
+DEFAULT_REASONING_DEPTH = "medium"
+CHUNK_SOFT_LIMIT = 8_192
+CHUNK_HARD_LIMIT = 32_768
+CHUNK_OVERLAP = 256
+
+MEMORY_TIERS = ("L0", "L1", "L2", "L3")
+SKILL_RECALL_TARGET_MS = 10.0
+
+TARGET_RSS_DELTA_MB = 0.0
+TARGET_PEAK_HEAP_MB = 0.35
+TARGET_PERCEPTUAL_FUSION_MS = 100
+TARGET_UNLOCK_MS = 800
+
+COMPLEXITY_LOW = 0.25
+COMPLEXITY_MED = 0.55
+COMPLEXITY_HIGH = 0.80

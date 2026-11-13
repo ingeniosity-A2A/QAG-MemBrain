@@ -1,0 +1,19 @@
+{
+  "name": "AVA007 Agent Browser — Forged File Explorer",
+  "short_name": "AVA007",
+  "description": "S26-Ultra-native agent browser: Ava007 chat, curation stack, and streaming F0 ingest under the Forged File Standard.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#23211d",
+  "theme_color": "#23211d",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

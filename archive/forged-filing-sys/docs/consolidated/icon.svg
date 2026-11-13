@@ -1,0 +1,8 @@
+/* AVA007 agent-browser icon — forged-file glyph on the FFS neutral/orange lock.
+   Any (maskable-safe): the glyph sits well inside the safe zone. */
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#23211d"/>
+  <rect x="96" y="96" width="320" height="320" rx="56" fill="none" stroke="#a9a396" stroke-width="14"/>
+  <path d="M176 336 L256 176 L336 336" fill="none" stroke="#ff8a3d" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="212" y1="286" x2="300" y2="286" stroke="#ffd23f" stroke-width="18" stroke-linecap="round"/>
+</svg>

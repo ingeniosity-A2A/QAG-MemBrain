@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A2A App-less — Mergekit Curation + Execution Container</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="swc open-right open-bottom" id="swc">
+
+ <div class="swc-main">
+
+  <!-- ══ STAGE (main face) ══ -->
+  <section class="stage">
+
+    <!-- twin dot-matrix LCDs -->
+    <div class="lcds">
+      <div class="lcd lcd--tuner">
+        <span class="lcd-strip">A2A·APPLESS<span class="tick">▚</span>MERGEKIT·CURATION</span>
+        <div class="lcd-clock" id="lcdClock">04:35</div>
+      </div>
+      <div class="lcd lcd--mission">
+        <div class="lcd-mission-top">
+          <span class="lcd-title" id="lcdTitle">HEADLESS EXECUTION</span>
+          <span class="lcd-dur" id="lcdSeq">SEQ 0001</span>
+        </div>
+        <div class="lcd-mission-sub" id="lcdSub">kernel owns execution authority</div>
+      </div>
+    </div>
+
+    <!-- action contract readout -->
+    <div class="contract">
+      <div class="contract-row">
+        <span class="c-field">CAP</span><span class="c-val" id="cCap">telecom.radio</span>
+        <span class="c-field">OP</span><span class="c-val" id="cOp">atpc.adjust</span>
+        <span class="c-field">AUTH</span><span class="c-val" id="cAuth">TELECOM</span>
+        <span class="c-field">CONF</span><span class="c-val" id="cConf">0.92</span>
+      </div>
+      <div class="contract-row contract-row--verify">
+        <span class="c-field">VERIFY</span><span class="c-val c-val--wide" id="cVerify">rsrp(t+30s) − rsrp(t) ≥ +1.0 dB</span>
+        <span class="verdict" id="cVerdict">KERNEL ACCEPT</span>
+      </div>
+    </div>
+
+    <!-- execution stack -->
+    <div class="stack" id="stack">
+      <div class="sg" data-i="0"><i></i><span>ENVIRONMENT / TELEMETRY</span></div>
+      <div class="sg" data-i="1"><i></i><span>TIER −1 REFLEX</span></div>
+      <div class="sg" data-i="2"><i></i><span>AVA007 INTELLIGENCE</span></div>
+      <div class="sg" data-i="3"><i></i><span>EXPERT LOBE / CAPABILITY</span></div>
+      <div class="sg" data-i="4"><i></i><span>TYPED ACTION</span></div>
+      <div class="sg sg--kernel" data-i="5"><i></i><span>AVA-NANO KERNEL</span></div>
+      <div class="sg" data-i="6"><i></i><span>A2A APP-LESS FABRIC</span></div>
+      <div class="sg" data-i="7"><i></i><span>LOCAL / REMOTE CAPABILITY</span></div>
+      <div class="sg" data-i="8"><i></i><span>HARDWARE / SYSTEM</span></div>
+      <div class="sg" data-i="9"><i></i><span>OBSERVATION → VERIFICATION</span></div>
+      <div class="sg sg--end" data-i="10"><i></i><span>CONTINUE / RECOVER / COMPLETE</span></div>
+    </div>
+
+    <!-- key strip -->
+    <div class="keys">
+      <button class="key key--run" id="runKey" title="run the canonical loop">RUN ▸</button>
+      <div class="keys-mini">
+        <button class="mkey" id="rightKey" title="toggle right panel (≤50%)"><span class="glyph">III</span><label>RECIPES</label></button>
+        <button class="mkey" id="bottomKey" title="toggle bottom panel (≤25%)"><span class="glyph">III</span><label>PROGRESS</label></button>
+      </div>
+      <div class="latency" id="latency">transport 41.3 ms · exec 128.7 ms — measured, never zero</div>
+    </div>
+
+    <!-- edge grips (drag to resize within cap) -->
+    <div class="grip grip--v" id="gripV" title="drag — right panel caps at 50%"><span></span><span></span><span></span></div>
+    <div class="grip grip--h" id="gripH" title="drag — bottom panel caps at 25%"><span></span><span></span><span></span></div>
+  </section>
+
+  <!-- ══ RIGHT PANEL — recipe stack (extends ≤ 50%) ══ -->
+  <aside class="panel panel--right" id="panelRight">
+    <div class="panel-inner">
+      <header class="p-head">
+        <h2>MERGE RECIPES</h2><span class="p-cap">≤ 50%</span>
+      </header>
+      <ul class="recipe-list">
+        <li class="ri current"><b>ava007-intelligence-moe</b><small>MoE · hidden gate · bf16 · 3 experts</small><em>current</em></li>
+        <li class="ri"><b>ava007-ties</b><small>TIES · dense fallback · density 1.0/.7/.1</small></li>
+        <li class="ri"><b>examples/ties</b><small>upstream sample · llama-2-13b trio</small></li>
+        <li class="ri"><b>examples/linear</b><small>upstream sample · linear</small></li>
+        <li class="ri"><b>examples/arcee_fusion</b><small>upstream sample · phi-3</small></li>
+      </ul>
+      <header class="p-head p-head--sub"><h2>EXPERT LOBES</h2></header>
+      <ul class="lobe-list">
+        <li><i class="dot dot--g"></i>Qwen 2.5 Coder <small>code · @c03e6d35</small></li>
+        <li><i class="dot dot--g"></i>Mercury 2.5 <small>dispatch · Tier-1 bridge</small></li>
+        <li><i class="dot dot--g"></i>Astra <small>reasoning · astra_curator</small></li>
+        <li><i class="dot dot--g"></i>Cybernetic Intel <small>architecture · this repo</small></li>
+        <li><i class="dot dot--a"></i>Salience 1-9B heretic <small>perception · unpinned</small></li>
+        <li><i class="dot dot--a"></i>Trinity Nano <small>reflex · unpinned</small></li>
+        <li><i class="dot dot--d"></i>GenieX <small>ABSENT · verify first</small></li>
+      </ul>
+    </div>
+  </aside>
+
+ </div>
+
+  <!-- ══ BOTTOM PANEL — merge progress F0→F3 (extends ≤ 25%) ══ -->
+  <footer class="panel panel--bottom" id="panelBottom">
+    <div class="panel-inner panel-inner--row">
+      <div class="fstage"><small>F0</small><b>RAW UPLOAD</b><span class="pill pill--done">done</span></div>
+      <div class="farrow">▸</div>
+      <div class="fstage"><small>F1</small><b>CHUNK · GSAP SPLIT TEXT</b><span class="pill pill--done">done</span></div>
+      <div class="farrow">▸</div>
+      <div class="fstage"><small>F2</small><b>FORGED FILE</b><span class="pill pill--live">live</span></div>
+      <div class="farrow">▸</div>
+      <div class="fstage"><small>F3</small><b>MANIFEST · APPEND-ONLY</b><span class="pill pill--idle">pending</span></div>
+      <div class="fmeta">
+        <div class="fbar"><span id="fbar"></span></div>
+        <small>no stage skipped · F0/F1/F2 immutable · F3 append-only</small>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

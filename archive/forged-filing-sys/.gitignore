@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.env.local
+vault/
+forge_vault/
+*.duckdb
+*.wal
+*.skills.json
+*.intelligence.json
+
+# Cloudflare Pages build output (created by scripts/build_pages.sh, never committed)
+dist/
+
+# Wrangler local cache
+.wrangler/

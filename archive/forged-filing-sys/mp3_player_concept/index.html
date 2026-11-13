@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MP3 Player Concept</title>
+<!-- Visual reference: "MP3 Player Concept" by Mik Skuza (Dribbble) — built 1:1 per operator order, no redesign -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="stage">
+  <div class="device">
+
+    <!-- SCREENS -->
+    <div class="screens">
+      <div class="screen screen-left">
+        <div class="tuner">
+          <span class="band-letters"><i>O</i><i>A</i><i>D</i><i>I</i><i>V</i></span>
+          <svg class="band-play" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 0.8 L9 5 L1.5 9.2 Z"/></svg>
+        </div>
+        <div class="clock" id="clock">04:35</div>
+        <div class="eq" id="eq" aria-hidden="true"></div>
+      </div>
+
+      <div class="screen screen-right">
+        <div class="track-top">
+          <div class="track-id">
+            <div class="track-title">Neurotic Nostalgia</div>
+            <div class="track-artist">Mik Kosma</div>
+          </div>
+          <div class="track-len">(3:45)</div>
+        </div>
+        <div class="track-bottom">
+          <span class="tb-year">2021</span>
+          <span class="tb-kbps">320 kbps&nbsp;&nbsp;/&nbsp;&nbsp;44 kHz</span>
+          <span class="tb-stereo">Stereo<br>Mono</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEEK ROW -->
+    <div class="seekrow">
+      <div class="seek" id="seek">
+        <div class="seek-fill" id="seek-fill"></div>
+        <div class="seek-handle" id="seek-handle"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="mini">
+        <button class="mb mb-active" id="mb-eq" type="button">III</button>
+        <button class="mb mb-balance" type="button"><span>L</span><span class="bal-slot"><span class="bal-knob">III</span></span><span>R</span></button>
+        <button class="mb" type="button">EQ</button>
+        <button class="mb" type="button">PL</button>
+      </div>
+    </div>
+
+    <!-- TRANSPORT -->
+    <div class="transport">
+      <button class="tb" id="btn-prev" type="button" aria-label="Previous">
+        <svg viewBox="0 0 16 16"><path d="M3.2 2.2h1.9v11.6H3.2z"/><path d="M13.4 2.6v10.8L5.9 8z"/></svg>
+      </button>
+      <button class="tb" id="btn-play" type="button" aria-label="Play">
+        <svg viewBox="0 0 16 16"><path d="M4.2 2.4 13.4 8 4.2 13.6z"/></svg>
+      </button>
+      <button class="tb" id="btn-pause" type="button" aria-label="Pause">
+        <svg viewBox="0 0 16 16"><path d="M4.1 2.4h2.6v11.2H4.1z"/><path d="M9.3 2.4h2.6v11.2H9.3z"/></svg>
+      </button>
+      <button class="tb" id="btn-stop" type="button" aria-label="Stop">
+        <svg viewBox="0 0 16 16"><path d="M3.8 3.8h8.4v8.4H3.8z"/></svg>
+      </button>
+      <button class="tb" id="btn-next" type="button" aria-label="Next">
+        <svg viewBox="0 0 16 16"><path d="M2.6 2.6v10.8L10.1 8z"/><path d="M10.9 2.2h1.9v11.6h-1.9z"/></svg>
+      </button>
+    </div>
+
+    <!-- SPEAKER GRILLES -->
+    <div class="grille grille-l" aria-hidden="true"></div>
+    <div class="grille grille-r" aria-hidden="true"></div>
+
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

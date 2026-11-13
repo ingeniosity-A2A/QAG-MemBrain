@@ -1,0 +1,103 @@
+# SPARC Separation Policy — Forged-AI-Filing-OS
+# Includes Infinity-Parser / Image Lens, Whisper ASR, turbovec, V-Rubrics, LayoutRL
+#
+# Subordinate to the canonical contract: docs/FORGED_FILE_STANDARD.md
+# - Hugging Face models below are the vendor/input boundary (whole-model vendoring
+#   OUTSIDE F0 → F3); they are not a fourth intelligence layer.
+# - turbovec is a store-side concern of the DuckDB Intelligence store.
+# - Visual surfaces obey the three-color palette lock (neutral / orange / yellow).
+
+version: "1.1.0"
+owner: ingeniosity-A2A
+project: forged-ai-filing-os
+
+# ---------------------------------------------------------------------------
+# Core embedding & index settings
+# ---------------------------------------------------------------------------
+embed_on_ingest: true
+embedding_model: nomic-ai/nomic-embed-text-v1.5   # or sentence-transformers/all-MiniLM-L6-v2
+embedding_dim: 768
+quantization_bits: 4
+index_type: IdMapIndex          # stable external u64 IDs
+sync_interval: 100              # incremental durable saves every N adds
+metric: cosine
+
+# ---------------------------------------------------------------------------
+# Multimodal Intake
+# ---------------------------------------------------------------------------
+multimodal:
+  pdf:
+    primary_engine: infinity_parser   # VLM end-to-end (Infinity-Doc-400K)
+    fallback: docling                 # Docling + TableFormer
+    output_format: DocLangJSON
+    spatial_layer: liteparse          # target Rust-native spatial coords
+    enable_mcp: true                  # Model Context Protocol for agents
+  asr:
+    model: opencouncil/whisper-large-v3-el-council-lora
+    base: openai/whisper-large-v3
+    language: auto                    # greek preferred for council data
+    task: transcribe
+  image_lens:
+    enabled: true
+    base_vlm: Qwen/Qwen2.5-VL-7B-Instruct
+    rubrics:
+      - VisualFaithfulness
+      - ReasoningConsistency
+      - InstructionFollowing
+    thresholds:
+      visual_faithfulness: 0.85
+      reasoning_consistency: 0.80
+      instruction_following: 0.90
+
+# ---------------------------------------------------------------------------
+# Filters available at search time (applied inside turbovec SIMD kernel)
+# ---------------------------------------------------------------------------
+filters:
+  - domain
+  - source_type          # pdf | audio | code | model_card | transcript
+  - confidence
+  - training_ready
+  - language
+  - license
+  - layout_quality       # from LayoutRL scores
+
+# ---------------------------------------------------------------------------
+# MoE / Refactoring reference
+# ---------------------------------------------------------------------------
+moe_reference:
+  architecture: makeMoE
+  gating: noisy_topk
+  top_k: 2
+  merge_tool: arcee-ai/mergekit
+  frankenmoe_patterns: true
+
+# ---------------------------------------------------------------------------
+# Training / RL settings
+# ---------------------------------------------------------------------------
+training:
+  accelerator: unsloth
+  base_llm: meta-llama/Meta-Llama-3.1-8B
+  layout_rl:
+    enabled: true
+    framework: VeRL                    # HybridFlow
+    optimizer: GRPO
+    rewards:
+      - edit_distance                  # R_dist
+      - paragraph_count                # R_count
+      - order                          # R_order
+  autodata:
+    roles: [challenger, weak_solver, strong_solver, verifier]
+    objective: maximize_delta          # S_strong - S_weak
+
+# ---------------------------------------------------------------------------
+# Domains (extensible)
+# ---------------------------------------------------------------------------
+domains:
+  - general_chat
+  - coding
+  - mathematics
+  - creative_writing
+  - legal
+  - financial
+  - scientific
+  - municipal_council                  # Whisper LoRA domain

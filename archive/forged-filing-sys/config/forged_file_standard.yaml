@@ -1,0 +1,205 @@
+# Forged File Standard v1.2.0 — declarative compliance profile
+# Canonical contract: docs/FORGED_FILE_STANDARD.md
+# Machine source of truth: forged_ai_filing_os/forging/standard.py
+
+version: "1.2.0"
+canonical_contract: docs/FORGED_FILE_STANDARD.md
+owner: ingeniosity-A2A
+project: forged-ai-filing-os
+
+# Position: infrastructure around the Ava007 vault, not cognition inside it.
+positioning:
+  is_ava007_cognitive_capability: false
+  curation_surface: Mastering-Ava007-Curation
+  governed_artifacts: Forged Files (the forging lifecycle)
+
+lifecycle:
+  stages: [F0, F1, F2, F3]
+  stages_before_f0: [precheck, intercept]
+  stage_names:
+    F0: Raw Upload
+    F1: Chunk (GSAP Split Text)
+    F2: Forged File
+    F3: Manifest
+  no_stage_skip: true
+  normalize_metadata_only: true
+  exoskeleton_substrate_binding_wraps_never_executes: true
+
+immutability:
+  F0: immutable       # original evidence
+  F1: immutable       # deterministic chunk artifact
+  F2: immutable       # governed classified artifact
+  F3: append_only     # relationships / provenance
+  versioning: forged_id:vN   # changes mint new versions, never silent modification
+
+classification:
+  code: rocksdb_skills          # executable procedural knowledge
+  intelligence: duckdb_intelligence  # structured knowledge
+  mandatory: true
+
+stores:
+  skills:
+    engine: rocksdb
+    fallback: file_json        # DEV-locked fallback (persists without native engine)
+    role: control_plane        # §5 namespaces, not composite strings
+  intelligence:
+    engine: duckdb
+    fallback: file_json        # DEV-locked fallback (persists without native engine)
+
+namespaces:
+  skill: "{skill_id}"
+  capability: "{capability_id}"
+  asset: "{asset_id}"
+  layer: "{stack_id}:{layer_id}"
+  "idx:hash": "{hash}"
+  "idx:asset": "{asset_id}"
+  manifest: "{forged_id}"
+  stack: "{job_id}:{frame_id}:{depth}"
+
+# Canonical vocabulary (§1.1) — there is NO harness layer.
+vocabulary:
+  harness_layer: exoskeleton
+  capability_harness: exoskeleton_substrate
+  harness_around_ava: exoskeleton_around_ava007
+  gsap: temporal_kernel
+  skills: intelligence_firmware
+  rocksdb: operational_skills_state
+  duckdb: intelligence_queryable_knowledge
+  forged_file: governed_artifact
+  hugging_face: vendor_boundary
+  exoskeleton: substrate_execution_environment_around_ava007
+
+capability:
+  role: compile_time_unit      # §6 — the thing the runtime can actually load
+  equation: tools_plus_harness # Capability = Tools + Harness — NOT a harness layer
+  belongs_to: exoskeleton
+  sections: [dependencies, tools, skill, harness, inputs, outputs, permissions, validation, provenance]
+  artifacts: forge/capabilities/{capability_id}.cap.json
+  control_plane_key: capability:{capability_id}
+  skills_must_exist_in_control_plane: true
+
+detector:
+  no_blind_truncation: true    # §4 — the "first 5MB" assumption is forbidden
+  parsers: [safetensors, gguf, onnx, tokenizer_config]
+  unknown: quarantine
+  weights_stay_in: vendor_store
+  model_intelligence:
+    duckdb: metadata_facts
+    rocksdb: reusable_parsing_skills
+
+hugging_face:
+  role: vendor_input_boundary   # NOT a fourth intelligence layer
+  vendoring: whole-model
+  outside_lifecycle: true       # OUTSIDE F0 → F3
+  import_taxonomy: [config, tokenizer, model_metadata, model_weights, revision_hash]
+  uri_scheme: vendor://
+  weights_never_in_rocksdb: true
+
+gsap:
+  role: mandatory_visual_language_for_F1_chunking
+
+palette:
+  colors: [neutral, orange, yellow]
+  three_colors_only: true
+  mapping:
+    neutral: [shell, F0, F1, F3, vendor_storage, system_infrastructure]
+    orange: [RocksDB, Skills, executable_capabilities]
+    yellow: [DuckDB, Intelligence, structured_knowledge]
+
+animation_semantics:
+  upload: ascii_glitch_ripple
+  f1_chunk: gsap_split_text
+  numeric: odometer
+  stage_transition: slide      # never generic fade transitions
+  dev_locked: visible_inert_reduced_opacity_lock_glyph
+
+explorer_canvas_contract:
+  reuses_existing_primitives: true   # re-skin, not replace
+  primitives:
+    title_path_bar: vault_root_plus_zone
+    left_navigation: lifecycle_zones
+    central_canvas: forged_asset_cards
+    grid_list_modes: two_densities
+    breadcrumbs: vault_zone_id
+    search: id_source_domain_destination
+    sorting: forged_at_confidence_chunks_size
+    inspector: forged_file_provenance_capability
+    status_bar: manifest_summary_plus_dev_lock
+    data_island: explorer_state.ts
+  state_model: components/forged/explorer_state.ts
+
+curation_tree:
+  - CORE PARAMETERS
+  - THE CURATED EXOSKELETON CONFIGURATION
+  - FORGED FILE ENGINE
+  - CAPABILITY CATALOG
+  - ROCKSDB
+  - DUCKDB
+  - HUGGING FACE
+  - REALTIME SANDBOX   # downstream of curation; shows output, defines no architecture
+
+f3:
+  role: provenance_and_relationship_graph
+  backlinks_required: true
+
+vendored_models:
+  vectionlabs/Salience-27B-R5:
+    revision: 985cb1165f03b8ace35872ff02415b0f56e7824b
+    license: Apache-2.0
+    base_model: Qwen3.8-27B
+    pipeline_tag: image-text-to-text
+    governable_artifacts: 10          # 5 tokenizer + 5 config, content-addressed
+    weight_shards_remote: 18
+    weight_bytes_stayed_remote: 55563006776
+    model_card_forged_id: 34999710962f59a8
+    curation_profile_forged_id: e6858d0ecc3ca16f
+    curation_profile_source: curation/vectionlabs__Salience-27B-R5.curation-profile.md
+    capability: cap_salience27b_curation_v1
+  DavidAU/Qwen3.8-27B-TURBO-Fable-Cold-Fusion-735-882-Heretic-Uncensored-NEO-CODER-MAX-MTP-GGUF:
+    revision: 89230607b3708bc1efe174e8fd34d4b164476c88
+    license: Apache-2.0
+    base_model: Qwen3.8-27B (DavidAU NM-DAU)
+    pipeline_tag: image-text-to-text
+    governable_artifacts: 0           # GGUF embeds its declared header/config
+    weight_shards_remote: 23          # quant variants + mmproj projectors
+    weight_bytes_stayed_remote: 389004245760
+    model_card_forged_id: d48c2b3093d19349
+    curation_profile_forged_id: f41a63805d8b3bee
+    curation_profile_source: curation/DavidAU__Qwen3.8-27B-TURBO-Fable-Cold-Fusion-735-882-Heretic-Uncensored-NEO-CODER-MAX-MTP-GGUF.curation-profile.md
+    capability: cap_neocoder27b_curation_v1
+  nvidia/Nemotron-Labs-Audex-30B-A3B:
+    revision: 4e7e342045736382ddf3e2952c313847a08642b8
+    license: other (NVIDIA noncommercial — DEV-locked execution)
+    base_model: ""
+    pipeline_tag: text-generation
+    governable_artifacts: 51          # trust_remote_code modeling source + configs + tokenizers
+    weight_shards_remote: 17
+    weight_bytes_stayed_remote: 71612708116
+    model_card_forged_id: 8326e796389eb384
+    curation_profile_forged_id: 8062a097e39498ed
+    curation_profile_source: curation/nvidia__Nemotron-Labs-Audex-30B-A3B.curation-profile.md
+    capability: cap_audex30b_curation_v1
+    curation_lanes:
+      - manifesto_collection
+      - beyond_the_rainbow_learning
+      - vla
+      - voice_audio_intelligence
+
+dev_locked:
+  - rocksdb_duckdb_fallback_backends
+  - gsap_f1_visualizer_bento_consumers
+  - curation_explorer_surfaces
+  - detector_sharded_onnx_full_parsers
+  - vendored_model_inference_execution
+  - agent_browser_chat_lens           # /api/chat on ai-browser Pages: live, DEV-locked until HUGGINGFACE_TOKEN
+
+agent_browser:
+  hosting: cloudflare_pages           # project ai-browser (direct upload, no Actions)
+  production_url: https://ai-browser.pages.dev
+  domain: ai.ingeniosity.tech         # attach: Pages dashboard → Custom domains
+  deploy: sh ./scripts/deploy_pages.sh
+  surfaces:
+    chat_dock: ava007 chat · /api/chat lens proxy · DEV-locked visible+inert
+    stream_ingest: /api/ingest URL→F0 extract · inventory & order lane
+    pwa: manifest.webmanifest · sw.js offline shell · installable home-screen app
+  palette: three_color_lock_holds

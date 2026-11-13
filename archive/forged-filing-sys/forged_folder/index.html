@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORGEDxFolder — Exoskeleton Kernel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Reddit+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="window">
+  <!-- TITLEBAR -->
+  <div class="titlebar">
+    <div class="traffic">
+      <div class="tl red"></div>
+      <div class="tl amber"></div>
+      <div class="tl green"></div>
+    </div>
+    <div class="path" id="path">~/exoskeleton/arrow_buffer</div>
+    <div class="tb-right">
+      <div class="search">
+        <span>⌕</span>
+        <input type="text" id="search" placeholder="Query kernel state...">
+      </div>
+      <div class="viewtoggle">
+        <button class="vt active" data-view="grid">▦</button>
+        <button class="vt" data-view="list">☰</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="side-group">
+        <div class="side-label">Locations</div>
+        <button class="side-item active" data-goto="root"><i>🏠</i> Home</button>
+        <button class="side-item" data-goto="projects"><i>📁</i> Projects</button>
+        <button class="side-item" data-goto="assets"><i>🎨</i> Assets</button>
+        <button class="side-item" data-goto="documents"><i>📄</i> Documents</button>
+      </div>
+      <div class="side-group">
+        <div class="side-label">Kernel Filters</div>
+        <button class="side-item active" data-filter="all"><i>◉</i> All Nodes</button>
+        <button class="side-item" data-filter="code"><i>⌘</i> Mercury Streams</button>
+        <button class="side-item" data-filter="doc"><i>📝</i> Arrow Buffers</button>
+      </div>
+      <div class="storage">
+        <div class="st-row"><span>Zero-Copy Memory</span><b id="mem-usage">62%</b></div>
+        <div class="st-bar"><span id="mem-bar"></span></div>
+        <small><b id="file-count">0</b> items · <b>24.6 GB</b> free</small>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="toolbar">
+        <button class="tool" id="back" title="Go Up">←</button>
+        <div class="crumbs" id="crumbs"></div>
+        <div class="sortby">
+          <label>Sort</label>
+          <select id="sort">
+            <option value="name">Name</option>
+            <option value="size">Size</option>
+            <option value="date">Modified</option>
+            <option value="type">Type</option>
+          </select>
+        </div>
+      </div>
+      <div class="files grid" id="files">
+        <div class="empty" id="empty" hidden>
+          <div class="empty-glyph">🗂</div>
+          <b>Nothing here</b>
+          <small>This buffer is empty, or nothing matched your kernel query.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSPECTOR / COGNITIVE DECK -->
+    <div class="inspector">
+      <div class="insp-empty" id="insp-empty">
+        <div class="ie-glyph">◌</div>
+        <p>Select a data node to inspect its kernel state.</p>
+      </div>
+      <div class="insp-body" id="insp-body" hidden>
+        <div class="insp-preview" id="insp-preview"></div>
+        <h3 id="insp-name">filename.ext</h3>
+        <span class="insp-kind" id="insp-kind">Source code</span>
+
+        <div class="insp-meta">
+          <div><dt>Size</dt><dd id="insp-size">—</dd></div>
+          <div><dt>Modified</dt><dd id="insp-date">—</dd></div>
+          <div><dt>Location</dt><dd id="insp-where">—</dd></div>
+          <div><dt>Kernel State</dt><dd id="insp-state" style="color: var(--acc);">Atomic Ready</dd></div>
+        </div>
+
+        <div class="insp-note" id="insp-note">Reading data island…</div>
+
+        <!-- GSAP KERNEL ACTIONS -->
+        <div class="insp-actions">
+          <button class="btn" id="btn-morph">Morph Data</button>
+          <button class="btn primary" id="btn-inject">Inject (set)</button>
+        </div>
+      </div>
+
+      <!-- COGNITIVE PLAYHEAD (Time-Scrubbing) -->
+      <div class="cognitive-deck">
+        <div class="deck-label">ava007 Cognitive Playhead (Seek)</div>
+        <div class="playhead-track" id="playhead-track">
+          <div class="playhead-progress" id="playhead-progress"></div>
+          <div class="playhead-thumb" id="playhead-thumb"></div>
+        </div>
+        <div class="deck-status">
+          <span class="status-pill exo">Exoskeleton: Mercury 2 Active</span>
+          <span class="status-pill ava">ava007: Unimpeded</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUSBAR -->
+  <div class="statusbar">
+    <div class="meta-src">data: #fs-data · <b id="status">Filesystem loaded ✓</b></div>
+    <div class="meta-time" id="clock">00:00:00.000</div>
+  </div>
+</div>
+
+<!-- DATA ISLAND: Simulated Apache Arrow / GSAP Kernel State -->
+<script type="application/json" id="fs-data">
+{
+  "root": {
+    "name": "root",
+    "parent": null,
+    "items": [
+      { "id": "f1", "name": "mercury_stream.json", "type": "code", "size": 14500, "date": "2026-09-07T10:00:00Z", "note": "1,200 tok/sec compaction active. Zero-copy Arrow bridge engaged." },
+      { "id": "f2", "name": "ava007_context.arrow", "type": "doc", "size": 84000, "date": "2026-09-07T10:05:00Z", "note": "Pure cognitive reasoning buffer. Insulated from I/O locks." },
+      { "id": "f3", "name": "salience_weights.bin", "type": "image", "size": 245000, "date": "2026-09-07T09:30:00Z", "note": "Background VLM worker. Ready for atomic pointer swap (gsap.set)." }
+    ]
+  },
+  "projects": {
+    "name": "Projects",
+    "parent": "root",
+    "items": [
+      { "id": "f4", "name": "flash_attention_4_kernel.rs", "type": "code", "size": 3200, "date": "2026-09-07T11:00:00Z", "note": "Blackwell TMEM accumulator state mapping." }
+    ]
+  },
+  "assets": { "name": "Assets", "parent": "root", "items": [] },
+  "documents": { "name": "Documents", "parent": "root", "items": [] }
+}
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>
